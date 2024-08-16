@@ -20,6 +20,8 @@ dependencies = [
 	# uvicorn
     "nicegui>=1.4.32",
     "ngwidgets>=0.17.0",
+    # https://arrow.apache.org/docs/python/index.html
+    "pyarrow>=17.0.0"
 ]
 
 requires-python = ">=3.9"
@@ -53,10 +55,11 @@ test = [
 ]
 
 [tool.hatch.build.targets.wheel]
-only-include = ["genwiki"]
+only-include = ["genwiki","genwiki_examples"]
 
 [tool.hatch.build.targets.wheel.sources]
 "genwiki" = "genwiki"
+"genwiki_examples" = "genwiki_examples"
 
 [project.scripts]
 genwiki = "genwiki.genwiki_cmd:main"
