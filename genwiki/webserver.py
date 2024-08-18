@@ -4,17 +4,16 @@ Created on 2024-08-15
 @author: wf
 """
 
-import os
-
+from ngwidgets.login import Login
+from ngwidgets.users import Users
 from ngwidgets.input_webserver import InputWebserver, InputWebSolution
 from ngwidgets.webserver import WebserverConfig
-from nicegui import Client, app, ui
-
+from nicegui import Client, ui
 from genwiki.version import Version
-
+from starlette.responses import RedirectResponse
 
 class GenWikiWebServer(InputWebserver):
-    """WebServer class that manages the server and handles Sprinkler operations."""
+    """WebServer class that manages the server and handles GenWiki operations."""
 
     @classmethod
     def get_config(cls) -> WebserverConfig:
@@ -32,12 +31,27 @@ class GenWikiWebServer(InputWebserver):
     def __init__(self):
         """Constructs all the necessary attributes for the WebServer object."""
         InputWebserver.__init__(self, config=GenWikiWebServer.get_config())
+        users = Users("~/.solutions/genwiki")
+        self.login = Login(self, users)
         self.simulation = None
 
+        @ui.page("/")
+        async def home(client: Client):
+            return await self.page(client, GenWikiSolution.home)
+
+        @ui.page("/login")
+        async def login(client: Client):
+            return await self.page(client, GenWikiSolution.login_ui)
+
+        @ui.page("/logout")
+        async def logout(client: Client) -> RedirectResponse:
+            if self.login.authenticated():
+                await self.login.logout()
+            return RedirectResponse("/")
 
 class GenWikiSolution(InputWebSolution):
     """
-    the NiceSprinkler solution
+    the GenWiki solution
     """
 
     def __init__(self, webserver: GenWikiWebServer, client: Client):
@@ -49,3 +63,36 @@ class GenWikiSolution(InputWebSolution):
             client (Client): The client instance this context is associated with.
         """
         super().__init__(webserver, client)
+
+    def authenticated(self) -> bool:
+        """
+        Check if the user is authenticated.
+        Returns:
+            True if the user is authenticated, False otherwise.
+        """
+        return self.webserver.login.authenticated()
+
+    def setup_menu(self, detailed: bool = True):
+        """
+        setup the menu
+        """
+        super().setup_menu(detailed=detailed)
+        ui.button(icon="menu", on_click=lambda: self.header.toggle())
+        with self.header:
+            if self.authenticated():
+                self.link_button("logout", "/logout", "logout", new_tab=False)
+            else:
+                self.link_button("login", "/login", "login", new_tab=False)
+
+    async def login_ui(self):
+        """
+        login ui
+        """
+        await self.webserver.login.login(self)
+
+    async def home(self):
+        """Provide the main content page"""
+        def setup_home():
+            ui.label("Welchome to the gensmw frontend")
+        
+        await self.setup_content_div(setup_home)

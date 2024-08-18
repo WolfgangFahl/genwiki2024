@@ -6,10 +6,16 @@ Created on 2024-08-15
 import unittest
 from ngwidgets.basetest import Basetest
 from genwiki.wiki import Wiki
+from wikibot3rd.wikipush import WikiPush
 
 class TestCategories(Basetest):
     """
     test category handling
+    
+    you need to run 
+    
+    wikibackup -s genealogy -q "[[Kategorie:Adressbuch_in_der_Online-Erfassung/fertig]]"
+    
     """
 
     def setUp(self, debug=True, profile=True):
