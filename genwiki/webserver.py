@@ -31,7 +31,7 @@ class GenWikiWebServer(InputWebserver):
     def __init__(self):
         """Constructs all the necessary attributes for the WebServer object."""
         InputWebserver.__init__(self, config=GenWikiWebServer.get_config())
-        users = Users("~/.solutions/genwiki")
+        users = Users("~/.solutions/genwiki2024")
         self.login = Login(self, users)
         self.simulation = None
 
@@ -93,6 +93,6 @@ class GenWikiSolution(InputWebSolution):
     async def home(self):
         """Provide the main content page"""
         def setup_home():
-            ui.label("Welchome to the gensmw frontend")
+            ui.label("Welcome to the gensmw frontend")
         
         await self.setup_content_div(setup_home)
