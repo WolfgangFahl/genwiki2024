@@ -3,12 +3,10 @@ Created on 2024-08-15
 
 @author: wf
 """
-import unittest
-from ngwidgets.basetest import Basetest
+from tests.gbasetest import GenealogyBasetest
 from genwiki.wiki import Wiki
-from wikibot3rd.wikipush import WikiPush
 
-class TestCategories(Basetest):
+class TestCategories(GenealogyBasetest):
     """
     test category handling
     
@@ -19,7 +17,7 @@ class TestCategories(Basetest):
     """
 
     def setUp(self, debug=True, profile=True):
-        Basetest.setUp(self, debug=debug, profile=profile)
+        GenealogyBasetest.setUp(self, debug=debug, profile=profile)
         self.ask_query="[[Kategorie:Adressbuch_in_der_Online-Erfassung/fertig]]"
         self.wiki = Wiki(wiki_id="genealogy",debug=self.debug,backup_dir="/tmp/genwiki")
 
