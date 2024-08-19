@@ -29,7 +29,8 @@ class TestCategories(GenealogyBasetest):
         self.ask_query = "[[Kategorie:Adressbuch_in_der_Online-Erfassung/fertig]]"
         self.backup_dir = "/tmp/genwiki"
         self.wiki = Wiki(wiki_id=self.wiki_id, debug=self.debug, backup_dir=self.backup_dir)
-        self.wiki.is_smw_enabled = False
+        self.wiki.wiki_push.fromWiki.is_smw_enabled = False
+
 
     def testCategories(self):
         """
@@ -44,41 +45,41 @@ class TestCategories(GenealogyBasetest):
         if self.debug:
             print(page_contents)
 
- 
+
     def test_convert_addressbooks(self):
         # Set up source and target wikis
         source_wiki = self.wiki
         target_wiki = Wiki(wiki_id=self.target_wiki_id, debug=self.debug)
-        
+
         # Create AddressBookConverter
         ac = AddressBookConverter(debug=self.debug)
-        
+
         # Get page contents
         page_contents = source_wiki.get_all_content()
-        
+
         limit=400
-        
+
         # Set up tqdm progress bar
         progress_bar = tqdm(total=limit, desc="Converting AddressBooks", unit="page")
-        
+
         mode="backup" # or 'push' if you want to test pushing to the wiki
-            
+
         # Convert with limit of 10 pages
         target_pages=ac.convert(
             page_contents,
             target_wiki=target_wiki,
-            mode=mode, 
+            mode=mode,
             limit=limit,
             progress_bar=progress_bar
         )
-        
+
         # Close the progress bar
         progress_bar.close()
-        
+
         rcount=len(target_pages)
         # Assertions
         self.assertEqual(progress_bar.n, rcount, f"Expected {rcount} pages to be processed")
-        
+
         # Check if backup files were created (if mode is 'backup')
         if mode == 'backup':
             ab_count=0
@@ -87,10 +88,10 @@ class TestCategories(GenealogyBasetest):
                 ab_dict=ac.template_map.as_topic_dict(page_content)
                 if  ab_dict:
                     ab_count+=1
-    
-            
+
+
             self.assertTrue(rcount-ab_count<3, f"Expected {rcount} {ac.template_map.topic_name} backup files to be created -max 3 difference")
-        
+
         if self.debug:
             print(f"Converted {rcount} AddressBook pages")
 
