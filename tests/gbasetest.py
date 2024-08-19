@@ -40,6 +40,14 @@ class GenealogyBasetest(Basetest):
                     "scriptPath": "/",
                     "version": "MediaWiki 1.35.11",
                 }
+            elif wikiId == "gensmw":
+                wikiDict = {
+                    "wikiId": wikiId,
+                    "email": "noreply@nouser.com",
+                    "url": "https://gensmw.bitplan.com/",
+                    "scriptPath": "/",
+                    "version": "MediaWiki 1.39.8",
+                }
             elif wikiId == "smwcopy":
                 wikiDict = {
                     "wikiId": wikiId,

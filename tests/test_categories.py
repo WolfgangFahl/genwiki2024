@@ -24,6 +24,8 @@ class TestCategories(GenealogyBasetest):
         GenealogyBasetest.setUp(self, debug=debug, profile=profile)
         wiki_id = "genealogy"
         self.get_wiki_user(wikiId=wiki_id, save=self.inPublicCI())
+        target_wiki_id="gensmw"
+        self.get_wiki_user(wikiId=target_wiki_id,save=self.inPublicCI())
         self.ask_query = "[[Kategorie:Adressbuch_in_der_Online-Erfassung/fertig]]"
         self.backup_dir = "/tmp/genwiki"
         self.wiki = Wiki(wiki_id=wiki_id, debug=self.debug, backup_dir=self.backup_dir)
@@ -46,7 +48,7 @@ class TestCategories(GenealogyBasetest):
     def test_convert_addressbooks(self):
         # Set up source and target wikis
         source_wiki = self.wiki
-        target_wiki = Wiki(wiki_id="gensmw", debug=self.debug)
+        target_wiki = Wiki(wiki_id=self.target_wiki_id, debug=self.debug)
         
         # Create AddressBookConverter
         ac = AddressBookConverter(debug=self.debug)
