@@ -3,7 +3,7 @@ Created on 19.08.2024
 
 @author: wf
 """
-
+import logging
 import os
 
 from genwiki.template import TemplateMap, TemplateParam
@@ -44,7 +44,9 @@ class AddressBookConverter:
         target_wiki=None,
         mode="backup",
         limit: int = None,
-        progress_bar=None,
+        force: bool=False,
+        progress_bar=None
+
     ):
         """
         Convert the pages of the given page_contents dict.
@@ -54,8 +56,11 @@ class AddressBookConverter:
             target_wiki (Wiki): Target wiki object for pushing content (if mode is 'push').
             mode (str): 'push' to push to target wiki, 'backup' to store as backup files.
             limit (int): Limit the number of pages to process.
+            force (bool): if not True only do a dry run
             progress_bar (Progressbar): Progress bar object to update during conversion.
         """
+        if force:
+            target_wiki.wiki_push.toWiki.login()
         result={}
         total = len(page_contents) if limit is None else min(limit, len(page_contents))
         if progress_bar:
@@ -70,9 +75,10 @@ class AddressBookConverter:
             markup = self.template_map.dict_to_markup(ab_dict)
             result[page_name]=markup
             if mode == "push" and target_wiki:
-                target_wiki.edit_page(
-                    page_name, markup, summary="Converted AddressBook template"
+                edit_status=target_wiki.wiki_push.edit_page_content(
+                    page_title=page_name, new_text=markup, summary="Converted AddressBook template", force=force
                 )
+                logging.log(logging.INFO,edit_status)
             elif mode == "backup":
                 backup_path = os.path.join(
                     target_wiki.wiki_backup_dir, f"{page_name}.wiki"

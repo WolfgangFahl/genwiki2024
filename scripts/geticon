@@ -1,0 +1,109 @@
+#!/bin/bash
+# WF 2024-08-19
+
+# Color definitions
+blue='\033[0;34m'
+red='\033[0;31m'
+green='\033[0;32m'
+endColor='\033[0m'
+
+# Function to display colored messages
+color_msg() {
+  local l_color="$1"
+  local l_msg="$2"
+  echo -e "${l_color}$l_msg${endColor}"
+}
+
+# Function to display errors and exit
+error() {
+  local l_msg="$1"
+  color_msg $red "Error: $l_msg" 1>&2
+  exit 1
+}
+
+# Function to display negative messages
+negative() {
+  local l_msg="$1"
+  color_msg $red "❌ $l_msg"
+}
+
+# Function to display positive messages
+positive() {
+  local l_msg="$1"
+  color_msg $green "✅ $l_msg"
+}
+
+# Function to display usage information
+usage() {
+  echo "Usage: $0 [ICON] [SIZE]"
+  echo "Download a Font Awesome icon as a PNG file with the specified size."
+  echo ""
+  echo "Options:"
+  echo "  -h, --help         Show this help message"
+  echo ""
+  echo "Examples:"
+  echo "  $0 bell 128        Download the 'bell' icon and resize it to 128x128."
+  exit 1
+}
+
+# Check for required dependencies
+command -v curl >/dev/null 2>&1 || error "curl is required but it's not installed."
+command -v convert >/dev/null 2>&1 || error "ImageMagick is required but it's not installed."
+
+# Initialize variables
+icon=""
+size=""
+debug=false
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage
+      ;;
+    -d|--debug)
+      debug=true
+      ;;
+    *)
+      if [ -z "$icon" ]; then
+        icon="$1"
+      elif [ -z "$size" ]; then
+        size="$1"
+      else
+        error "Unexpected argument: $1"
+      fi
+      ;;
+  esac
+  shift
+done
+
+# Validate arguments
+if [[ -z "$icon" || -z "$size" ]]; then
+  error "Icon name and size are required."
+fi
+
+# Debug output
+if [ "$debug" = true ]; then
+  positive "Debug mode enabled"
+  echo "Icon: $icon"
+  echo "Size: $size"
+fi
+
+# Download the SVG and convert to PNG
+url="https://contexts.bitplan.com/font-awesome/svg/${icon}.svg"
+output_svg="/tmp/${icon}.svg"
+output_png="/tmp/${icon}.png"
+
+positive "Downloading icon: $icon"
+curl -s "$url" -o "$output_svg" || error "Failed to download the icon."
+
+# Check if the downloaded file is an HTML error page
+if grep -q "<html>" "$output_svg"; then
+  rm "$output_svg"
+  error "Failed to download the icon. The icon '$icon' may not exist."
+fi
+
+positive "Converting icon to PNG"
+convert -density 1200 -resize "${size}" -background none "$output_svg" "$output_png" || error "Failed to convert the icon."
+
+positive "Icon successfully converted: $output_png"

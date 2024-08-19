@@ -1,0 +1,22 @@
+#!/bin/bash
+# WF 2024-08-19
+# get icons
+
+# Arrays for icon names and corresponding font-awesome icons
+icon_names=("ClaimIcon" "SourceIcon" "AddressBookIcon" "InterpretationIcon")
+fa_icons=("file-signature" "book-open" "address-book" "lightbulb")
+
+# Length of arrays
+len=${#icon_names[@]}
+
+for ((i=0; i<$len; i++)); do
+  icon_name=${icon_names[$i]}
+  fa_icon=${fa_icons[$i]}
+
+  # Assuming geticon takes the font-awesome icon name as an argument
+  scripts/geticon "$fa_icon" 32
+
+  # Rename the downloaded file to the desired icon name
+  mv "/tmp/${fa_icon}.png" "/tmp/${icon_name}.png"
+  wikiupload -t gensmw --files "/tmp/${icon_name}.png"
+done

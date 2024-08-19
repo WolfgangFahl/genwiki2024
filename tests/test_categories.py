@@ -25,6 +25,8 @@ class TestCategories(GenealogyBasetest):
         self.wiki_id = "genealogy"
         self.get_wiki_user(wikiId=self.wiki_id, save=self.inPublicCI())
         self.target_wiki_id="gensmw"
+        self.target_wiki = Wiki(wiki_id=self.target_wiki_id, debug=self.debug)
+        self.target_wiki.wiki_push.toWiki=self.target_wiki.wiki_push.fromWiki
         self.get_wiki_user(wikiId=self.target_wiki_id,save=self.inPublicCI())
         self.ask_query = "[[Kategorie:Adressbuch_in_der_Online-Erfassung/fertig]]"
         self.backup_dir = "/tmp/genwiki"
@@ -47,9 +49,13 @@ class TestCategories(GenealogyBasetest):
 
 
     def test_convert_addressbooks(self):
+        force=not self.inPublicCI()
+        # dry run?
+        # force=False
+
         # Set up source and target wikis
         source_wiki = self.wiki
-        target_wiki = Wiki(wiki_id=self.target_wiki_id, debug=self.debug)
+
 
         # Create AddressBookConverter
         ac = AddressBookConverter(debug=self.debug)
@@ -57,19 +63,20 @@ class TestCategories(GenealogyBasetest):
         # Get page contents
         page_contents = source_wiki.get_all_content()
 
-        limit=400
+        limit=5
 
         # Set up tqdm progress bar
         progress_bar = tqdm(total=limit, desc="Converting AddressBooks", unit="page")
 
-        mode="backup" # or 'push' if you want to test pushing to the wiki
+        mode="push" # or 'push' if you want to test pushing to the wiki
 
         # Convert with limit of 10 pages
         target_pages=ac.convert(
             page_contents,
-            target_wiki=target_wiki,
+            target_wiki=self.target_wiki,
             mode=mode,
             limit=limit,
+            force=force,
             progress_bar=progress_bar
         )
 
@@ -83,7 +90,7 @@ class TestCategories(GenealogyBasetest):
         # Check if backup files were created (if mode is 'backup')
         if mode == 'backup':
             ab_count=0
-            page_contents=target_wiki.get_all_content()
+            page_contents=self.target_wiki.get_all_content()
             for _page_name,page_content in page_contents.items():
                 ab_dict=ac.template_map.as_topic_dict(page_content)
                 if  ab_dict:
