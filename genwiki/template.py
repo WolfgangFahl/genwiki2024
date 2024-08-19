@@ -1,19 +1,23 @@
-'''
+"""
 Created on 19.08.2024
 
 @author: wf
-'''
-from dataclasses import field
-from ngwidgets.yamlable import lod_storable
-from typing import Optional, Dict, Any
-import mwparserfromhell
+"""
+
 import re
+from dataclasses import field
+from typing import Any, Dict, Optional
+
+import mwparserfromhell
+from ngwidgets.yamlable import lod_storable
+
 
 @lod_storable
 class TemplateParam:
     new_name: str
     regex: Optional[str] = None
     to_int: bool = False
+
 
 @lod_storable
 class TemplateMap:
@@ -48,21 +52,48 @@ class TemplateMap:
                 result[param.new_name] = value
 
         return result
+    
+
+    def as_topic_dict(self, page_content: str) -> Dict[str, Any]:
+        """
+        Extract template parameters based on the topic_name without conversions.
+
+        Args:
+            page_content (str): The content of the wiki page containing the template.
+
+        Returns:
+            Dict[str, Any]: Extracted parameters as a dictionary.
+        """
+        wikicode = mwparserfromhell.parse(page_content)
+        templates = wikicode.filter_templates(matches=self.topic_name)
+
+        if not templates:
+            return {}
+
+        template = templates[0]
+        result = {}
+
+        for param in template.params:
+            name = str(param.name).strip()
+            value = str(param.value).strip()
+            result[name] = value
+
+        return result
 
     def dict_to_sidif(self, data: Dict[str, Any]) -> str:
         sidif_lines = [f"{self.topic_name}1 isA {self.topic_name}"]
         for key, value in data.items():
             sidif_lines.append(f'"{value}" is {key} of {self.topic_name}1')
-        return '\n'.join(sidif_lines)
+        return "\n".join(sidif_lines)
 
-    def convert_template(self, page_content: str, output_format: str = 'sidif') -> str:
+    def convert_template(self, page_content: str, output_format: str = "sidif") -> str:
         data = self.as_template_dict(page_content)
         if not data:
             return f"No '{self.template_name}' template found in the content."
 
-        if output_format == 'sidif':
+        if output_format == "sidif":
             return self.dict_to_sidif(data)
-        elif output_format == 'markup':
+        elif output_format == "markup":
             return self.dict_to_markup(data)
         else:
             raise ValueError(f"Unsupported output format: {output_format}")
@@ -73,4 +104,4 @@ class TemplateMap:
         for key, value in data.items():
             markup_lines.append(f"| {key} = {value}")
         markup_lines.append("}}")
-        return '\n'.join(markup_lines)
+        return "\n".join(markup_lines)

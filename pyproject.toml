@@ -27,6 +27,9 @@ dependencies = [
 	# uvicorn
     "nicegui>=1.4.32",
     "ngwidgets>=0.17.0",
+    # progress bar
+    # https://pypi.org/project/tqdm/
+    "tqdm>=4.66.5",
     # Parquet file access
     # https://arrow.apache.org/docs/python/index.html
     "pyarrow>=17.0.0"

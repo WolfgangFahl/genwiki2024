@@ -6,7 +6,7 @@ Created on 2024-08-15
 
 import logging
 import os
-from typing import Callable, Dict
+from typing import Dict, Generator, Tuple
 
 from wikibot3rd.wikipush import WikiPush
 
@@ -64,44 +64,38 @@ class Wiki:
         page_titles = list(page_lod.keys())
         self.wiki_push.backup(pageTitles=page_titles, backupPath=self.wiki_backup_dir)
 
-    def process_all_wiki_files(self, callback: Callable[[str], None] = None):
+    def get_all_wiki_files(self) -> Generator[Tuple[str, str], None, None]:
         """
-        Recursively loop over all .wiki files in the backup directory and process them using the provided callback.
-
-        Args:
-            callback (Callable[[str], None], optional): A function to call for each .wiki file found.
-                                                        Defaults to reading the file content.
-        Raises:
-            ValueError: If the backup directory does not exist.
+        Generator that yields tuples of (file_path, page_name)
+        for all .wiki files in the backup directory.
         """
-        if callback is None:
-            callback = self.read_file_content
-
-        if os.path.isdir(self.wiki_backup_dir):
-            for root, _dirs, files in os.walk(self.wiki_backup_dir):
-                for file_name in files:
-                    if file_name.endswith(".wiki"):
-                        file_path = os.path.join(root, file_name)
-                        self.log(f"Processing file: {file_path}", logging.DEBUG)
-                        callback(file_path)
-        else:
+        if not os.path.isdir(self.wiki_backup_dir):
             err_msg = f"Directory {self.wiki_backup_dir} does not exist."
             self.log(err_msg, logging.ERROR)
             raise ValueError(err_msg)
+
+        for root, _, files in os.walk(self.wiki_backup_dir):
+            for file_name in files:
+                if file_name.endswith(".wiki"):
+                    file_path = os.path.join(root, file_name)
+                    page_name = file_name[:-5]  # Remove .wiki extension
+                    relative_path = os.path.relpath(file_path, self.wiki_backup_dir)
+                    page_name = os.path.splitext(relative_path)[
+                        0
+                    ]  # Remove extension and use relative path
+                    self.log(f"Processing file: {file_path}", logging.DEBUG)
+                    yield file_path, page_name
 
     def get_all_content(self) -> Dict[str, str]:
         """
         Gather the content of all .wiki files in the backup directory.
 
         Returns:
-            Dict[str, str]: A dictionary where keys are file paths and values are the content of the .wiki files.
+            Dict[str, str]: A dictionary where keys are page names and values are the content of the .wiki files.
         """
         content_dict = {}
-
-        def add_content(file_path: str):
-            content_dict[file_path] = self.read_file_content(file_path)
-
-        self.process_all_wiki_files(callback=add_content)
+        for file_path, page_name in self.get_all_wiki_files():
+            content_dict[page_name] = self.read_file_content(file_path)
         return content_dict
 
     def read_file_content(self, file_path: str) -> str:
@@ -119,4 +113,3 @@ class Wiki:
             content = file.read()
             self.log(f"Read content from {file_path}", logging.DEBUG)
             return content
-        
