@@ -27,6 +27,7 @@ class TestCategories(GenealogyBasetest):
         self.wiki = Wiki(
             wiki_id=wiki_id, debug=self.debug, backup_dir="/tmp/genwiki"
         )
+        self.wiki.is_smw_enabled=False
 
     def testCategories(self):
         """
