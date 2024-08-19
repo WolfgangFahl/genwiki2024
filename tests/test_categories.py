@@ -23,7 +23,6 @@ class TestCategories(Basetest):
         self.ask_query="[[Kategorie:Adressbuch_in_der_Online-Erfassung/fertig]]"
         self.wiki = Wiki(wiki_id="genealogy",debug=self.debug,backup_dir="/tmp/genwiki")
 
-    @unittest.skipIf(Basetest.inPublicCI(), "wiki access needed")
     def testCategories(self):
         """
         Test categories by processing all .wiki files in the backup directory.
