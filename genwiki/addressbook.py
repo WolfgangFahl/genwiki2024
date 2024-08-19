@@ -56,6 +56,7 @@ class AddressBookConverter:
             limit (int): Limit the number of pages to process.
             progress_bar (Progressbar): Progress bar object to update during conversion.
         """
+        result={}
         total = len(page_contents) if limit is None else min(limit, len(page_contents))
         if progress_bar:
             progress_bar.total = total
@@ -67,7 +68,7 @@ class AddressBookConverter:
 
             ab_dict = self.template_map.as_template_dict(page_content)
             markup = self.template_map.dict_to_markup(ab_dict)
-
+            result[page_name]=markup
             if mode == "push" and target_wiki:
                 target_wiki.edit_page(
                     page_name, markup, summary="Converted AddressBook template"
@@ -88,3 +89,4 @@ class AddressBookConverter:
 
         if progress_bar:
             progress_bar.set_description("Conversion complete")
+        return result
