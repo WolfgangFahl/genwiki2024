@@ -21,9 +21,11 @@ class TestCategories(GenealogyBasetest):
 
     def setUp(self, debug=True, profile=True):
         GenealogyBasetest.setUp(self, debug=debug, profile=profile)
+        wiki_id="genealogy"
+        self.get_wiki_user(wikiId=wiki_id, save=self.inPublicCI())
         self.ask_query = "[[Kategorie:Adressbuch_in_der_Online-Erfassung/fertig]]"
         self.wiki = Wiki(
-            wiki_id="genealogy", debug=self.debug, backup_dir="/tmp/genwiki"
+            wiki_id=wiki_id, debug=self.debug, backup_dir="/tmp/genwiki"
         )
 
     def testCategories(self):
