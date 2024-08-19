@@ -6,6 +6,7 @@ Created on 2024-08-15
 import os
 import logging
 from typing import Callable, Dict
+from wikibot3rd.wikipush import WikiPush
 
 class Wiki:
     """
@@ -17,23 +18,29 @@ class Wiki:
         debug (bool): Indicates if debugging is enabled.
     """
 
-    def __init__(self, wiki_id: str, debug: bool = False):
+    def __init__(self, wiki_id: str, backup_dir: str=None, debug: bool = False):
         """
         Initialize the Wiki object.
 
         Args:
             wiki_id (str): The ID of the wiki to access.
+            backup_dir(str): the backup directory to use
             debug (bool): If True, enable debug logging.
         """
         self.wiki_id = wiki_id
+        self.wiki_push=WikiPush(fromWikiId=wiki_id,debug=debug)
         self.debug = debug
-        self.wiki_backup_dir = os.path.expanduser(f"~/wikibackup/{self.wiki_id}")
+        if backup_dir is None:
+            backup_dir=os.path.expanduser(f"~/wikibackup/{self.wiki_id}")
+        self.wiki_backup_dir = backup_dir
 
         # Set up logging
         if self.debug:
             logging.basicConfig(level=logging.DEBUG)
         else:
             logging.basicConfig(level=logging.INFO)
+            
+        
 
     def log(self, message: str, level: int = logging.INFO):
         """
@@ -44,9 +51,17 @@ class Wiki:
             level (int): The logging level, default is INFO.
         """
         if self.debug:
-            logging.log(logging.INFO, message)
+            logging.log(level, message)
         else:
             logging.log(logging.DEBUG, message)
+            
+    def backup(self,ask_query:str):
+        """
+        backup the pages for the given query
+        """
+        page_lod=self.wiki_push.queryPages(ask_query)
+        page_titles=list(page_lod.keys())
+        self.wiki_push.backup(pageTitles=page_titles, backupPath=self.wiki_backup_dir)
 
     def process_all_wiki_files(self, callback: Callable[[str], None] = None):
         """
@@ -70,7 +85,7 @@ class Wiki:
                         callback(file_path)
         else:
             err_msg = f"Directory {self.wiki_backup_dir} does not exist."
-            logging.error(err_msg)
+            self.log(err_msg,logging.ERROR)
             raise ValueError(err_msg)
 
     def get_all_content(self) -> Dict[str, str]:

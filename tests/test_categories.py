@@ -20,13 +20,17 @@ class TestCategories(Basetest):
 
     def setUp(self, debug=True, profile=True):
         Basetest.setUp(self, debug=debug, profile=profile)
-        self.wiki = Wiki(wiki_id="genealogy",debug=self.debug)
+        self.ask_query="[[Kategorie:Adressbuch_in_der_Online-Erfassung/fertig]]"
+        self.wiki = Wiki(wiki_id="genealogy",debug=self.debug,backup_dir="/tmp/genwiki")
 
     @unittest.skipIf(Basetest.inPublicCI(), "wiki access needed")
     def testCategories(self):
         """
         Test categories by processing all .wiki files in the backup directory.
         """
+        with_backup=self.inPublicCI()
+        if with_backup:
+            self.wiki.backup(ask_query=self.ask_query)
         page_contents=self.wiki.get_all_content()
         self.assertTrue(len(page_contents)>10)
         if self.debug:
