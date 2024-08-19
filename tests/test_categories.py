@@ -22,13 +22,13 @@ class TestCategories(GenealogyBasetest):
 
     def setUp(self, debug=True, profile=True):
         GenealogyBasetest.setUp(self, debug=debug, profile=profile)
-        wiki_id = "genealogy"
-        self.get_wiki_user(wikiId=wiki_id, save=self.inPublicCI())
-        target_wiki_id="gensmw"
-        self.get_wiki_user(wikiId=target_wiki_id,save=self.inPublicCI())
+        self.wiki_id = "genealogy"
+        self.get_wiki_user(wikiId=self.wiki_id, save=self.inPublicCI())
+        self.target_wiki_id="gensmw"
+        self.get_wiki_user(wikiId=self.target_wiki_id,save=self.inPublicCI())
         self.ask_query = "[[Kategorie:Adressbuch_in_der_Online-Erfassung/fertig]]"
         self.backup_dir = "/tmp/genwiki"
-        self.wiki = Wiki(wiki_id=wiki_id, debug=self.debug, backup_dir=self.backup_dir)
+        self.wiki = Wiki(wiki_id=self.wiki_id, debug=self.debug, backup_dir=self.backup_dir)
         self.wiki.is_smw_enabled = False
 
     def testCategories(self):
