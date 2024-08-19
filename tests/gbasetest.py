@@ -1,18 +1,21 @@
-'''
+"""
 Created on 2024-08-19
 
 Basetests for Genealogy Wiki
 @author: wf
-'''
-from ngwidgets.basetest import Basetest
+"""
+
 import os
+
+from ngwidgets.basetest import Basetest
 from wikibot3rd.wikiuser import WikiUser
 
+
 class GenealogyBasetest(Basetest):
-    
+
     def setUp(self, debug=False, profile=True):
         Basetest.setUp(self, debug=debug, profile=profile)
-        
+
     def get_wiki_user(self, wikiId="or", save=False) -> WikiUser:
         """
         get wiki users for given wikiId

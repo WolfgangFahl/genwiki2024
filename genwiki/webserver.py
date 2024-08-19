@@ -4,13 +4,15 @@ Created on 2024-08-15
 @author: wf
 """
 
+from ngwidgets.input_webserver import InputWebserver, InputWebSolution
 from ngwidgets.login import Login
 from ngwidgets.users import Users
-from ngwidgets.input_webserver import InputWebserver, InputWebSolution
 from ngwidgets.webserver import WebserverConfig
 from nicegui import Client, ui
-from genwiki.version import Version
 from starlette.responses import RedirectResponse
+
+from genwiki.version import Version
+
 
 class GenWikiWebServer(InputWebserver):
     """WebServer class that manages the server and handles GenWiki operations."""
@@ -48,6 +50,7 @@ class GenWikiWebServer(InputWebserver):
             if self.login.authenticated():
                 await self.login.logout()
             return RedirectResponse("/")
+
 
 class GenWikiSolution(InputWebSolution):
     """
@@ -92,7 +95,8 @@ class GenWikiSolution(InputWebSolution):
 
     async def home(self):
         """Provide the main content page"""
+
         def setup_home():
             ui.label("Welcome to the gensmw frontend")
-        
+
         await self.setup_content_div(setup_home)
