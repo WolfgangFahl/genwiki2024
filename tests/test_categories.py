@@ -25,9 +25,9 @@ class TestCategories(GenealogyBasetest):
         self.wiki_id = "genealogy"
         self.get_wiki_user(wikiId=self.wiki_id, save=self.inPublicCI())
         self.target_wiki_id="gensmw"
+        self.get_wiki_user(wikiId=self.target_wiki_id,save=self.inPublicCI())
         self.target_wiki = Wiki(wiki_id=self.target_wiki_id, debug=self.debug)
         self.target_wiki.wiki_push.toWiki=self.target_wiki.wiki_push.fromWiki
-        self.get_wiki_user(wikiId=self.target_wiki_id,save=self.inPublicCI())
         self.ask_query = "[[Kategorie:Adressbuch_in_der_Online-Erfassung/fertig]]"
         self.backup_dir = "/tmp/genwiki"
         self.wiki = Wiki(wiki_id=self.wiki_id, debug=self.debug, backup_dir=self.backup_dir)
