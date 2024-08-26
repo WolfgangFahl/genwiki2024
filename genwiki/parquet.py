@@ -8,6 +8,7 @@ import os
 from typing import List, Dict, Any
 import pyarrow.parquet as pq
 from lodstorage.sql import SQLDB, EntityInfo
+from lodstorage.schema import SchemaManager, Schema
 
 class Parquet:
     """
@@ -73,28 +74,67 @@ class Parquet:
         return tables_data
 
 
-    def convert_parquet_to_sqlite(self, parquet_data: Dict[str, List[Dict[str, Any]]], db_name: str = ":memory:",
-                              table_name: str = None, column_mapping: Dict[str, str] = None) -> SQLDB:
+    def convert_parquet_to_sqlite(self, parquet_data: Dict[str, List[Dict[str, Any]]], db: SQLDB,
+                              table_name: str = None, column_mapping: Dict[str, str] = None):
+        """
+        Converts Parquet data to SQLite tables and creates a combined view.
+
+        Args:
+            parquet_data (Dict[str, List[Dict[str, Any]]]): A dictionary where keys are table names and values are lists
+                of dictionaries representing rows of data. Each dictionary in the list represents a row, with keys as
+                column names and values as column values.
+            db (SQLDB): An instance of the SQLDB class where the tables will be created.
+            table_name (str, optional): The name of the combined view that will be created. If not provided,
+                defaults to "combined_view".
+            column_mapping (Dict[str, str], optional): A dictionary mapping original column names to new column names.
+                If provided, the columns in the Parquet data will be renamed accordingly.
+
+        Raises:
+            ValueError: If `parquet_data` is empty.
+
+        Returns:
+            None
+
+        Example:
+            parquet_data = {
+                "table1": [{"col1": "value1", "col2": "value2"}],
+                "table2": [{"col1": "value1", "col2": "value2"}]
+            }
+            db = SQLDB()
+            convert_parquet_to_sqlite(parquet_data, db, table_name="my_view", column_mapping={"col1": "new_col1"})
+
+        This method performs the following steps:
+            1. Converts each table in `parquet_data` into a corresponding SQLite table.
+            2. Applies `column_mapping` to rename columns, if provided.
+            3. Creates a combined view in the SQLite database that includes all the tables.
+            4. Logs the progress of adding rows to each SQLite table and creating the view.
+        """
         if not parquet_data:
             raise ValueError("No data to convert to SQLite")
 
-        db = SQLDB(db_name, debug=self.debug)
+        table_list = []
 
         for original_table_name, rows in parquet_data.items():
-            actual_table_name = table_name or original_table_name
             if column_mapping:
                 rows = self._apply_column_mapping(rows, column_mapping)
 
-            entityInfo = EntityInfo(rows, actual_table_name, debug=self.debug)
-
-            tables=db.getTableList()
-            if not any(table['name'] == actual_table_name for table in tables):
-                db.createTable4EntityInfo(entityInfo)
-
+            entityInfo = EntityInfo(rows, original_table_name, debug=self.debug)
+            db.createTable4EntityInfo(entityInfo)
             db.store(rows, entityInfo)
-            self.log(f"Added {len(rows)} rows to SQLite table '{actual_table_name}'")
 
-        return db
+            table = {
+                "name": original_table_name,
+                "columns": [{"name": col, "type": str(type_)} for col, type_ in entityInfo.typeMap.items()]
+            }
+            table_list.append(table)
+
+            self.log(f"Added {len(rows)} rows to SQLite table '{original_table_name}'")
+
+        # Create a view that combines all tables
+        view_name = table_name or "combined_view"
+        view_ddl = Schema.getGeneralViewDDL(table_list, view_name, debug=self.debug)
+        db.execute(view_ddl)
+        self.log(f"Created view '{view_name}' combining all tables")
 
 
     def _apply_column_mapping(self, rows: List[Dict[str, Any]], column_mapping: Dict[str, str]) -> List[Dict[str, Any]]:
