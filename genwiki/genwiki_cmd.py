@@ -5,8 +5,6 @@ Created on 2024-08-15
 """
 
 import sys
-from argparse import ArgumentParser
-
 from ngwidgets.cmd import WebserverCmd
 
 from genwiki.webserver import GenWikiWebServer
