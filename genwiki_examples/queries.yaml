@@ -1,0 +1,65 @@
+# Abfragen für die Adressansicht
+# Diese Abfragen beziehen sich auf die kombinierte Ansicht der
+# Weimarer Adressbücher von 1851 und 1853.
+# Sie demonstrieren verschiedene Aspekte der Datenanalyse und -abfrage.
+Gesamtanzahl:
+  # Zählt die Gesamtanzahl der Einträge in der Adressansicht
+  sql: |
+    SELECT COUNT(*) AS Anzahl FROM address
+
+Stichprobe:
+  # Gibt eine Stichprobe von {{ limit }} Einträgen aus der Adressansicht zurück
+  sql: |
+    SELECT * FROM address
+    LIMIT {{ limit }}
+
+BerufStatistik:
+  # Zeigt die Top {{ limit }} Berufe mit ihrer Häufigkeit
+  sql: |
+    SELECT occupation AS Beruf, COUNT(*) AS Anzahl
+    FROM address
+    GROUP BY occupation
+    ORDER BY Anzahl DESC
+    LIMIT {{ limit }}
+
+PersonenSuche:
+  # Sucht nach {{ limit }} Personen basierend auf Namen oder Beruf
+  # Parameter: {{ suchbegriff }}
+  sql: |
+    SELECT firstname AS Vorname, lastname AS Nachname, occupation AS Beruf, location AS Ort
+    FROM address
+    WHERE lastname LIKE '%{{suchbegriff}}%'
+       OR firstname LIKE '%{{suchbegriff}}%'
+       OR company_name LIKE '%{{suchbegriff}}%'
+       OR occupation LIKE '%{{suchbegriff}}%'
+    LIMIT {{ limit }}
+
+StraßenStatistik:
+#
+# Zählt die top {{limit}} Strasseneinträge zu {{straße}}
+#
+  sql: |
+    SELECT
+        count(*),
+        street
+    FROM "address"
+        where street like "%{{straße}}%"
+    group  by street
+    order by 1 desc
+    LIMIT {{ limit }}
+
+StraßenVergleich:
+  # Vergleicht die Anzahl der Einträge zwischen zwei Jahren für einen bestimmten Ort
+  # Parameter: {{straße}}
+  sql: |
+    SELECT
+      '1851' AS Jahr,
+      COUNT(*) AS Anzahl
+    FROM weimarTH1851
+    WHERE street like '%{{straße}}%'
+    UNION ALL
+    SELECT
+      '1853' AS Jahr,
+      COUNT(*) AS Anzahl
+    FROM weimarTH1853
+    WHERE street like '%{{straße}}%'
