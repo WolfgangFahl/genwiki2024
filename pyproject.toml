@@ -29,7 +29,7 @@ dependencies = [
     # fastapi
 	# uvicorn
     "nicegui>=1.4.32",
-    "ngwidgets>=0.17.2",
+    "ngwidgets>=0.17.7",
     # progress bar
     # https://pypi.org/project/tqdm/
     "tqdm>=4.66.5",
@@ -43,7 +43,13 @@ dependencies = [
 
     # Nominatim geocoding library
     # https://pypi.org/project/geopy/
-    "geopy>=2.3.0"
+    "geopy>=2.3.0",
+
+    # platform independent knowledge graph ready list of dicts (table) handling
+    # https://pypi.org/project/pyLodStorage/
+    "pyLodStorage>=0.12.2"
+
+
 ]
 
 requires-python = ">=3.9"
