@@ -11,6 +11,7 @@ from lodstorage.query import QueryManager
 from lodstorage.params import Params
 from ngwidgets.basetest import Basetest
 from genwiki.convert import ParquetAdressbokToSql
+from lodstorage.uml import UML
 
 class TestParquet(Basetest):
     """
@@ -57,6 +58,10 @@ class TestParquet(Basetest):
             print(json.dumps(table_info,indent=2))
         for p_name in ["weimarTH1851","weimarTH1853"]:
             self.assertTrue(p_name in table_info)
+        table_list=sql_db.getTableList()
+        uml=UML()
+        markup=uml.tableListToPlantUml(table_list, "Adressbücher", "de.compgen.genwiki2024", "address", withSkin=True)
+        print(markup)
 
     def test_queries(self):
         """
