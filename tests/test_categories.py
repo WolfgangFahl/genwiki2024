@@ -3,7 +3,7 @@ Created on 2024-08-15
 
 @author: wf
 """
-
+import os
 from tqdm import tqdm
 
 from genwiki.addressbook import AddressBookConverter
@@ -40,7 +40,7 @@ class TestCategories(GenealogyBasetest):
         """
         Test categories by processing all .wiki files in the backup directory.
         """
-        with_backup = self.inPublicCI()
+        with_backup = self.inPublicCI() or not os.path.exists(self.backup_dir)
         # with_backup=True
         if with_backup:
             self.wiki.backup(ask_query=self.ask_query)
