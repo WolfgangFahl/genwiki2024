@@ -37,6 +37,11 @@ class AddressBookConverter:
                 "DES": TemplateParam(new_name="des"),
             },
         )
+        self.year_mapping = {
+            "weimarTH1851.parquet": 1851,
+            "weimarTH1853.parquet": 1853
+        }
+
 
     def convert(
         self,

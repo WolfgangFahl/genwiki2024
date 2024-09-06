@@ -53,7 +53,7 @@ class GenWikiWebServer(InputWebserver):
         else:
             profiler = Profiler("convert parquet files", profile=True)
             pats=ParquetAdressbokToSql(folder=self.examples_path())
-            self.sql_db=SQLDB(address_db_path)
+            self.sql_db=SQLDB(address_db_path,check_same_thread=False)
             pats.to_db(self.sql_db)
             profiler.time()
 

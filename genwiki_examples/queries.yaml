@@ -26,12 +26,18 @@ PersonenSuche:
   # Sucht nach {{ limit }} Personen basierend auf Namen oder Beruf
   # Parameter: {{ suchbegriff }}
   sql: |
-    SELECT firstname AS Vorname, lastname AS Nachname, occupation AS Beruf, location AS Ort
+    SELECT
+        firstname AS Vorname,
+        lastname AS Nachname,
+        occupation AS Beruf,
+        location AS Ort,
+        year as Jahr
     FROM address
     WHERE lastname LIKE '%{{suchbegriff}}%'
        OR firstname LIKE '%{{suchbegriff}}%'
        OR company_name LIKE '%{{suchbegriff}}%'
        OR occupation LIKE '%{{suchbegriff}}%'
+    ORDER BY lastname, firstname, occupation,year
     LIMIT {{ limit }}
 
 StraßenStatistik:

@@ -66,10 +66,15 @@ class Parquet:
             try:
                 table = pq.read_table(file_path)
                 rows = table.to_pylist()
+                # Add source field to each row
+                for row in rows:
+                    row['source'] = parquet_file
                 tables_data[table_name] = rows
-                self.log(f"Read {len(rows)} rows from {parquet_file}")
+                log_msg=f"Read {len(rows)} rows from {parquet_file}"
+                self.log(log_msg)
             except Exception as e:
-                self.log(f"Failed to read {parquet_file}: {e}")
+                log_msg=f"Failed to read {parquet_file}: {e}"
+                self.log(log_msg)
 
         return tables_data
 

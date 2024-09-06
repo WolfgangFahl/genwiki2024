@@ -36,6 +36,7 @@ class TestParquet(Basetest):
             # Ensure there are parquet files to read
             self.assertTrue(parquet_data, f"No .parquet files found in {self.genwiki_examples_folder}")
 
+            pats.inject_year()
             # Convert to SQLite with the correct table name and column mapping
             sql_db=SQLDB(db_path)
             pats.convert(sql_db)

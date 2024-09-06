@@ -35,9 +35,25 @@ class ParquetAdressbokToSql():
                 "Eigentümer": "owner",
                 "Funktionsträger": "official",
                 "abweichender Wohnort": "alternate_residence",
-                "Bezirk": "district"
+                "Bezirk": "district",
+                "source": "source",
+                "jahr": "year"
             }
+        self.year_mapping = {
+            "weimarTH1851.parquet": 1851,
+            "weimarTH1853.parquet": 1853
+        }
         self.column_mapping=column_mapping
+
+    def inject_year(self):
+        # Add year to each row based on the year_mapping
+        for _table_name, rows in self.parquet_data.items():
+            for row in rows:
+                source = row.get('source')
+                if source in self.year_mapping:
+                    row['jahr'] = self.year_mapping[source]
+                else:
+                    print(f"Warning: No year mapping found for source {source}")
 
     def read(self):
         # Read all parquet files
@@ -50,4 +66,5 @@ class ParquetAdressbokToSql():
 
     def to_db(self,db:SQLDB):
         self.read()
-        self.to_db(db)
+        self.inject_year()
+        self.convert(db)
