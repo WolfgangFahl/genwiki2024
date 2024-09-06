@@ -5,6 +5,7 @@ Created on 2024-08-15
 """
 
 import sys
+
 from ngwidgets.cmd import WebserverCmd
 
 from genwiki.webserver import GenWikiWebServer

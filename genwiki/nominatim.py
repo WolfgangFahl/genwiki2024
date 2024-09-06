@@ -1,11 +1,14 @@
-'''
+"""
 Created on 25.08.2024
 
 @author: wf
-'''
+"""
+
 import logging
-from geopy.geocoders import Nominatim
+
 from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
+from geopy.geocoders import Nominatim
+
 
 class NominatimWrapper:
     """
@@ -35,13 +38,17 @@ class NominatimWrapper:
         """
         for attempt in range(max_retries):
             try:
-                location = self.geolocator.geocode(location_text, exactly_one=True, extratags=True)
-                if location and 'wikidata' in location.raw.get('extratags', {}):
-                    return location.raw['extratags']['wikidata']
+                location = self.geolocator.geocode(
+                    location_text, exactly_one=True, extratags=True
+                )
+                if location and "wikidata" in location.raw.get("extratags", {}):
+                    return location.raw["extratags"]["wikidata"]
                 return None
             except (GeocoderTimedOut, GeocoderUnavailable):
                 if attempt == max_retries - 1:
                     logging.error(f"Failed to geocode after {max_retries} attempts")
                 else:
-                    logging.warning(f"Geocoding attempt {attempt + 1} failed, retrying...")
+                    logging.warning(
+                        f"Geocoding attempt {attempt + 1} failed, retrying..."
+                    )
         return None

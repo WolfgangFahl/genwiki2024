@@ -3,6 +3,7 @@ Created on 19.08.2024
 
 @author: wf
 """
+
 import logging
 import os
 
@@ -37,11 +38,7 @@ class AddressBookConverter:
                 "DES": TemplateParam(new_name="des"),
             },
         )
-        self.year_mapping = {
-            "weimarTH1851.parquet": 1851,
-            "weimarTH1853.parquet": 1853
-        }
-
+        self.year_mapping = {"weimarTH1851.parquet": 1851, "weimarTH1853.parquet": 1853}
 
     def convert(
         self,
@@ -49,9 +46,8 @@ class AddressBookConverter:
         target_wiki=None,
         mode="backup",
         limit: int = None,
-        force: bool=False,
-        progress_bar=None
-
+        force: bool = False,
+        progress_bar=None,
     ):
         """
         Convert the pages of the given page_contents dict.
@@ -66,7 +62,7 @@ class AddressBookConverter:
         """
         if force:
             target_wiki.wiki_push.toWiki.login()
-        result={}
+        result = {}
         total = len(page_contents) if limit is None else min(limit, len(page_contents))
         if progress_bar:
             progress_bar.total = total
@@ -78,12 +74,15 @@ class AddressBookConverter:
 
             ab_dict = self.template_map.as_template_dict(page_content)
             markup = self.template_map.dict_to_markup(ab_dict)
-            result[page_name]=markup
+            result[page_name] = markup
             if mode == "push" and target_wiki:
-                edit_status=target_wiki.wiki_push.edit_page_content(
-                    page_title=page_name, new_text=markup, summary="Converted AddressBook template", force=force
+                edit_status = target_wiki.wiki_push.edit_page_content(
+                    page_title=page_name,
+                    new_text=markup,
+                    summary="Converted AddressBook template",
+                    force=force,
                 )
-                logging.log(logging.INFO,edit_status)
+                logging.log(logging.INFO, edit_status)
             elif mode == "backup":
                 backup_path = os.path.join(
                     target_wiki.wiki_backup_dir, f"{page_name}.wiki"

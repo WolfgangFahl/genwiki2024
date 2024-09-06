@@ -52,7 +52,6 @@ class TemplateMap:
                 result[param.new_name] = value
 
         return result
-    
 
     def as_topic_dict(self, page_content: str) -> Dict[str, Any]:
         """

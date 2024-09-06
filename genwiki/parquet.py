@@ -3,12 +3,15 @@ Created on 2024-08-26
 
 @author: wf
 """
+
 import logging
 import os
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 import pyarrow.parquet as pq
+from lodstorage.schema import Schema, SchemaManager
 from lodstorage.sql import SQLDB, EntityInfo
-from lodstorage.schema import SchemaManager, Schema
+
 
 class Parquet:
     """
@@ -68,19 +71,23 @@ class Parquet:
                 rows = table.to_pylist()
                 # Add source field to each row
                 for row in rows:
-                    row['source'] = parquet_file
+                    row["source"] = parquet_file
                 tables_data[table_name] = rows
-                log_msg=f"Read {len(rows)} rows from {parquet_file}"
+                log_msg = f"Read {len(rows)} rows from {parquet_file}"
                 self.log(log_msg)
             except Exception as e:
-                log_msg=f"Failed to read {parquet_file}: {e}"
+                log_msg = f"Failed to read {parquet_file}: {e}"
                 self.log(log_msg)
 
         return tables_data
 
-
-    def convert_parquet_to_sqlite(self, parquet_data: Dict[str, List[Dict[str, Any]]], db: SQLDB,
-                              table_name: str = None, column_mapping: Dict[str, str] = None):
+    def convert_parquet_to_sqlite(
+        self,
+        parquet_data: Dict[str, List[Dict[str, Any]]],
+        db: SQLDB,
+        table_name: str = None,
+        column_mapping: Dict[str, str] = None,
+    ):
         """
         Converts Parquet data to SQLite tables and creates a combined view.
 
@@ -129,7 +136,10 @@ class Parquet:
 
             table = {
                 "name": original_table_name,
-                "columns": [{"name": col, "type": str(type_)} for col, type_ in entityInfo.typeMap.items()]
+                "columns": [
+                    {"name": col, "type": str(type_)}
+                    for col, type_ in entityInfo.typeMap.items()
+                ],
             }
             table_list.append(table)
 
@@ -141,8 +151,9 @@ class Parquet:
         db.execute(view_ddl)
         self.log(f"Created view '{view_name}' combining all tables")
 
-
-    def _apply_column_mapping(self, rows: List[Dict[str, Any]], column_mapping: Dict[str, str]) -> List[Dict[str, Any]]:
+    def _apply_column_mapping(
+        self, rows: List[Dict[str, Any]], column_mapping: Dict[str, str]
+    ) -> List[Dict[str, Any]]:
         """
         Apply the column mapping to the rows.
 
@@ -154,4 +165,3 @@ class Parquet:
             List[Dict[str, Any]]: The rows with updated column names.
         """
         return [{column_mapping.get(k, k): v for k, v in row.items()} for row in rows]
-
