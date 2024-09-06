@@ -26,8 +26,13 @@ class QueryView:
         self.sql_db = sql_db
         self.load_task = None
         self.timeout = 5.0
+        self.params_view=None
+        self.params_edit=None
 
     def setup_ui(self):
+        """
+        setup the user interface
+        """
         self.query_name = "Gesamtanzahl"
         with ui.row() as self.query_row:
             self.query_select = self.solution.add_select(
@@ -48,6 +53,10 @@ class QueryView:
         self.query = self.qm.queriesByName[self.query_name]
         self.params = Params(self.query.query)
         if self.params.has_params:
+            if self.params_view:
+                self.params_view.delete()
+            if self.params_edit:
+                self.params_edit.delete()
             self.params_row.clear()
             with self.params_row:
                 self.params_view = ParamsView(self, self.params)

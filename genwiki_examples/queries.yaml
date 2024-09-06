@@ -31,13 +31,13 @@ PersonenSuche:
         lastname AS Nachname,
         occupation AS Beruf,
         location AS Ort,
-        year as Jahr
+        year AS Jahr
     FROM address
     WHERE lastname LIKE '%{{suchbegriff}}%'
        OR firstname LIKE '%{{suchbegriff}}%'
        OR company_name LIKE '%{{suchbegriff}}%'
        OR occupation LIKE '%{{suchbegriff}}%'
-    ORDER BY lastname, firstname, occupation,year
+    ORDER BY lastname, firstname, occupation, year
     LIMIT {{ limit }}
 
 StraßenStatistik:
