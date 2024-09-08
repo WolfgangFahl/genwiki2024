@@ -40,6 +40,10 @@ class QueryView:
                 list(self.qm.queriesByName.keys()),
                 on_change=self.on_update_query,
             ).bind_value(self, "query_name")
+            self.refresh_button = ui.button(
+                icon="refresh",
+                on_click=self.on_update_query,
+            ).tooltip("Parameter-Ansicht aktualisieren")
             self.quer_button = ui.button(
                 icon="play_circle",
                 on_click=self.run_query,
@@ -61,7 +65,8 @@ class QueryView:
             with self.params_row:
                 self.params_view = ParamsView(self, self.params)
                 self.params_edit = self.params_view.get_dict_edit()
-        pass
+            self.params_view.open()
+        self.params_row.update()
 
     def get_query_lod(self):
         lod = self.sql_db.query(self.query.query)

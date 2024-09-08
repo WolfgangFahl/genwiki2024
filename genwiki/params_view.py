@@ -32,6 +32,15 @@ class ParamsView:
         """
         self.dict_edit.expansion.close()
 
+    def update_params(self, new_params: Params):
+        """
+        Update the params and refresh the dict_edit
+        """
+        self.params = new_params
+        if self.dict_edit:
+            self.dict_edit.data_to_edit = self.params.params_dict
+            self.dict_edit.update_fields()
+
     def get_dict_edit(self) -> DictEdit:
         """
         Return a DictEdit instance for editing parameters.
