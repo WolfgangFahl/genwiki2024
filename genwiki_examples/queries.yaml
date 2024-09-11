@@ -1,3 +1,30 @@
+#
+#
+#
+WikidataItemsNearItem:
+    # Wikidata items in der Nähe eines vorgegebenen Wikidata Items
+    sparql: |
+        #defaultView:Map
+        SELECT ?place ?placeLabel ?location ?dist
+        WHERE {
+          # coordinates of the item
+          wd:{{ item }} wdt:P625 ?itemLoc .
+          SERVICE wikibase:around {
+              ?place wdt:P625 ?location .
+              bd:serviceParam wikibase:center ?itemLoc .
+              bd:serviceParam wikibase:radius "{{ radius }}" .
+              bd:serviceParam wikibase:distance ?dist.
+          }
+          # Optional: Filter for specific types of places
+          # FILTER EXISTS {
+          #   ?place wdt:P31/wdt:P279* wd:Q41176 .  # Instance of building or subclass of building
+          # }
+          FILTER(?place != wd:{{item}})  # Exclude item itself
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+        }
+        ORDER BY ASC(?dist)
+        LIMIT {{ limit }}
+
 # Abfragen für die Adressansicht
 # Diese Abfragen beziehen sich auf die kombinierte Ansicht der
 # Weimarer Adressbücher von 1851 und 1853.
