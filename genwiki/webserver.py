@@ -6,7 +6,7 @@ Created on 2024-08-15
 
 import os
 
-from lodstorage.query import QueryManager
+
 from lodstorage.sql import SQLDB
 from ngwidgets.input_webserver import InputWebserver, InputWebSolution
 from ngwidgets.login import Login
@@ -19,6 +19,7 @@ from starlette.responses import RedirectResponse
 from genwiki.convert import ParquetAdressbokToSql
 from genwiki.query_view import QueryView
 from genwiki.version import Version
+from genwiki.multilang_querymanager import MultiLanguageQueryManager
 
 
 class GenWikiWebServer(InputWebserver):
@@ -59,9 +60,8 @@ class GenWikiWebServer(InputWebserver):
             profiler.time()
 
         yaml_path = os.path.join(self.examples_path(), "queries.yaml")
-        self.qm = QueryManager(
-            lang="sql", queriesPath=yaml_path, with_default=False, debug=self.debug
-        )
+        self.mlqm=MultiLanguageQueryManager(yaml_path=yaml_path)
+
 
         @ui.page("/")
         async def home(client: Client):
@@ -92,7 +92,7 @@ class GenWikiSolution(InputWebSolution):
             client (Client): The client instance this context is associated with.
         """
         super().__init__(webserver, client)
-        self.qm = self.webserver.qm
+        self.mlqm=webserver.mlqm
         self.sql_db = self.webserver.sql_db
 
     def authenticated(self) -> bool:
@@ -126,7 +126,7 @@ class GenWikiSolution(InputWebSolution):
 
         def setup_home():
             """ """
-            self.query_view = QueryView(self, qm=self.qm, sql_db=self.sql_db)
+            self.query_view = QueryView(self, mlqm=self.mlqm, sql_db=self.sql_db)
             self.query_view.setup_ui()
 
         await self.setup_content_div(setup_home)

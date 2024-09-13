@@ -13,33 +13,39 @@ class ParamsView:
     a view for Query Parameters
     """
 
-    def __init__(self, solution, params: Params):
+    def __init__(self, solution, params: Params,title:str="Params",icon:str="tune"):
         """
         construct me with the given solution and params
         """
         self.solution = solution
-        self.params = params
+        self.params=params
+        self.dict_edit=None
+        self.title=title
+        self.icon=icon
 
     def open(self):
         """
         show the details of the dict edit
         """
-        self.dict_edit.expansion.open()
+        self.dict_edit.open()
 
     def close(self):
         """
         hide the details of the dict edit
         """
-        self.dict_edit.expansion.close()
+        self.dict_edit.close()
 
-    def update_params(self, new_params: Params):
+    def delete(self):
+        self.dict_edit.card.delete()
+        self.dict_edit=None
+
+    def setup(self):
         """
         Update the params and refresh the dict_edit
         """
-        self.params = new_params
         if self.dict_edit:
-            self.dict_edit.data_to_edit = self.params.params_dict
-            self.dict_edit.update_fields()
+            self.dict_edit.card.delete()
+        self.dict_edit=self.get_dict_edit()
 
     def get_dict_edit(self) -> DictEdit:
         """
@@ -47,8 +53,8 @@ class ParamsView:
         """
         # Define a custom form definition for the title "Params"
         form_ui_def = FormUiDef(
-            title="Params",
-            icon="tune",
+            title=self.title,
+            icon=self.icon,
             ui_fields={
                 key: FieldUiDef.from_key_value(key, value)
                 for key, value in self.params.params_dict.items()
@@ -57,5 +63,4 @@ class ParamsView:
         self.dict_edit = DictEdit(
             data_to_edit=self.params.params_dict, form_ui_def=form_ui_def
         )
-        self.open()
         return self.dict_edit

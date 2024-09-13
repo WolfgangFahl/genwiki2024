@@ -1,30 +1,38 @@
-#
-#
-#
-WikidataItemsNearItem:
-    # Wikidata items in der Nähe eines vorgegebenen Wikidata Items
-    sparql: |
-        #defaultView:Map
-        SELECT ?place ?placeLabel ?location ?dist
-        WHERE {
-          # coordinates of the item
-          wd:{{ item }} wdt:P625 ?itemLoc .
-          SERVICE wikibase:around {
-              ?place wdt:P625 ?location .
-              bd:serviceParam wikibase:center ?itemLoc .
-              bd:serviceParam wikibase:radius "{{ radius }}" .
-              bd:serviceParam wikibase:distance ?dist.
-          }
-          # Optional: Filter for specific types of places
-          # FILTER EXISTS {
-          #   ?place wdt:P31/wdt:P279* wd:Q41176 .  # Instance of building or subclass of building
-          # }
-          FILTER(?place != wd:{{item}})  # Exclude item itself
-          SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
-        }
-        ORDER BY ASC(?dist)
-        LIMIT {{ limit }}
-
+'WikidataItemsNearItem':
+  # This query finds Wikidata items near a specified Wikidata item.
+  # It uses the Wikidata Query Service to find places within a given radius
+  # of the specified item and returns them ordered by distance.
+  param_list:
+    - name: item
+      type: WikidataItem
+      default_value: Q878253  # Schloss Weimar
+    - name: radius
+      type: float
+      default_value: 0.5 # 0.5 km
+    - name: limit
+      type: int
+      default_value: 50
+  sparql: |
+    #defaultView:Map
+    SELECT ?place ?placeLabel ?location ?dist
+    WHERE {
+      # coordinates of the item
+      wd:{{ item }} wdt:P625 ?itemLoc .
+      SERVICE wikibase:around {
+        ?place wdt:P625 ?location .
+        bd:serviceParam wikibase:center ?itemLoc .
+        bd:serviceParam wikibase:radius "{{ radius }}" .
+        bd:serviceParam wikibase:distance ?dist.
+      }
+      # Optional: Filter for specific types of places
+      # FILTER EXISTS {
+      #   ?place wdt:P31/wdt:P279* wd:Q41176 . # Instance of building or subclass of building
+      # }
+      FILTER(?place != wd:{{item}}) # Exclude item itself
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+    }
+    ORDER BY ASC(?dist)
+    LIMIT {{ limit }}
 # Abfragen für die Adressansicht
 # Diese Abfragen beziehen sich auf die kombinierte Ansicht der
 # Weimarer Adressbücher von 1851 und 1853.
@@ -36,12 +44,20 @@ Gesamtanzahl:
 
 Stichprobe:
   # Gibt eine Stichprobe von {{ limit }} Einträgen aus der Adressansicht zurück
+  param_list:
+    - name: limit
+      type: int
+      default_value: 7
   sql: |
     SELECT * FROM address
     LIMIT {{ limit }}
 
 BerufStatistik:
   # Zeigt die Top {{ limit }} Berufe mit ihrer Häufigkeit
+  param_list:
+    - name: limit
+      type: int
+      default_value: 15
   sql: |
     SELECT occupation AS Beruf, COUNT(*) AS Anzahl
     FROM address
@@ -52,6 +68,13 @@ BerufStatistik:
 PersonenSuche:
   # Sucht nach {{ limit }} Personen basierend auf Namen oder Beruf
   # Parameter: {{ suchbegriff }}
+  param_list:
+    - name: suchbegriff
+      type: str
+      default_value: Ziegler
+    - name: limit
+      type: int
+      default_value: 20
   sql: |
     SELECT
         firstname AS Vorname,
@@ -71,6 +94,13 @@ StraßenStatistik:
 #
 # Zählt die top {{limit}} Strasseneinträge zu {{straße}}
 #
+  param_list:
+    - name: limit
+      type: int
+      default_value: 20
+    - name: straße
+      type: str
+      default_value: Frauen
   sql: |
     SELECT
         count(*),
@@ -84,6 +114,10 @@ StraßenStatistik:
 StraßenVergleich:
   # Vergleicht die Anzahl der Einträge zwischen zwei Jahren für einen bestimmten Ort
   # Parameter: {{straße}}
+  param_list:
+    - name: straße
+      type: str
+      default_value: Frauen
   sql: |
     SELECT
       '1851' AS Jahr,

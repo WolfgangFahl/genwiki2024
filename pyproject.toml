@@ -28,8 +28,8 @@ dependencies = [
 	# nicegui
     # fastapi
 	# uvicorn
-    "nicegui>=1.4.32",
-    "ngwidgets>=0.17.7",
+    "nicegui>=2.1.0",
+    "ngwidgets>=0.19.1",
     # progress bar
     # https://pypi.org/project/tqdm/
     "tqdm>=4.66.5",
@@ -47,9 +47,7 @@ dependencies = [
 
     # platform independent knowledge graph ready list of dicts (table) handling
     # https://pypi.org/project/pyLodStorage/
-    "pyLodStorage>=0.12.2"
-
-
+    "pyLodStorage>=0.12.4"
 ]
 
 requires-python = ">=3.9"
