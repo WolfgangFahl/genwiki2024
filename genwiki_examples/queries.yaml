@@ -49,6 +49,25 @@
     }
     ORDER BY ASC(?dist)
     LIMIT {{ limit }}
+WikidataItemNameAndCoordinates:
+  # This query retrieves the name and coordinates of a specified Wikidata item.
+  # It uses the standard notation with rdf:label instead of the wikibase:label service.
+  param_list:
+    - name: item
+      type: WikidataItem
+      default_value: Q183 # Deutschland
+  sparql: |
+    SELECT ?item ?itemLabel ?coordinates
+    WHERE {
+      BIND(wd:{{ item }} AS ?item)
+
+      # Get the label (name) using rdf:label
+      ?item rdfs:label ?itemLabel .
+      FILTER(LANG(?itemLabel) = "de")
+
+      # Get the coordinates
+      OPTIONAL { ?item wdt:P625 ?coordinates. }
+    }
 # Abfragen für die Adressansicht
 # Diese Abfragen beziehen sich auf die kombinierte Ansicht der
 # Weimarer Adressbücher von 1851 und 1853.

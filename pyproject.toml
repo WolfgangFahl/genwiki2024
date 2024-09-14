@@ -47,7 +47,11 @@ dependencies = [
 
     # platform independent knowledge graph ready list of dicts (table) handling
     # https://pypi.org/project/pyLodStorage/
-    "pyLodStorage>=0.12.4"
+    "pyLodStorage>=0.12.4",
+
+    # Wikidata Grid and WdItemSearch
+    # https://pypi.org/project/wdgrid/
+    "wdgrid>=0.1.2"
 ]
 
 requires-python = ">=3.9"

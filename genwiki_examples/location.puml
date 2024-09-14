@@ -8,7 +8,7 @@ package geocoding {
       name
       identifiers
       wikidataid
-      latlon
+      coordinates
       comment
   }
    note top of Location:  geocoding

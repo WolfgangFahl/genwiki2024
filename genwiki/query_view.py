@@ -4,30 +4,33 @@ Created on 26.08.2024
 @author: wf
 """
 
-from lodstorage.sql import SQLDB
 from lodstorage.sparql import SPARQL
+from lodstorage.sql import SQLDB
 from ngwidgets.lod_grid import ListOfDictsGrid
 from ngwidgets.widgets import Link
 from nicegui import background_tasks, run, ui
 from nicegui.events import ValueChangeEventArguments
 
-from genwiki.params_view import ParamsView
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
+from genwiki.params_view import ParamsView
 from genwiki.wiki import Wiki
+
 
 class QueryView:
     """
     simplified version of the snapquery version snapquery_view
     """
 
-    def __init__(self, solution, mlqm:MultiLanguageQueryManager, sql_db: SQLDB, wiki:Wiki):
+    def __init__(
+        self, solution, mlqm: MultiLanguageQueryManager, sql_db: SQLDB, wiki: Wiki
+    ):
         self.solution = solution
-        self.mlqm=mlqm
-        self.wiki=wiki
+        self.mlqm = mlqm
+        self.wiki = wiki
         self.sql_db = sql_db
         self.load_task = None
         self.timeout = 5.0
-        self.params_view=None
+        self.params_view = None
 
     def setup_ui(self):
         """
@@ -62,7 +65,9 @@ class QueryView:
             self.params_view.delete()
         if self.query.params.has_params:
             self.query.set_default_params(self.query.params.params_dict)
-            self.params_view=ParamsView(solution=self.solution,params=self.query.params)
+            self.params_view = ParamsView(
+                solution=self.solution, params=self.query.params
+            )
             self.params_view.setup()
             self.params_view.open()
         self.params_row.update()
@@ -71,15 +76,17 @@ class QueryView:
         """
         run the query
         """
-        query=self.query
-        if query.lang=="sql":
+        query = self.query
+        if query.lang == "sql":
             qlod = self.sql_db.query(query.query)
-        elif query.lang=="sparql":
-            query.endpoint="https://query.wikidata.org/sparql"
+        elif query.lang == "sparql":
+            query.endpoint = "https://query.wikidata.org/sparql"
             endpoint = SPARQL(query.endpoint)
-            qlod = endpoint.queryAsListOfDicts(query.query,param_dict=query.params.params_dict)
-        elif query.lang=="ask":
-            qlod=self.wiki.query_as_list_of_dicts(query.query)
+            qlod = endpoint.queryAsListOfDicts(
+                query.query, param_dict=query.params.params_dict
+            )
+        elif query.lang == "ask":
+            qlod = self.wiki.query_as_list_of_dicts(query.query)
         else:
             raise ValueError(f"query language {query.lang} not supported")
         return qlod

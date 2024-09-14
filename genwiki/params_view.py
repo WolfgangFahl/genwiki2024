@@ -13,15 +13,17 @@ class ParamsView:
     a view for Query Parameters
     """
 
-    def __init__(self, solution, params: Params,title:str="Params",icon:str="tune"):
+    def __init__(
+        self, solution, params: Params, title: str = "Params", icon: str = "tune"
+    ):
         """
         construct me with the given solution and params
         """
         self.solution = solution
-        self.params=params
-        self.dict_edit=None
-        self.title=title
-        self.icon=icon
+        self.params = params
+        self.dict_edit = None
+        self.title = title
+        self.icon = icon
 
     def open(self):
         """
@@ -37,7 +39,7 @@ class ParamsView:
 
     def delete(self):
         self.dict_edit.card.delete()
-        self.dict_edit=None
+        self.dict_edit = None
 
     def setup(self):
         """
@@ -45,7 +47,7 @@ class ParamsView:
         """
         if self.dict_edit:
             self.dict_edit.card.delete()
-        self.dict_edit=self.get_dict_edit()
+        self.dict_edit = self.get_dict_edit()
 
     def get_dict_edit(self) -> DictEdit:
         """

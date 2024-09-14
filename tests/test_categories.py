@@ -3,7 +3,9 @@ Created on 2024-08-15
 
 @author: wf
 """
+
 import os
+
 from tqdm import tqdm
 
 from genwiki.addressbook import AddressBookConverter
@@ -40,7 +42,7 @@ class TestCategories(GenealogyBasetest):
         """
         test SMW Ask query access
         """
-        ask_query="""{{#ask: [[Concept:AddressBook]]
+        ask_query = """{{#ask: [[Concept:AddressBook]]
     |mainlabel=AddressBook
     |?AddressBook id = id
     |?AddressBook title = title
@@ -50,13 +52,13 @@ class TestCategories(GenealogyBasetest):
     |?AddressBook location = location
     |limit=20
     }}"""
-        qlod=self.target_wiki.query_as_list_of_dicts(ask_query)
-        self.assertIsInstance(qlod,list)
-        self.assertTrue(len(qlod)>0)
-        debug=self.debug
-        #debug=True
+        qlod = self.target_wiki.query_as_list_of_dicts(ask_query)
+        self.assertIsInstance(qlod, list)
+        self.assertTrue(len(qlod) > 0)
+        debug = self.debug
+        # debug=True
         for record in qlod:
-            self.assertIsInstance(record,dict)
+            self.assertIsInstance(record, dict)
             self.assertTrue("title" in record)
             if debug:
                 print(record)
