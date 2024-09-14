@@ -20,6 +20,7 @@ from genwiki.convert import ParquetAdressbokToSql
 from genwiki.query_view import QueryView
 from genwiki.version import Version
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
+from genwiki.wiki import Wiki
 
 
 class GenWikiWebServer(InputWebserver):
@@ -77,6 +78,11 @@ class GenWikiWebServer(InputWebserver):
                 await self.login.logout()
             return RedirectResponse("/")
 
+    def configure_run(self):
+        super().configure_run()
+        self.wiki_id = "gensmw"
+        self.wiki = Wiki(wiki_id=self.wiki_id, debug=self.args.debug)
+
 
 class GenWikiSolution(InputWebSolution):
     """
@@ -93,6 +99,7 @@ class GenWikiSolution(InputWebSolution):
         """
         super().__init__(webserver, client)
         self.mlqm=webserver.mlqm
+        self.wiki=webserver.wiki
         self.sql_db = self.webserver.sql_db
 
     def authenticated(self) -> bool:
@@ -126,7 +133,11 @@ class GenWikiSolution(InputWebSolution):
 
         def setup_home():
             """ """
-            self.query_view = QueryView(self, mlqm=self.mlqm, sql_db=self.sql_db)
+            self.query_view = QueryView(self,
+                mlqm=self.mlqm,
+                sql_db=self.sql_db,
+                wiki=self.wiki
+            )
             self.query_view.setup_ui()
 
         await self.setup_content_div(setup_home)

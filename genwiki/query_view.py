@@ -13,16 +13,17 @@ from nicegui.events import ValueChangeEventArguments
 
 from genwiki.params_view import ParamsView
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
-
+from genwiki.wiki import Wiki
 
 class QueryView:
     """
     simplified version of the snapquery version snapquery_view
     """
 
-    def __init__(self, solution, mlqm:MultiLanguageQueryManager, sql_db: SQLDB):
+    def __init__(self, solution, mlqm:MultiLanguageQueryManager, sql_db: SQLDB, wiki:Wiki):
         self.solution = solution
         self.mlqm=mlqm
+        self.wiki=wiki
         self.sql_db = sql_db
         self.load_task = None
         self.timeout = 5.0
@@ -77,6 +78,10 @@ class QueryView:
             query.endpoint="https://query.wikidata.org/sparql"
             endpoint = SPARQL(query.endpoint)
             qlod = endpoint.queryAsListOfDicts(query.query,param_dict=query.params.params_dict)
+        elif query.lang=="ask":
+            qlod=self.wiki.query_as_list_of_dicts(query.query)
+        else:
+            raise ValueError(f"query language {query.lang} not supported")
         return qlod
 
     async def load_query_results(self):

@@ -6,7 +6,7 @@ Created on 2024-08-15
 
 import logging
 import os
-from typing import Dict, Generator, Tuple
+from typing import Any, Dict, Generator, List, Tuple
 
 from wikibot3rd.wikipush import WikiPush
 
@@ -55,6 +55,18 @@ class Wiki:
             logging.log(level, message)
         else:
             logging.log(logging.DEBUG, message)
+
+    def query_as_dict_of_dicts(self,ask_query:str)->Dict[str,Dict[str,Any]]:
+        """
+        run the given SMW ask query against my wiki
+        """
+        qdict=self.wiki_push.queryPages(askQuery=ask_query)
+        return qdict
+
+    def query_as_list_of_dicts(self,ask_query:str)->List[Dict[str,Any]]:
+        qdict=self.query_as_dict_of_dicts(ask_query)
+        qlod=list(qdict.values())
+        return qlod
 
     def backup(self, ask_query: str):
         """

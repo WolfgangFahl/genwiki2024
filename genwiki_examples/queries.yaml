@@ -1,3 +1,19 @@
+'Adressbücher':
+  param_list:
+    - name: limit
+      type: int
+      default_value: 50
+  ask: |
+    {{#ask: [[Concept:AddressBook]]
+    |mainlabel=AddressBook
+    |?AddressBook id = id
+    |?AddressBook title = title
+    |?AddressBook subtitle = subtitle
+    |?AddressBook year = year
+    |?AddressBook pageCount = pageCount
+    |?AddressBook location = location
+    |limit={{limit}}
+    }}
 'WikidataItemsNearItem':
   # This query finds Wikidata items near a specified Wikidata item.
   # It uses the Wikidata Query Service to find places within a given radius

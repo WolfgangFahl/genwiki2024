@@ -36,6 +36,32 @@ class TestCategories(GenealogyBasetest):
         )
         self.wiki.wiki_push.fromWiki.is_smw_enabled = False
 
+    def test_query(self):
+        """
+        test SMW Ask query access
+        """
+        ask_query="""{{#ask: [[Concept:AddressBook]]
+    |mainlabel=AddressBook
+    |?AddressBook id = id
+    |?AddressBook title = title
+    |?AddressBook subtitle = subtitle
+    |?AddressBook year = year
+    |?AddressBook pageCount = pageCount
+    |?AddressBook location = location
+    |limit=20
+    }}"""
+        qlod=self.target_wiki.query_as_list_of_dicts(ask_query)
+        self.assertIsInstance(qlod,list)
+        self.assertTrue(len(qlod)>0)
+        debug=self.debug
+        #debug=True
+        for record in qlod:
+            self.assertIsInstance(record,dict)
+            self.assertTrue("title" in record)
+            if debug:
+                print(record)
+        pass
+
     def testCategories(self):
         """
         Test categories by processing all .wiki files in the backup directory.
