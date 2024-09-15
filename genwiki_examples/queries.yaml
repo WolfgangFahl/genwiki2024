@@ -49,6 +49,24 @@
     }
     ORDER BY ASC(?dist)
     LIMIT {{ limit }}
+'WikidataItemsCoordinates':
+  # This query retrieves coordinates for multiple Wikidata items using a VALUES clause
+  param_list:
+    - name: items
+      type: str
+      default_value: "wd:Q1729 wd:Q7070"  # Erfurt/Eisenach
+  sparql: |
+    SELECT ?item ?itemLabel ?coordinates
+    WHERE {
+      VALUES ?item { {{ items }} }
+
+      # Get the label (name) using rdfs:label
+      ?item rdfs:label ?itemLabel .
+      FILTER(LANG(?itemLabel) = "en")
+
+      # Get the coordinates
+      ?item wdt:P625 ?coordinates .
+    }
 'WikidataLookup':
   param_list:
     - name: item

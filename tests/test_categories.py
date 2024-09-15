@@ -92,7 +92,7 @@ class TestCategories(GenealogyBasetest):
         # Get page contents
         page_contents = source_wiki.get_all_content()
 
-        limit = 5
+        limit = 7
 
         # Set up tqdm progress bar
         progress_bar = tqdm(total=limit, desc="Converting AddressBooks", unit="page")

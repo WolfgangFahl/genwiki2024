@@ -8,7 +8,6 @@ import logging
 import os
 from typing import Dict
 
-from genwiki.gov_api import GOV_API
 from genwiki.template import TemplateMap, TemplateParam
 from genwiki.locator import Locator
 
@@ -41,15 +40,19 @@ class AddressBookConverter:
             },
         )
         self.year_mapping = {"weimarTH1851.parquet": 1851, "weimarTH1853.parquet": 1853}
-        self.locator=Locator()
+        self.locator=Locator(debug=self.debug)
 
     def record_convert(self, record: Dict):
         """
         addressbook record conversion callback
         """
         gov_id = record["location"]
-        geo_qid,wds_qid=self.locator.locate(gov_id, debug=True)
-        pass
+        items_dict=self.locator.locate(gov_id)
+        if len(items_dict)>0:
+            for key,item in items_dict.items():
+                page_title=self.locator.lookup_path_for_item(item)
+                record["at"]=page_title
+                pass
 
     def convert(
         self,
