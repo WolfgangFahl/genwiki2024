@@ -14,6 +14,7 @@ from nicegui.events import ValueChangeEventArguments
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.params_view import ParamsView
 from genwiki.wiki import Wiki
+from genwiki.wikidata import Wikidata
 
 
 class QueryView:
@@ -80,9 +81,8 @@ class QueryView:
         if query.lang == "sql":
             qlod = self.sql_db.query(query.query)
         elif query.lang == "sparql":
-            query.endpoint = "https://query.wikidata.org/sparql"
-            endpoint = SPARQL(query.endpoint)
-            qlod = endpoint.queryAsListOfDicts(
+            sparql = Wikidata.get_sparql()
+            qlod = sparql.queryAsListOfDicts(
                 query.query, param_dict=query.params.params_dict
             )
         elif query.lang == "ask":

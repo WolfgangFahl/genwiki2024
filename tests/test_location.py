@@ -9,6 +9,7 @@ import json
 from ez_wikidata.wdsearch import WikidataSearch
 
 from genwiki.gov_api import GOV_API
+from genwiki.locator import Locator
 from genwiki.nominatim import NominatimWrapper
 from tests.gbasetest import GenealogyBasetest
 
@@ -20,6 +21,26 @@ class TestLocations(GenealogyBasetest):
 
     def setUp(self, debug=False, profile=True):
         GenealogyBasetest.setUp(self, debug=debug, profile=profile)
+        self.locator = Locator()
+
+    def testLocator(self):
+        """
+        test the locator
+        """
+        geo_names_id="3092080"
+        qid=self.locator.lookup_wikidata_id_by_geonames(geo_names_id, lang="de")
+        self.assertEqual("Q255385",qid)
+
+        debug=True
+        for gov_id,ex_geo_qid,ex_wds_qid in [
+            ("WEIMARJO50QX","Q32067990", "Q3955"),
+            ("Vaihingen auf den Fildern",None,None)
+        ]:
+            geo_qid,wds_qid=self.locator.locate(gov_id, debug=debug)
+            if debug:
+                print(f"{gov_id}:{geo_qid} - {wds_qid}")
+            self.assertEqual(ex_geo_qid,geo_qid)
+            self.assertEqual(ex_wds_qid,wds_qid)
 
     def testWikidataSearch(self):
         """ """

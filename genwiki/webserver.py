@@ -18,6 +18,7 @@ from starlette.responses import RedirectResponse
 from wd.wditem_search import WikidataItemSearch
 
 from genwiki.convert import ParquetAdressbokToSql
+from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.query_view import QueryView
 from genwiki.version import Version
@@ -42,9 +43,7 @@ class GenWikiWebServer(InputWebserver):
         return server_config
 
     def examples_path(self) -> str:
-        # the root directory (default: examples)
-        path = os.path.join(os.path.dirname(__file__), "../genwiki_examples")
-        path = os.path.abspath(path)
+        path = GenWikiPaths.get_examples_path()
         return path
 
     def __init__(self):

@@ -37,6 +37,7 @@ class TestCategories(GenealogyBasetest):
             wiki_id=self.wiki_id, debug=self.debug, backup_dir=self.backup_dir
         )
         self.wiki.wiki_push.fromWiki.is_smw_enabled = False
+        self.wiki.wiki_push.toWiki = self.target_wiki.wiki_push.fromWiki
 
     def test_query(self):
         """
@@ -101,6 +102,7 @@ class TestCategories(GenealogyBasetest):
         # Convert with limit of 10 pages
         target_pages = ac.convert(
             page_contents,
+            source_wiki=source_wiki,
             target_wiki=self.target_wiki,
             mode=mode,
             limit=limit,
@@ -189,7 +191,7 @@ class TestCategories(GenealogyBasetest):
         # Test markup conversion
         markup_result = template_map.convert_template(page_content, "markup")
         expected_markup_lines = [
-            "{{Template:AddressBook",
+            "{{AddressBook",
             "| image = Weimar-AB-1851_Cover.jpg",
             "| title = Adreß-Buch der Residenz-Stadt Weimar",
             "| subtitle = Ein Handbuch für Einheimische und Fremde",

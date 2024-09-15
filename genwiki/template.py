@@ -6,7 +6,7 @@ Created on 19.08.2024
 
 import re
 from dataclasses import field
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 import mwparserfromhell
 from ngwidgets.yamlable import lod_storable
@@ -25,7 +25,9 @@ class TemplateMap:
     topic_name: str
     param_mapping: Dict[str, TemplateParam] = field(default_factory=dict)
 
-    def as_template_dict(self, page_content: str) -> Dict[str, Any]:
+    def as_template_dict(
+        self, page_content: str, callback: Callable = None
+    ) -> Dict[str, Any]:
         wikicode = mwparserfromhell.parse(page_content)
         templates = wikicode.filter_templates(matches=self.template_name)
 
@@ -50,7 +52,8 @@ class TemplateMap:
                         pass  # Keep the original value if it's not a valid integer
 
                 result[param.new_name] = value
-
+        if callback:
+            callback(result)
         return result
 
     def as_topic_dict(self, page_content: str) -> Dict[str, Any]:
@@ -99,7 +102,7 @@ class TemplateMap:
 
     # Add dict_to_markup method if not already present
     def dict_to_markup(self, data: Dict[str, Any]) -> str:
-        markup_lines = [f"{{{{Template:{self.topic_name}"]
+        markup_lines = [f"{{{{{self.topic_name}"]
         for key, value in data.items():
             markup_lines.append(f"| {key} = {value}")
         markup_lines.append("}}")

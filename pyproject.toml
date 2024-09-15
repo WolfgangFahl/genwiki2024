@@ -45,6 +45,9 @@ dependencies = [
     # https://pypi.org/project/geopy/
     "geopy>=2.3.0",
 
+    # https://pypi.org/project/geocoder/
+    "geocoder>=1.38.1",
+
     # platform independent knowledge graph ready list of dicts (table) handling
     # https://pypi.org/project/pyLodStorage/
     "pyLodStorage>=0.12.4",

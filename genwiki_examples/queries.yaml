@@ -49,6 +49,65 @@
     }
     ORDER BY ASC(?dist)
     LIMIT {{ limit }}
+'WikidataLookup':
+  param_list:
+    - name: item
+      type: WikidataItem
+      default_value: Q255385 # Miastko
+    - name: lang
+      type: str
+      default_value: de
+  sparql: |
+    SELECT DISTINCT ?item ?itemLabel ?coordinates ?intermediateAdmin ?intermediateAdminLabel ?level ?iso_code
+    WHERE {
+      BIND(wd:{{item}} AS ?item)
+
+      # Get the label (name) using rdf:label
+      ?item rdfs:label ?itemLabel .
+      FILTER(LANG(?itemLabel) = "{{lang}}")
+
+      # Get the coordinates
+      OPTIONAL { ?item wdt:P625 ?coordinates. }
+
+      # Navigate up the administrative hierarchy
+      ?item wdt:P131* ?intermediateAdmin .
+
+      # Get labels for intermediate admin levels
+      ?intermediateAdmin rdfs:label ?intermediateAdminLabel .
+      FILTER(LANG(?intermediateAdminLabel) = "{{lang}}")
+
+      # Find the country level
+      ?item wdt:P131* / wdt:P31/wdt:P279* wd:Q6256 .
+
+      # Exclude the item itself from the hierarchy
+      FILTER (?intermediateAdmin != ?item)
+
+      # Optional ISO code for countries (ISO 3166-1 alpha-2)
+      OPTIONAL { ?intermediateAdmin wdt:P297 ?country_iso_code. BIND("3" AS ?level)}
+
+      # Optional ISO code for regions (ISO 3166-2)
+      OPTIONAL { ?intermediateAdmin wdt:P300 ?region_iso_code BIND("4" AS ?level)}
+      BIND(COALESCE(?country_iso_code, ?region_iso_code) AS ?iso_code)
+      FILTER(BOUND(?iso_code))
+    } ORDER BY DESC(?level)
+'WikidataLookupByGeoNamesID':
+  param_list:
+    - name: geonames_id
+      type: str
+      default_value: "2812482"  # Example GeoNames ID for Weimar
+    - name: lang
+      type: str
+      default_value: en
+  sparql: |
+    SELECT ?item ?itemLabel
+    WHERE {
+      ?item wdt:P1566 "{{geonames_id}}" .
+
+      # Get the label (name) using rdfs:label
+      ?item rdfs:label ?itemLabel .
+      FILTER(LANG(?itemLabel) = "{{lang}}")
+    }
+
 WikidataItemNameAndCoordinates:
   # This query retrieves the name and coordinates of a specified Wikidata item.
   # It uses the standard notation with rdf:label instead of the wikibase:label service.

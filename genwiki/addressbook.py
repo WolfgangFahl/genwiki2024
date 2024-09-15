@@ -6,9 +6,11 @@ Created on 19.08.2024
 
 import logging
 import os
+from typing import Dict
 
+from genwiki.gov_api import GOV_API
 from genwiki.template import TemplateMap, TemplateParam
-
+from genwiki.locator import Locator
 
 class AddressBookConverter:
     """
@@ -39,10 +41,20 @@ class AddressBookConverter:
             },
         )
         self.year_mapping = {"weimarTH1851.parquet": 1851, "weimarTH1853.parquet": 1853}
+        self.locator=Locator()
+
+    def record_convert(self, record: Dict):
+        """
+        addressbook record conversion callback
+        """
+        gov_id = record["location"]
+        geo_qid,wds_qid=self.locator.locate(gov_id, debug=True)
+        pass
 
     def convert(
         self,
         page_contents,
+        source_wiki=None,
         target_wiki=None,
         mode="backup",
         limit: int = None,
@@ -72,7 +84,9 @@ class AddressBookConverter:
             if limit and i >= limit:
                 break
 
-            ab_dict = self.template_map.as_template_dict(page_content)
+            ab_dict = self.template_map.as_template_dict(
+                page_content, callback=self.record_convert
+            )
             markup = self.template_map.dict_to_markup(ab_dict)
             result[page_name] = markup
             if mode == "push" and target_wiki:
@@ -83,6 +97,10 @@ class AddressBookConverter:
                     force=force,
                 )
                 logging.log(logging.INFO, edit_status)
+                pass
+                source_page = source_wiki.wiki_push.fromWiki.getPage(page_name)
+                source_wiki.wiki_push.pushImages([source_page], ignore=True)
+
             elif mode == "backup":
                 backup_path = os.path.join(
                     target_wiki.wiki_backup_dir, f"{page_name}.wiki"
