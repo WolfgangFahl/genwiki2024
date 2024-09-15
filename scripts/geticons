@@ -3,8 +3,8 @@
 # get icons
 
 # Arrays for icon names and corresponding font-awesome icons
-icon_names=("ClaimIcon" "SourceIcon" "AddressBookIcon" "InterpretationIcon")
-fa_icons=("file-signature" "book-open" "address-book" "lightbulb")
+icon_names=( "LocationIcon" "ClaimIcon" "SourceIcon" "AddressBookIcon" "InterpretationIcon")
+fa_icons=("location-dot" "file-signature" "book-open" "address-book" "lightbulb" )
 
 # Length of arrays
 len=${#icon_names[@]}

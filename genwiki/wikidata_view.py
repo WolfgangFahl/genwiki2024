@@ -54,13 +54,17 @@ class WikidataItemView:
             record=qlod[0]
             wikidataid=record["item"]
             wikidataid=self.unprefix(wikidataid)
-            point_str=record["coordinates"]
-            latlon=self.convert_point_to_latlon(point_str)
+            if "coordinates" in record:
+                point_str=record["coordinates"]
+                latlon=self.convert_point_to_latlon(point_str)
+                coord=f"\n|coordinates={latlon}"
+            else:
+                coord=""
+                pass
             # convert to -32.715°, -77.03201°
             wiki_markup=f"""{{{{Location
 |name={record["itemLabel"]}
-|wikidataid={wikidataid}
-|coordinates={latlon}
+|wikidataid={wikidataid}{coord}
 }}}}"""
             html_markup=f"<pre>{wiki_markup}</pre>"
             ui.html(html_markup)
