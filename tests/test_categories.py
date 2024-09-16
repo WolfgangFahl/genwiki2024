@@ -160,7 +160,7 @@ class TestCategories(GenealogyBasetest):
         }}
         """
 
-        dict_result = template_map.as_template_dict(page_content)
+        dict_result = template_map.as_template_dict(page_title="Weimar/Adressbuch 1851",page_content=page_content)
         if self.debug:
             print(dict_result)
 

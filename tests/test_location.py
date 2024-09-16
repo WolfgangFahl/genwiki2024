@@ -30,8 +30,8 @@ class TestLocations(GenealogyBasetest):
         items = ["Q1729", "Q7070"]
         coords = self.locator.get_coordinates(items)
         expected = {
-            'Q1729': (50.978055555, 11.028888888),  # Erfurt
-            'Q7070': (50.974722222, 10.324444444)   # Eisenach
+            "Q1729": (50.978055555, 11.028888888),  # Erfurt
+            "Q7070": (50.974722222, 10.324444444),  # Eisenach
         }
         self.assertEqual(expected, coords)
 
@@ -39,29 +39,29 @@ class TestLocations(GenealogyBasetest):
         """
         test getting a path
         """
-        item="Q3955"
-        page_title=self.locator.lookup_path_for_item(item)
-        self.assertEqual("DE/TH/Weimar",page_title)
+        item = "Q3955"
+        page_title = self.locator.lookup_path_for_item(item)
+        self.assertEqual("DE/TH/Weimar", page_title)
 
     def testLocator(self):
         """
         test the locator
         """
-        geo_names_id="3092080"
-        qid=self.locator.lookup_wikidata_id_by_geonames(geo_names_id, lang="de")
-        self.assertEqual("Q255385",qid)
+        geo_names_id = "3092080"
+        qid = self.locator.lookup_wikidata_id_by_geonames(geo_names_id, lang="de")
+        self.assertEqual("Q255385", qid)
 
-        debug=True
-        for gov_id,expected in [
-            ("RUMURGJO84LA",{'gov-Miastko@pl': 'Q255385'}),
-            ("WEIMARJO50QX",{'gov-Weimar@de': 'Q3955'}),
-            ("Vaihingen auf den Fildern",{})
+        debug = True
+        for gov_id, expected in [
+            ("RUMURGJO84LA", {"gov-Miastko@pl": "Q255385"}),
+            ("WEIMARJO50QX", {"gov-Weimar@de": "Q3955"}),
+            ("Vaihingen auf den Fildern", {}),
         ]:
-            items=self.locator.locate(gov_id)
+            items = self.locator.locate(gov_id)
             if debug:
                 print(f"{gov_id}:{items}")
-            #self.assertEqual(ex_geo_qid,geo_qid)
-            #self.assertEqual(ex_wds_qid,wds_qid)
+            # self.assertEqual(ex_geo_qid,geo_qid)
+            # self.assertEqual(ex_wds_qid,wds_qid)
 
     def testWikidataSearch(self):
         """ """

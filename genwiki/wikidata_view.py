@@ -24,7 +24,6 @@ class WikidataItemView:
         self.qid = Wikidata.unprefix(qid)
         self.item_query = self.mlqm.query4Name("WikidataItemNameAndCoordinates")
 
-
     def convert_point_to_latlon(self, point_str: str):
         # Define the pattern to match the "Point(x y)" format
         pattern = r"Point\(([-\d.]+)\s+([-\d.]+)\)"

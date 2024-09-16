@@ -3,7 +3,8 @@ Created on 25.08.2024
 
 @author: wf
 """
-
+import os
+import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional
@@ -89,19 +90,45 @@ class GOVObject:
 
 class GOV_API:
     """
-    access to Webservice
-    https://wiki.genealogy.net/GOV/Webservice
+    Access to Webservice https://wiki.genealogy.net/GOV/Webservice
+    with local caching
     """
 
     def __init__(self):
-        self.url = f"https://gov.genealogy.net/api/getObject"
+        self.url = "https://gov.genealogy.net/api/getObject"
+        self.cache_dir = os.path.expanduser("~/.govapi")
+        os.makedirs(self.cache_dir, exist_ok=True)
+
+    def get_cache_path(self, gov_id: str) -> str:
+        return os.path.join(self.cache_dir, f"{gov_id}.json")
+
+    def get_from_cache(self, gov_id: str) -> Optional[dict]:
+        cache_path = self.get_cache_path(gov_id)
+        if os.path.exists(cache_path):
+            with open(cache_path, 'r') as f:
+                return json.load(f)
+        return None
+
+    def save_to_cache(self, gov_id: str, data: dict):
+        cache_path = self.get_cache_path(gov_id)
+        with open(cache_path, 'w') as f:
+            json.dump(data, f)
 
     def get_raw_gov_object(self, gov_id: str):
+        # Check cache first
+        cached_data = self.get_from_cache(gov_id)
+        if cached_data:
+            return cached_data
 
+        # If not in cache, fetch from API
         params = {"itemId": gov_id}
         response = requests.get(self.url, params=params)
         response.raise_for_status()
         data = response.json()
+
+        # Save to cache
+        self.save_to_cache(gov_id, data)
+
         return data
 
     def get_gov_object(self, gov_id: str) -> GOVObject:

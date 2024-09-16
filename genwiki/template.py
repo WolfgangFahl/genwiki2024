@@ -26,7 +26,7 @@ class TemplateMap:
     param_mapping: Dict[str, TemplateParam] = field(default_factory=dict)
 
     def as_template_dict(
-        self, page_name:str, page_content: str, callback: Callable = None
+        self, page_name: str, page_content: str, callback: Callable = None
     ) -> Dict[str, Any]:
         wikicode = mwparserfromhell.parse(page_content)
         templates = wikicode.filter_templates(matches=self.template_name)
@@ -53,7 +53,7 @@ class TemplateMap:
 
                 result[param.new_name] = value
         if callback:
-            callback(page_name,page_content,result)
+            callback(page_name, page_content, result)
         return result
 
     def as_topic_dict(self, page_content: str) -> Dict[str, Any]:
