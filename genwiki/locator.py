@@ -140,22 +140,23 @@ class Locator:
         gov_obj=None
         try:
             gov_obj = self.gov_api.get_raw_gov_object(gov_id)
-            for i,ref in enumerate(gov_obj["externalReference"]):
-                val=ref["value"]
-                if self.debug:
-                    print(f"{i}:{val}")
-                if val.startswith("geonames"):
-                    geonames_id = val.split(":")[1]
-                    items[val] = self.lookup_wikidata_id_by_geonames(geonames_id)
-                for name_record in gov_obj["name"]:
-                    lang = name_record["lang"]
-                    name = name_record["value"]
-                    if lang in self.lang_map:
-                        language = self.lang_map[lang]
-                    else:
-                        language = "en"
-                    item=self.locate_by_name(name, language)
-                    items[f"gov-{name}@{language}"]=item
+            if "externalReference" in gov_obj:
+                for i,ref in enumerate(gov_obj["externalReference"]):
+                    val=ref["value"]
+                    if self.debug:
+                        print(f"{i}:{val}")
+                    if val.startswith("geonames"):
+                        geonames_id = val.split(":")[1]
+                        items[val] = self.lookup_wikidata_id_by_geonames(geonames_id)
+                    for name_record in gov_obj["name"]:
+                        lang = name_record["lang"]
+                        name = name_record["value"]
+                        if lang in self.lang_map:
+                            language = self.lang_map[lang]
+                        else:
+                            language = "en"
+                        item=self.locate_by_name(name, language)
+                        items[f"gov-{name}@{language}"]=item
 
         except Exception as ex:
             if "404" in str(ex):

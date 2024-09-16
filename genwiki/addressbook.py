@@ -42,16 +42,52 @@ class AddressBookConverter:
         self.year_mapping = {"weimarTH1851.parquet": 1851, "weimarTH1853.parquet": 1853}
         self.locator=Locator(debug=self.debug)
 
-    def record_convert(self, record: Dict):
+    def check_location(self,page_title:str,item,force:bool=True):
+        """
+        check the location page
+        """
+        wiki=self.target_wiki.wiki_push.toWiki
+        page=wiki.get_page(page_title)
+        create=force or not page.exists
+        if create:
+            coords=self.locator.get_coordinates([item])
+            lat,lon=coords[item]
+            parts = page_title.rsplit("/", 1)  # Split from the right, limit to one split
+            partOf = parts[0]  # PL/22
+            name = parts[1]  # Miastko
+            # PL/22/Miastko
+            markup=f"""{{{{Location
+|path={page_title}
+|name={name}
+|coordinates={lat},{lon}
+|wikidataid={item}
+|locationKind=City
+|level=5
+|partOf={partOf}
+}}}}
+"""
+            page.edit(markup,"created by genwiki2024 addressbook converter")
+            pass
+
+    def record_convert(self, page_name:str, page_content:str, record: Dict):
         """
         addressbook record conversion callback
         """
         gov_id = record["location"]
+        page_title=page_name.replace(" ","_")
+        record["id"]=page_title
+        record["genwikiurl"]=f"https://wiki.genealogy.net/{page_title}"
+        if "image" in record and record["image"]:
+            record["image"]=f"""File:{record["image"]}"""
         items_dict=self.locator.locate(gov_id)
         if len(items_dict)>0:
             for key,item in items_dict.items():
+                if not item:
+                    continue
                 page_title=self.locator.lookup_path_for_item(item)
                 record["at"]=page_title
+                self.check_location(page_title, item)
+                break
                 pass
 
     def convert(
@@ -75,6 +111,7 @@ class AddressBookConverter:
             force (bool): if not True only do a dry run
             progress_bar (Progressbar): Progress bar object to update during conversion.
         """
+        self.target_wiki=target_wiki
         if force:
             target_wiki.wiki_push.toWiki.login()
         result = {}
@@ -88,7 +125,7 @@ class AddressBookConverter:
                 break
 
             ab_dict = self.template_map.as_template_dict(
-                page_content, callback=self.record_convert
+                page_name,page_content, callback=self.record_convert
             )
             markup = self.template_map.dict_to_markup(ab_dict)
             result[page_name] = markup
@@ -102,7 +139,14 @@ class AddressBookConverter:
                 logging.log(logging.INFO, edit_status)
                 pass
                 source_page = source_wiki.wiki_push.fromWiki.getPage(page_name)
-                source_wiki.wiki_push.pushImages([source_page], ignore=True)
+                image=None
+                for page_image in source_page.images():
+                    base_name=page_image.base_name.replace("Datei:","File:")
+                    if base_name==ab_dict["image"]:
+                        image=page_image
+                    pass
+                if image:
+                    source_wiki.wiki_push.pushImages([image], ignore=True)
 
             elif mode == "backup":
                 backup_path = os.path.join(

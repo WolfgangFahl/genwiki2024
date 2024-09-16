@@ -79,6 +79,9 @@ class TestCategories(GenealogyBasetest):
             print(page_contents)
 
     def test_convert_addressbooks(self):
+        """
+        test converting address books
+        """
         force = not self.inPublicCI()
         # dry run?
         # force=False
@@ -92,7 +95,7 @@ class TestCategories(GenealogyBasetest):
         # Get page contents
         page_contents = source_wiki.get_all_content()
 
-        limit = 7
+        limit = 10
 
         # Set up tqdm progress bar
         progress_bar = tqdm(total=limit, desc="Converting AddressBooks", unit="page")
