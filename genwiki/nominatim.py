@@ -6,7 +6,7 @@ Created on 25.08.2024
 
 import logging
 
-from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
+from geopy.exc import GeocoderTimedOut, GeocoderUnavailable, GeocoderQueryError
 from geopy.geocoders import Nominatim
 
 
@@ -41,8 +41,11 @@ class NominatimWrapper:
                 location = self.geolocator.geocode(
                     location_text, exactly_one=True, extratags=True
                 )
-                if location and "wikidata" in location.raw.get("extratags", {}):
-                    return location.raw["extratags"]["wikidata"]
+
+                if location:
+                    extratags = location.raw.get("extratags", {})
+                    if extratags and "wikidata" in extratags:
+                        return extratags["wikidata"]
                 return None
             except (GeocoderTimedOut, GeocoderUnavailable):
                 if attempt == max_retries - 1:
@@ -51,4 +54,6 @@ class NominatimWrapper:
                     logging.warning(
                         f"Geocoding attempt {attempt + 1} failed, retrying..."
                     )
+            except GeocoderQueryError:
+                logging.warning("Geocoding failed")
         return None

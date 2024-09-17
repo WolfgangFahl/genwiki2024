@@ -125,6 +125,23 @@
       ?item rdfs:label ?itemLabel .
       FILTER(LANG(?itemLabel) = "{{lang}}")
     }
+'WikidataLookupByNutsCode':
+  param_list:
+    - name: nuts_code
+      type: str
+      default_value: "DE731"  # Example Nuts Code for Kassel
+    - name: lang
+      type: str
+      default_value: de
+  sparql: |
+    SELECT ?item ?itemLabel
+    WHERE {
+      ?item wdt:P605 "{{nuts_code}}" .
+
+      # Get the label (name) using rdfs:label
+      ?item rdfs:label ?itemLabel .
+      FILTER(LANG(?itemLabel) = "{{lang}}")
+    }
 
 WikidataItemNameAndCoordinates:
   # This query retrieves the name and coordinates of a specified Wikidata item.

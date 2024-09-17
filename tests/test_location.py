@@ -43,16 +43,26 @@ class TestLocations(GenealogyBasetest):
         page_title = self.locator.lookup_path_for_item(item)
         self.assertEqual("DE/TH/Weimar", page_title)
 
+    def test_sort_items(self):
+        """
+        test sorting items
+        """
+        items={"a":"Q20","b":"Q20","c":"Q20","d":"Q300","e":"Q200"}
+        expected={'a': 'Q20', 'b': 'Q20', 'c': 'Q20', 'e': 'Q200', 'd': 'Q300'}
+        self.locator.sort_items(items)
+        self.assertEqual(expected,items)
+
     def testLocator(self):
         """
         test the locator
         """
         geo_names_id = "3092080"
-        qid = self.locator.lookup_wikidata_id_by_geonames(geo_names_id, lang="de")
+        qid = self.locator.lookup_wikidata_id_by_geoid(geoid_kind="geonames", geo_id=geo_names_id, lang="de")
         self.assertEqual("Q255385", qid)
 
         debug = True
         for gov_id, expected in [
+            ("adm_136611", {}),
             ("RUMURGJO84LA", {"gov-Miastko@pl": "Q255385"}),
             ("WEIMARJO50QX", {"gov-Weimar@de": "Q3955"}),
             ("Vaihingen auf den Fildern", {}),
@@ -60,8 +70,7 @@ class TestLocations(GenealogyBasetest):
             items = self.locator.locate(gov_id)
             if debug:
                 print(f"{gov_id}:{items}")
-            # self.assertEqual(ex_geo_qid,geo_qid)
-            # self.assertEqual(ex_wds_qid,wds_qid)
+            self.assertEqual(expected,items)
 
     def testWikidataSearch(self):
         """ """

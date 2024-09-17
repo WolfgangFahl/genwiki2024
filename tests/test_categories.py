@@ -83,19 +83,19 @@ class TestCategories(GenealogyBasetest):
         test converting address books
         """
         force = not self.inPublicCI()
-        # dry run?
-        # force=False
+        #
+        force=False
 
         # Set up source and target wikis
         source_wiki = self.wiki
 
         # Create AddressBookConverter
-        ac = AddressBookConverter(debug=self.debug)
+        ac = AddressBookConverter(force=force,debug=self.debug)
 
         # Get page contents
         page_contents = source_wiki.get_all_content()
 
-        limit = 10
+        limit = 500
 
         # Set up tqdm progress bar
         progress_bar = tqdm(total=limit, desc="Converting AddressBooks", unit="page")
@@ -159,13 +159,13 @@ class TestCategories(GenealogyBasetest):
         | DES = weimarTH1851
         }}
         """
-
-        dict_result = template_map.as_template_dict(page_title="Weimar/Adressbuch 1851",page_content=page_content)
+        page_name="Weimar/Adressbuch 1851"
+        dict_result = template_map.as_template_dict(page_name=page_name,page_content=page_content)
         if self.debug:
             print(dict_result)
 
         # Test SiDIF conversion
-        sidif_result = template_map.convert_template(page_content, "sidif")
+        sidif_result = template_map.convert_template(page_name=page_name,page_content=page_content,output_format="sidif")
         expected_sidif_lines = [
             "AddressBook1 isA AddressBook",
             '"Weimar-AB-1851_Cover.jpg" is image of AddressBook1',
@@ -192,7 +192,7 @@ class TestCategories(GenealogyBasetest):
             )
 
         # Test markup conversion
-        markup_result = template_map.convert_template(page_content, "markup")
+        markup_result = template_map.convert_template(page_name=page_name,page_content=page_content,output_format="markup")
         expected_markup_lines = [
             "{{AddressBook",
             "| image = Weimar-AB-1851_Cover.jpg",

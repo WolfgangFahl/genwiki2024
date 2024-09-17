@@ -17,7 +17,8 @@ class AddressBookConverter:
     convert Adressbook pages
     """
 
-    def __init__(self, debug: bool = False):
+    def __init__(self,force:bool=False,debug: bool = False):
+        self.force=force
         self.debug = debug
         self.template_map = TemplateMap(
             template_name="Info Adressbuch",
@@ -42,8 +43,14 @@ class AddressBookConverter:
         )
         self.year_mapping = {"weimarTH1851.parquet": 1851, "weimarTH1853.parquet": 1853}
         self.locator = Locator(debug=self.debug)
+        self.target_wiki=None
 
-    def create_location_page(self,page_title:str,item:str,name:str,partOf:str,level:str="5",force:bool=True):
+    def create_location_page(self,page_title:str,item:str,name:str,partOf:str,level:str="5",force:bool=False):
+        """
+        create a wiki page for the given location
+        """
+        if not self.target_wiki:
+            raise ValueError("target wiki is not set")
         wiki = self.target_wiki.wiki_push.toWiki
         page = wiki.get_page(page_title)
         create = force or not page.exists
@@ -55,11 +62,16 @@ class AddressBookConverter:
         location_kind=kind_map[level]
         if create:
             coords = self.locator.get_coordinates([item])
-            lat, lon = coords[item]
+            if not item in coords:
+                logging.warn(f"no coordinates for {item}")
+                coord_markup=""
+            else:
+                lat, lon = coords[item]
+                coord_markup=f"{lat},{lon}"
             markup = f"""{{{{Location
 |path={page_title}
 |name={name}
-|coordinates={lat},{lon}
+|coordinates={coord_markup}
 |wikidataid={item}
 |locationKind={location_kind}
 |level={level}
@@ -73,11 +85,15 @@ class AddressBookConverter:
         page_title: str,
         item,
         lookup_qlod: List[Dict[str, Any]],
-        force: bool = True,
+        force: bool = False,
     ):
         """
         check the location page
         """
+        if not page_title:
+            msg=f"missing page title for item {item}"
+            logging.error(msg)
+            return
         parts = page_title.rsplit(
             "/", 1
         )  # Split from the right, limit to one split
@@ -88,9 +104,9 @@ class AddressBookConverter:
         for record in lookup_qlod:
             level = record["level"]
             iso_code = record["iso_code"]
-            item=record["item"]
+            item=record["intermediateAdmin"]
             item=Wikidata.unprefix(item)
-            name=record["itemLabel"]
+            name=record["intermediateAdminLabel"]
             page_title=f"""{iso_code.replace("-","/")}"""
             parts = page_title.rsplit(
             "/", 1
@@ -115,11 +131,12 @@ class AddressBookConverter:
                 if not item:
                     continue
                 lookup_qlod = self.locator.lookup_item(item)
-                page_title = self.locator.to_path(lookup_qlod)
-                record["at"] = page_title
-                self.check_location(page_title, item, lookup_qlod)
-                break
-                pass
+                location_title = self.locator.to_path(lookup_qlod)
+                if location_title:
+                    record["at"] = location_title
+                    self.check_location(location_title, item, lookup_qlod,force=self.force)
+                    break
+
 
     def convert(
         self,
@@ -128,6 +145,7 @@ class AddressBookConverter:
         target_wiki=None,
         mode="backup",
         limit: int = None,
+        dry_run:bool=False,
         force: bool = False,
         progress_bar=None,
     ):
@@ -143,17 +161,23 @@ class AddressBookConverter:
             progress_bar (Progressbar): Progress bar object to update during conversion.
         """
         self.target_wiki = target_wiki
-        if force:
+        if not dry_run:
             target_wiki.wiki_push.toWiki.login()
         result = {}
         total = len(page_contents) if limit is None else min(limit, len(page_contents))
         if progress_bar:
             progress_bar.total = total
             progress_bar.set_description(f"Converting {total} pages")
-
+        wiki=target_wiki.wiki_push.toWiki
         for i, (page_name, page_content) in enumerate(page_contents.items()):
             if limit and i >= limit:
                 break
+            # avoid effort for existing pages if not in force mode
+            if mode == "push" and target_wiki:
+                page=wiki.get_page(page_name)
+                if page.exists and not force:
+                    logging.info(f"page {page_name} exists")
+                    continue
 
             ab_dict = self.template_map.as_template_dict(
                 page_name, page_content, callback=self.record_convert
@@ -165,7 +189,7 @@ class AddressBookConverter:
                     page_title=page_name,
                     new_text=markup,
                     summary="Converted AddressBook template",
-                    force=force,
+                    force=not dry_run,
                 )
                 logging.log(logging.INFO, edit_status)
                 pass
@@ -173,12 +197,11 @@ class AddressBookConverter:
                 image = None
                 for page_image in source_page.images():
                     base_name = page_image.base_name.replace("Datei:", "File:")
-                    if base_name == ab_dict["image"]:
+                    if "image" in ab_dict and base_name == ab_dict["image"]:
                         image = page_image
                     pass
                 if image:
                     source_wiki.wiki_push.pushImages([image], ignore=True)
-
             elif mode == "backup":
                 backup_path = os.path.join(
                     target_wiki.wiki_backup_dir, f"{page_name}.wiki"

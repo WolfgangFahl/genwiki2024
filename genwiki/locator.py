@@ -7,7 +7,7 @@ Created on 15.09.2024
 import logging
 import os
 from typing import Dict, List
-
+from collections import Counter
 import geocoder
 from ez_wikidata.wdsearch import WikidataSearch
 from geopy.distance import geodesic
@@ -83,10 +83,18 @@ class Locator:
         path = self.to_path(qlod)
         return path
 
-    def lookup_wikidata_id_by_geonames(self, geonames_id: str, lang: str = "en") -> str:
+    def lookup_wikidata_id_by_geoid(self, geoid_kind:str, geo_id: str, lang: str = "en") -> str:
         result = None
-        query = self.mlqm.query4Name("WikidataLookupByGeoNamesID")
-        param_dict = {"geonames_id": geonames_id, "lang": lang}
+        if geoid_kind=="NUTS2003" or geoid_kind=="NUTS1999":
+            query_name="WikidataLookupByNutsCode"
+            param_name="nuts_code"
+        elif geoid_kind=="geonames":
+            query_name="WikidataLookupByGeoNamesID"
+            param_name="geonames_id"
+        else:
+            raise ValueError(f"invalid geo_id_kind {geoid_kind}")
+        query = self.mlqm.query4Name(query_name)
+        param_dict = {param_name: geo_id, "lang": lang}
         sparql_query = query.params.apply_parameters_with_check(param_dict)
         qlod = self.sparql.queryAsListOfDicts(
             queryString=sparql_query, param_dict=param_dict
@@ -97,7 +105,7 @@ class Locator:
             wikidataid = Wikidata.unprefix(item)
             result = wikidataid
         elif len(qlod) > 1:
-            ValueError(f"wikidata has multiple entries for geonames_id{geonames_id}")
+            raise ValueError(f"wikidata has multiple entries for {param_name}:{geo_id}")
         return result
 
     def locate_by_name(self, name: str, language: str = "de"):
@@ -119,17 +127,19 @@ class Locator:
             return
         gov_position = gov_obj.get("position", {})
         gov_lat, gov_lon = gov_position.get("lat"), gov_position.get("lon")
-
+        items_to_remove = []
+        wikidata_coords={}
         if not gov_lat or not gov_lon:
             msg = "Gov object does not have valid coordinates"
-            logging.error(msg)
-            return
+            logging.warn(msg)
+            gov_coords=None
+        else:
+            gov_coords = (gov_lat, gov_lon)
+            wikidata_items = [item for item in items.values() if item]
+            wikidata_coords = self.get_coordinates(wikidata_items)
 
-        gov_coords = (gov_lat, gov_lon)
-        wikidata_items = [item for item in items.values() if item]
-        wikidata_coords = self.get_coordinates(wikidata_items)
-        items_to_remove = []
         for key, item in items.items():
+            ok=item is not None
             if item in wikidata_coords:
                 item_coords = wikidata_coords[item]
                 distance = geodesic(gov_coords, item_coords).kilometers
@@ -137,11 +147,24 @@ class Locator:
                 if self.debug:
                     check_mark = "✓" if ok else "✗"
                     print(f"{key}: {distance:.1f} km {check_mark}")
-                if not ok:
-                    items_to_remove.append(key)
+            if not ok:
+                items_to_remove.append(key)
 
         for key in items_to_remove:
             items.pop(key)
+
+    def sort_items(self, items):
+        # Count occurrences of each value
+        value_counts = Counter(items.values())
+
+        # Sort items by value, then by frequency of value
+        sorted_items = sorted(items.items(), key=lambda x: (x[1], -value_counts[x[1]]))
+
+        # Clear and update the original dictionary
+        items.clear()
+        items.update(sorted_items)
+
+        return items
 
     def locate(self, gov_id: str) -> Dict[str, str]:
         """
@@ -156,9 +179,12 @@ class Locator:
                     val = ref["value"]
                     if self.debug:
                         print(f"{i}:{val}")
-                    if val.startswith("geonames"):
-                        geonames_id = val.split(":")[1]
-                        items[val] = self.lookup_wikidata_id_by_geonames(geonames_id)
+                    for geoid_kind in ["geonames","NUTS2003","NUTS1999"]:
+                        if val.startswith(geoid_kind):
+                            geo_id = val.split(":")[1]
+                            item = self.lookup_wikidata_id_by_geoid(geoid_kind,geo_id)
+                            if item:
+                                items[val]=item
                     for name_record in gov_obj["name"]:
                         lang = name_record["lang"]
                         name = name_record["value"]
@@ -170,7 +196,7 @@ class Locator:
                         items[f"gov-{name}@{language}"] = item
 
         except Exception as ex:
-            if "404" in str(ex):
+            if "404" in str(ex) or "501" in str(ex):
                 item = self.nominatim.lookup_wikidata_id(gov_id)
                 if item:
                     items["nominatim"] = item
@@ -178,4 +204,5 @@ class Locator:
             else:
                 raise ex
         self.validate(gov_obj, items)
+        self.sort_items(items)
         return items
