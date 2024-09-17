@@ -1,0 +1,443 @@
+{
+    "Q234": {
+        "item": "Q31",
+        "itemLabel": "Belgien",
+        "part": "Q234",
+        "partLabel": "Flandern",
+        "instancesOf": "Ethnisches Territorium"
+    },
+    "Q231": {
+        "item": "Q31",
+        "itemLabel": "Belgien",
+        "part": "Q231",
+        "partLabel": "Wallonische Region",
+        "instancesOf": "Region in Belgien"
+    },
+    "Q240": {
+        "item": "Q31",
+        "itemLabel": "Belgien",
+        "part": "Q240",
+        "partLabel": "Region Brüssel-Hauptstadt",
+        "instancesOf": "Region in Belgien, Enklave, Großstadt, größte Stadt"
+    },
+    "Q237": {
+        "item": "Q27449",
+        "itemLabel": "Südeuropa",
+        "part": "Q237",
+        "partLabel": "Vatikanstadt",
+        "instancesOf": "Land, Stadtstaat, Tourismusziel, souveräner Staat, Binnenstaat, Sehenswürdigkeit, städtisches Gebiet, Enklave, institutioneller Komplex, Land im Mittelmeerraum, religiöser Komplex"
+    },
+    "Q29": {
+        "item": "Q2749444",
+        "itemLabel": "Südwesteuropa",
+        "part": "Q29",
+        "partLabel": "Spanien",
+        "instancesOf": "Land, Reich, souveräner Staat, Land im Mittelmeerraum"
+    },
+    "Q38": {
+        "item": "Q2749444",
+        "itemLabel": "Südwesteuropa",
+        "part": "Q38",
+        "partLabel": "Italien",
+        "instancesOf": "Land, souveräner Staat"
+    },
+    "Q9337": {
+        "item": "Q31",
+        "itemLabel": "Belgien",
+        "part": "Q9337",
+        "partLabel": "Flämische Region",
+        "instancesOf": "Region in Belgien"
+    },
+    "Q9331": {
+        "item": "Q31",
+        "itemLabel": "Belgien",
+        "part": "Q9331",
+        "partLabel": "Flämische Gemeinschaft",
+        "instancesOf": "föderale Gemeinschaft in Belgien"
+    },
+    "Q228": {
+        "item": "Q27449",
+        "itemLabel": "Südeuropa",
+        "part": "Q228",
+        "partLabel": "Andorra",
+        "instancesOf": "Land, souveräner Staat"
+    },
+    "Q233": {
+        "item": "Q27449",
+        "itemLabel": "Südeuropa",
+        "part": "Q233",
+        "partLabel": "Malta",
+        "instancesOf": "Land, souveräner Staat"
+    },
+    "Q89959": {
+        "item": "Q31",
+        "itemLabel": "Belgien",
+        "part": "Q89959",
+        "partLabel": "Französische Gemeinschaft Belgiens",
+        "instancesOf": "föderale Gemeinschaft in Belgien"
+    },
+    "Q90027": {
+        "item": "Q31",
+        "itemLabel": "Belgien",
+        "part": "Q90027",
+        "partLabel": "Deutschsprachige Gemeinschaft Belgiens",
+        "instancesOf": "föderale Gemeinschaft in Belgien"
+    },
+    "Q41": {
+        "item": "Q263686",
+        "itemLabel": "Südosteuropa",
+        "part": "Q41",
+        "partLabel": "Griechenland",
+        "instancesOf": "Land, souveräner Staat"
+    },
+    "Q20": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q20",
+        "partLabel": "Norwegen",
+        "instancesOf": "Land, souveräner Staat"
+    },
+    "Q28": {
+        "item": "Q27509",
+        "itemLabel": "Mitteleuropa",
+        "part": "Q28",
+        "partLabel": "Ungarn",
+        "instancesOf": "Land, Binnenstaat, souveräner Staat"
+    },
+    "Q45": {
+        "item": "Q2749444",
+        "itemLabel": "Südwesteuropa",
+        "part": "Q45",
+        "partLabel": "Portugal",
+        "instancesOf": "Land, Kolonialmacht, souveräner Staat"
+    },
+    "Q39": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q39",
+        "partLabel": "Schweiz",
+        "instancesOf": "Land, Staat, Bundesstaat, Binnenstaat, Staatenbund, souveräner Staat"
+    },
+    "Q235": {
+        "item": "Q27496",
+        "itemLabel": "Westeuropa",
+        "part": "Q235",
+        "partLabel": "Monaco",
+        "instancesOf": "souveräner Staat"
+    },
+    "Q215": {
+        "item": "Q27509",
+        "itemLabel": "Mitteleuropa",
+        "part": "Q215",
+        "partLabel": "Slowenien",
+        "instancesOf": "souveräner Staat, Land, Einheitliche parlamentarische Republik, Land im Mittelmeerraum"
+    },
+    "Q27": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q27",
+        "partLabel": "Irland",
+        "instancesOf": "souveräner Staat, Land, Inselstaat"
+    },
+    "Q33": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q33",
+        "partLabel": "Finnland",
+        "instancesOf": "Land, Einheitsstaat, souveräner Staat, Ostsee-Anrainerstaat"
+    },
+    "Q1410": {
+        "item": "Q27449",
+        "itemLabel": "Südeuropa",
+        "part": "Q1410",
+        "partLabel": "Gibraltar",
+        "instancesOf": "Stadt, umstrittenes Territorium, Land im Mittelmeerraum, britische Überseegebiete, Hoheitsgebiete ohne Selbstregierung, Hafenstadt, Grenzstadt, Tourismusziel"
+    },
+    "Q36": {
+        "item": "Q27509",
+        "itemLabel": "Mitteleuropa",
+        "part": "Q36",
+        "partLabel": "Polen",
+        "instancesOf": "Ostsee-Anrainerstaat, souveräner Staat, Land"
+    },
+    "Q31": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q31",
+        "partLabel": "Belgien",
+        "instancesOf": "Land, Bundesstaat, souveräner Staat, Mitgliedstaat der Europäischen Union"
+    },
+    "Q238": {
+        "item": "Q27449",
+        "itemLabel": "Südeuropa",
+        "part": "Q238",
+        "partLabel": "San Marino",
+        "instancesOf": "souveräner Staat"
+    },
+    "Q224": {
+        "item": "Q27449",
+        "itemLabel": "Südeuropa",
+        "part": "Q224",
+        "partLabel": "Kroatien",
+        "instancesOf": "Land, souveräner Staat, Einheitsstaat, Land im Mittelmeerraum"
+    },
+    "Q12837": {
+        "item": "Q2749444",
+        "itemLabel": "Südwesteuropa",
+        "part": "Q12837",
+        "partLabel": "Iberische Halbinsel",
+        "instancesOf": "Halbinsel"
+    },
+    "Q221": {
+        "item": "Q263686",
+        "itemLabel": "Südosteuropa",
+        "part": "Q221",
+        "partLabel": "Nordmazedonien",
+        "instancesOf": "Land, Binnenstaat, souveräner Staat"
+    },
+    "Q3114590": {
+        "item": "Q2749444",
+        "itemLabel": "Südwesteuropa",
+        "part": "Q3114590",
+        "partLabel": "Südwest-Frankreich",
+        "instancesOf": "Region"
+    },
+    "Q1237299": {
+        "item": "Q2749444",
+        "itemLabel": "Südwesteuropa",
+        "part": "Q1237299",
+        "partLabel": "Südfrankreich",
+        "instancesOf": "Region"
+    },
+    "Q184": {
+        "item": "Q1998497",
+        "itemLabel": "Nordosteuropa",
+        "part": "Q184",
+        "partLabel": "Belarus",
+        "instancesOf": "Land, Republik, Binnenstaat, Sozialstaat, souveräner Staat, Einheitsstaat"
+    },
+    "Q225": {
+        "item": "Q27449",
+        "itemLabel": "Südeuropa",
+        "part": "Q225",
+        "partLabel": "Bosnien und Herzegowina",
+        "instancesOf": "souveräner Staat"
+    },
+    "Q222": {
+        "item": "Q27449",
+        "itemLabel": "Südeuropa",
+        "part": "Q222",
+        "partLabel": "Albanien",
+        "instancesOf": "souveräner Staat, Land"
+    },
+    "Q212": {
+        "item": "Q27468",
+        "itemLabel": "Osteuropa",
+        "part": "Q212",
+        "partLabel": "Ukraine",
+        "instancesOf": "souveräner Staat"
+    },
+    "Q32": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q32",
+        "partLabel": "Luxemburg",
+        "instancesOf": "souveräner Staat"
+    },
+    "Q40": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q40",
+        "partLabel": "Österreich",
+        "instancesOf": "Land, Republik, Binnenstaat, Staat, souveräner Staat, Rechtsstaat"
+    },
+    "Q34": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q34",
+        "partLabel": "Schweden",
+        "instancesOf": "Land, souveräner Staat"
+    },
+    "Q236": {
+        "item": "Q27449",
+        "itemLabel": "Südeuropa",
+        "part": "Q236",
+        "partLabel": "Montenegro",
+        "instancesOf": "Land, Land im Mittelmeerraum, souveräner Staat"
+    },
+    "Q35": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q35",
+        "partLabel": "Dänemark",
+        "instancesOf": "Staat, Land, Kolonialmacht, Ostsee-Anrainerstaat"
+    },
+    "Q142": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q142",
+        "partLabel": "Frankreich",
+        "instancesOf": "Land, Republik, souveräner Staat"
+    },
+    "Q37": {
+        "item": "Q1998497",
+        "itemLabel": "Nordosteuropa",
+        "part": "Q37",
+        "partLabel": "Litauen",
+        "instancesOf": "Land, Einheitsstaat, souveräner Staat, Ostsee-Anrainerstaat"
+    },
+    "Q55": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q55",
+        "partLabel": "Niederlande",
+        "instancesOf": "Land des Königreichs der Niederlande, Land"
+    },
+    "Q213": {
+        "item": "Q27509",
+        "itemLabel": "Mitteleuropa",
+        "part": "Q213",
+        "partLabel": "Tschechien",
+        "instancesOf": "Land, Republik, Binnenstaat, Mitgliedstaaten der Vereinten Nationen, Mitgliedstaat der Europäischen Union, souveräner Staat, Mitglied des Europarats"
+    },
+    "Q214": {
+        "item": "Q27509",
+        "itemLabel": "Mitteleuropa",
+        "part": "Q214",
+        "partLabel": "Slowakei",
+        "instancesOf": "Land, Republik, souveräner Staat, Binnenstaat"
+    },
+    "Q183": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q183",
+        "partLabel": "Deutschland",
+        "instancesOf": "Land, souveräner Staat"
+    },
+    "Q218": {
+        "item": "Q27468",
+        "itemLabel": "Osteuropa",
+        "part": "Q218",
+        "partLabel": "Rumänien",
+        "instancesOf": "Land, souveräner Staat"
+    },
+    "Q219": {
+        "item": "Q27468",
+        "itemLabel": "Osteuropa",
+        "part": "Q219",
+        "partLabel": "Bulgarien",
+        "instancesOf": "Land, Einheitsstaat, souveräner Staat"
+    },
+    "Q230": {
+        "item": "Q27468",
+        "itemLabel": "Osteuropa",
+        "part": "Q230",
+        "partLabel": "Georgien",
+        "instancesOf": "souveräner Staat"
+    },
+    "Q217": {
+        "item": "Q27468",
+        "itemLabel": "Osteuropa",
+        "part": "Q217",
+        "partLabel": "Moldau",
+        "instancesOf": "souveräner Staat"
+    },
+    "Q145": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q145",
+        "partLabel": "Vereinigtes Königreich",
+        "instancesOf": "Inselstaat, Land, souveräner Staat, Kolonialmacht"
+    },
+    "Q189": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q189",
+        "partLabel": "Island",
+        "instancesOf": "Land, Inselstaat, souveräner Staat"
+    },
+    "Q191": {
+        "item": "Q1998497",
+        "itemLabel": "Nordosteuropa",
+        "part": "Q191",
+        "partLabel": "Estland",
+        "instancesOf": "Land, Republik, souveräner Staat, Einheitsstaat, Ostsee-Anrainerstaat"
+    },
+    "Q403": {
+        "item": "Q27449",
+        "itemLabel": "Südeuropa",
+        "part": "Q403",
+        "partLabel": "Serbien",
+        "instancesOf": "souveräner Staat"
+    },
+    "Q875134": {
+        "item": "Q27468",
+        "itemLabel": "Osteuropa",
+        "part": "Q875134",
+        "partLabel": "europäisches Russland",
+        "instancesOf": "Region"
+    },
+    "Q211": {
+        "item": "Q1998497",
+        "itemLabel": "Nordosteuropa",
+        "part": "Q211",
+        "partLabel": "Lettland",
+        "instancesOf": "Land, souveräner Staat, Ostsee-Anrainerstaat"
+    },
+    "Q785": {
+        "item": "Q27479",
+        "itemLabel": "Nordeuropa",
+        "part": "Q785",
+        "partLabel": "Jersey",
+        "instancesOf": "Staat, Kronbesitzungen der britischen Krone"
+    },
+    "Q4628": {
+        "item": "Q27479",
+        "itemLabel": "Nordeuropa",
+        "part": "Q4628",
+        "partLabel": "Färöer",
+        "instancesOf": "Wahlkreis"
+    },
+    "Q9676": {
+        "item": "Q27479",
+        "itemLabel": "Nordeuropa",
+        "part": "Q9676",
+        "partLabel": "Isle of Man",
+        "instancesOf": "Staat, Kronbesitzungen der britischen Krone"
+    },
+    "Q5689": {
+        "item": "Q27479",
+        "itemLabel": "Nordeuropa",
+        "part": "Q5689",
+        "partLabel": "Åland",
+        "instancesOf": "Maakunta, Autonome Region"
+    },
+    "Q25230": {
+        "item": "Q27479",
+        "itemLabel": "Nordeuropa",
+        "part": "Q25230",
+        "partLabel": "Bailiwick of Guernsey",
+        "instancesOf": "ballei, abhängiges Gebiet, Kronbesitzungen der britischen Krone"
+    },
+    "Q842829": {
+        "item": "Q27479",
+        "itemLabel": "Nordeuropa",
+        "part": "Q842829",
+        "partLabel": "Svalbard und Jan Mayen",
+        "instancesOf": "statistische-territoriale Entität"
+    },
+    "Q347": {
+        "item": "Q1414323",
+        "itemLabel": "Nordwesteuropa",
+        "part": "Q347",
+        "partLabel": "Liechtenstein",
+        "instancesOf": "Land, souveräner Staat"
+    },
+    "Q159": {
+        "item": "Q1998497",
+        "itemLabel": "Nordosteuropa",
+        "part": "Q159",
+        "partLabel": "Russland",
+        "instancesOf": "Land, Bundesstaat, Säkularer Staat, souveräner Staat, interkontinentaler Staat"
+    }
+}

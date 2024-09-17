@@ -42,25 +42,28 @@ class TestLocations(GenealogyBasetest):
         europe = "Q46"
         parts = self.get_parts([europe])
         sub_parts = self.get_parts(list(parts.keys()))
-        countries_to_regions = {}
+        part_to_item = {}
         for qid, record in sub_parts.items():
             record["item"] = Wikidata.unprefix(record["item"])
             record["part"] = Wikidata.unprefix(record["part"])
+            item=record["item"]
+            part=record["part"]
+
             print(f"{qid}:{record}")
-            region_label = record["itemLabel"]
-            country_label = record["partLabel"]
+            item_label = record["itemLabel"]
+            part_label = record["partLabel"]
 
             # If the country is not already in the mapping, add it
-            if country_label not in countries_to_regions:
-                countries_to_regions[country_label] = region_label
+            if part not in part_to_item:
+                part_to_item[part] = record
             else:
                 print(
-                    f"Duplicate assignment found for country {country_label}. Keeping the first region: {countries_to_regions[country_label]}."
+                    f"Duplicate assignment found for country {part_label}. "
                 )
 
         # Export the mapping to a JSON file
-        with open("/tmp/countries_to_regions.json", "w", encoding="utf-8") as f:
-            json.dump(countries_to_regions, f, ensure_ascii=False, indent=4)
+        with open("/tmp/region_lookup.json", "w", encoding="utf-8") as f:
+            json.dump(part_to_item, f, ensure_ascii=False, indent=4)
 
     def test_coords(self):
         """

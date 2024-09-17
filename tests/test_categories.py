@@ -86,7 +86,7 @@ class TestCategories(GenealogyBasetest):
         """
         force = not self.inPublicCI()
         #
-        force = False
+        force = True
 
         # Set up source and target wikis
         source_wiki = self.wiki
