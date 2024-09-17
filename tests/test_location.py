@@ -21,7 +21,7 @@ class TestLocations(GenealogyBasetest):
 
     def setUp(self, debug=False, profile=True):
         GenealogyBasetest.setUp(self, debug=debug, profile=profile)
-        self.locator = Locator(debug=True)
+        self.locator = Locator(debug=debug)
 
     def test_coords(self):
         """

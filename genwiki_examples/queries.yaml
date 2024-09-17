@@ -67,6 +67,23 @@
       # Get the coordinates
       ?item wdt:P625 ?coordinates .
     }
+'WikidataItemHasParts':
+  param_list:
+    - name: items
+      type: str
+      default_value: "wd:Q27509" # Central Europe
+    - name: lang
+      type: str
+      default_value: de
+  sparql: |
+    SELECT ?part ?partLabel WHERE {
+      VALUES ?item { {{ items }} }
+      # part of
+      ?item wdt:P527 ?part .
+      # Get the label (name) using rdf:label
+      ?item rdfs:label ?itemLabel .
+      FILTER(LANG(?itemLabel) = "{{lang}}")
+    }
 'WikidataLookup':
   param_list:
     - name: item

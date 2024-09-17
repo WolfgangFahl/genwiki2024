@@ -21,7 +21,7 @@ class TestParquet(Basetest):
     Test parquet handling using pyarrow
     """
 
-    def setUp(self, debug=True, profile=True):
+    def setUp(self, debug=False, profile=True):
         Basetest.setUp(self, debug=debug, profile=profile)
         # Define the directory containing the Parquet files
         current_folder = os.path.dirname(__file__)

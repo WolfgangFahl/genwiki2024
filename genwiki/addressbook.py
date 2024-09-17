@@ -77,6 +77,9 @@ class AddressBookConverter:
 |level={level}
 |partOf={partOf}
 }}}}
+{{{{Location
+|viewmode=masterdetail
+}}}}
 """
             page.edit(markup, "created by genwiki2024 addressbook converter")
 
@@ -112,6 +115,9 @@ class AddressBookConverter:
             "/", 1
             )  # Split from the right, limit to one split
             partOf = parts[0]  # PL/22
+            # country level
+            if level=="3":
+                pass
             self.create_location_page(page_title=page_title, item=item, name=name,partOf=partOf,level=level,force=force)
 
 

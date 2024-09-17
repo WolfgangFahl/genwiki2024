@@ -5,13 +5,12 @@ Created on 2024-08-15
 """
 
 import os
-
+import unittest
 from tqdm import tqdm
 
 from genwiki.addressbook import AddressBookConverter
 from genwiki.wiki import Wiki
 from tests.gbasetest import GenealogyBasetest
-
 
 class TestCategories(GenealogyBasetest):
     """
@@ -78,6 +77,7 @@ class TestCategories(GenealogyBasetest):
         if self.debug:
             print(page_contents)
 
+    @unittest.skipIf(GenealogyBasetest.inPublicCI(), "avoid wiki writing")
     def test_convert_addressbooks(self):
         """
         test converting address books
