@@ -6,8 +6,9 @@ Created on 15.09.2024
 
 import logging
 import os
-from typing import Dict, List
 from collections import Counter
+from typing import Any, Dict, List
+
 import geocoder
 from ez_wikidata.wdsearch import WikidataSearch
 from geopy.distance import geodesic
@@ -36,17 +37,26 @@ class Locator:
         self.lang_map = {"deu": "de", "pol": "pl"}
         self.debug = debug
 
-    def get_coordinates(self, items: List[str]) -> Dict[str, tuple]:
+    def multi_item_query(
+        self, query_name, items: List[str], lang: str = "en"
+    ) -> List[Dict[str, Any]]:
         """
-        Get coordinates for multiple Wikidata items
+        perform a multi item query for the given query_name with
         """
-        query = self.mlqm.query4Name("WikidataItemsCoordinates")
+        query = self.mlqm.query4Name(query_name)
         items_str = " ".join([f"wd:{item}" for item in items if item])
-        param_dict = {"items": items_str}
+        param_dict = {"items": items_str, "lang": lang}
         sparql_query = query.params.apply_parameters_with_check(param_dict)
         qlod = self.sparql.queryAsListOfDicts(
             queryString=sparql_query, param_dict=param_dict
         )
+        return qlod
+
+    def get_coordinates(self, items: List[str]) -> Dict[str, tuple]:
+        """
+        Get coordinates for multiple Wikidata items
+        """
+        qlod = self.multi_item_query(query_name="WikidataItemsCoordinates", items=items)
 
         coordinates = {}
         for record in qlod:
@@ -83,14 +93,16 @@ class Locator:
         path = self.to_path(qlod)
         return path
 
-    def lookup_wikidata_id_by_geoid(self, geoid_kind:str, geo_id: str, lang: str = "en") -> str:
+    def lookup_wikidata_id_by_geoid(
+        self, geoid_kind: str, geo_id: str, lang: str = "en"
+    ) -> str:
         result = None
-        if geoid_kind=="NUTS2003" or geoid_kind=="NUTS1999":
-            query_name="WikidataLookupByNutsCode"
-            param_name="nuts_code"
-        elif geoid_kind=="geonames":
-            query_name="WikidataLookupByGeoNamesID"
-            param_name="geonames_id"
+        if geoid_kind == "NUTS2003" or geoid_kind == "NUTS1999":
+            query_name = "WikidataLookupByNutsCode"
+            param_name = "nuts_code"
+        elif geoid_kind == "geonames":
+            query_name = "WikidataLookupByGeoNamesID"
+            param_name = "geonames_id"
         else:
             raise ValueError(f"invalid geo_id_kind {geoid_kind}")
         query = self.mlqm.query4Name(query_name)
@@ -128,18 +140,18 @@ class Locator:
         gov_position = gov_obj.get("position", {})
         gov_lat, gov_lon = gov_position.get("lat"), gov_position.get("lon")
         items_to_remove = []
-        wikidata_coords={}
+        wikidata_coords = {}
         if not gov_lat or not gov_lon:
             msg = "Gov object does not have valid coordinates"
             logging.warn(msg)
-            gov_coords=None
+            gov_coords = None
         else:
             gov_coords = (gov_lat, gov_lon)
             wikidata_items = [item for item in items.values() if item]
             wikidata_coords = self.get_coordinates(wikidata_items)
 
         for key, item in items.items():
-            ok=item is not None
+            ok = item is not None
             if item in wikidata_coords:
                 item_coords = wikidata_coords[item]
                 distance = geodesic(gov_coords, item_coords).kilometers
@@ -179,12 +191,12 @@ class Locator:
                     val = ref["value"]
                     if self.debug:
                         print(f"{i}:{val}")
-                    for geoid_kind in ["geonames","NUTS2003","NUTS1999"]:
+                    for geoid_kind in ["geonames", "NUTS2003", "NUTS1999"]:
                         if val.startswith(geoid_kind):
                             geo_id = val.split(":")[1]
-                            item = self.lookup_wikidata_id_by_geoid(geoid_kind,geo_id)
+                            item = self.lookup_wikidata_id_by_geoid(geoid_kind, geo_id)
                             if item:
-                                items[val]=item
+                                items[val] = item
                     for name_record in gov_obj["name"]:
                         lang = name_record["lang"]
                         name = name_record["value"]

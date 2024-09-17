@@ -55,6 +55,9 @@
     - name: items
       type: str
       default_value: "wd:Q1729 wd:Q7070"  # Erfurt/Eisenach
+    - name: lang
+      type: str
+      default_value: de
   sparql: |
     SELECT ?item ?itemLabel ?coordinates
     WHERE {
@@ -62,28 +65,38 @@
 
       # Get the label (name) using rdfs:label
       ?item rdfs:label ?itemLabel .
-      FILTER(LANG(?itemLabel) = "en")
+      FILTER(LANG(?itemLabel) = "{{lang}}")
 
       # Get the coordinates
       ?item wdt:P625 ?coordinates .
     }
 'WikidataItemHasParts':
-  param_list:
+    param_list:
     - name: items
       type: str
       default_value: "wd:Q27509" # Central Europe
     - name: lang
       type: str
       default_value: de
-  sparql: |
-    SELECT ?part ?partLabel WHERE {
-      VALUES ?item { {{ items }} }
-      # part of
-      ?item wdt:P527 ?part .
-      # Get the label (name) using rdf:label
-      ?item rdfs:label ?itemLabel .
-      FILTER(LANG(?itemLabel) = "{{lang}}")
-    }
+    sparql: |
+      SELECT ?item ?itemLabel ?part ?partLabel
+             (GROUP_CONCAT(DISTINCT ?instanceOfLabel; separator=", ") AS ?instancesOf)
+      WHERE {
+        VALUES ?item { {{ items }} }
+        # part of
+        ?item wdt:P527 ?part .
+        # Get the label (name) using rdf:label
+        ?item rdfs:label ?itemLabel .
+        FILTER(LANG(?itemLabel) = "{{lang}}")
+        # Get the label (name) using rdf:label
+        ?part rdfs:label ?partLabel .
+        FILTER(LANG(?partLabel) = "{{lang}}")
+        # Get instance of (P31) for the part
+        ?part wdt:P31 ?instanceOf .
+        ?instanceOf rdfs:label ?instanceOfLabel .
+        FILTER(LANG(?instanceOfLabel) = "{{lang}}")
+      }
+      GROUP BY ?item ?itemLabel ?part ?partLabel
 'WikidataLookup':
   param_list:
     - name: item

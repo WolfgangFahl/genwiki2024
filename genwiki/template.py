@@ -88,8 +88,10 @@ class TemplateMap:
             sidif_lines.append(f'"{value}" is {key} of {self.topic_name}1')
         return "\n".join(sidif_lines)
 
-    def convert_template(self, page_name:str, page_content: str, output_format: str = "sidif") -> str:
-        data = self.as_template_dict(page_name=page_name,page_content=page_content)
+    def convert_template(
+        self, page_name: str, page_content: str, output_format: str = "sidif"
+    ) -> str:
+        data = self.as_template_dict(page_name=page_name, page_content=page_content)
         if not data:
             return f"No '{self.template_name}' template found in the content."
 

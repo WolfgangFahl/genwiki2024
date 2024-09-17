@@ -12,13 +12,14 @@ from genwiki.locator import Locator
 from genwiki.template import TemplateMap, TemplateParam
 from genwiki.wikidata import Wikidata
 
+
 class AddressBookConverter:
     """
     convert Adressbook pages
     """
 
-    def __init__(self,force:bool=False,debug: bool = False):
-        self.force=force
+    def __init__(self, force: bool = False, debug: bool = False):
+        self.force = force
         self.debug = debug
         self.template_map = TemplateMap(
             template_name="Info Adressbuch",
@@ -43,9 +44,17 @@ class AddressBookConverter:
         )
         self.year_mapping = {"weimarTH1851.parquet": 1851, "weimarTH1853.parquet": 1853}
         self.locator = Locator(debug=self.debug)
-        self.target_wiki=None
+        self.target_wiki = None
 
-    def create_location_page(self,page_title:str,item:str,name:str,partOf:str,level:str="5",force:bool=False):
+    def create_location_page(
+        self,
+        page_title: str,
+        item: str,
+        name: str,
+        partOf: str,
+        level: str = "5",
+        force: bool = False,
+    ):
         """
         create a wiki page for the given location
         """
@@ -54,20 +63,16 @@ class AddressBookConverter:
         wiki = self.target_wiki.wiki_push.toWiki
         page = wiki.get_page(page_title)
         create = force or not page.exists
-        kind_map={
-            "3": "Country",
-            "4": "Region",
-            "5": "City"
-        }
-        location_kind=kind_map[level]
+        kind_map = {"3": "Country", "4": "Region", "5": "City"}
+        location_kind = kind_map[level]
         if create:
             coords = self.locator.get_coordinates([item])
             if not item in coords:
                 logging.warn(f"no coordinates for {item}")
-                coord_markup=""
+                coord_markup = ""
             else:
                 lat, lon = coords[item]
-                coord_markup=f"{lat},{lon}"
+                coord_markup = f"{lat},{lon}"
             markup = f"""{{{{Location
 |path={page_title}
 |name={name}
@@ -94,32 +99,40 @@ class AddressBookConverter:
         check the location page
         """
         if not page_title:
-            msg=f"missing page title for item {item}"
+            msg = f"missing page title for item {item}"
             logging.error(msg)
             return
-        parts = page_title.rsplit(
-            "/", 1
-        )  # Split from the right, limit to one split
+        parts = page_title.rsplit("/", 1)  # Split from the right, limit to one split
         partOf = parts[0]  # PL/22
         name = parts[1]  # Miastko
         # PL/22/Miastko
-        self.create_location_page(page_title=page_title, item=item, name=name,partOf=partOf,force=force)
+        self.create_location_page(
+            page_title=page_title, item=item, name=name, partOf=partOf, force=force
+        )
         for record in lookup_qlod:
             level = record["level"]
             iso_code = record["iso_code"]
-            item=record["intermediateAdmin"]
-            item=Wikidata.unprefix(item)
-            name=record["intermediateAdminLabel"]
-            page_title=f"""{iso_code.replace("-","/")}"""
+            item = record["intermediateAdmin"]
+            item = Wikidata.unprefix(item)
+            name = record["intermediateAdminLabel"]
+            page_title = f"""{iso_code.replace("-","/")}"""
             parts = page_title.rsplit(
-            "/", 1
+                "/", 1
             )  # Split from the right, limit to one split
             partOf = parts[0]  # PL/22
             # country level
-            if level=="3":
+            if level == "3":
+                # TODO create lookup
+                partOf = "Mitteleuropa"
                 pass
-            self.create_location_page(page_title=page_title, item=item, name=name,partOf=partOf,level=level,force=force)
-
+            self.create_location_page(
+                page_title=page_title,
+                item=item,
+                name=name,
+                partOf=partOf,
+                level=level,
+                force=force,
+            )
 
     def record_convert(self, page_name: str, page_content: str, record: Dict):
         """
@@ -140,9 +153,10 @@ class AddressBookConverter:
                 location_title = self.locator.to_path(lookup_qlod)
                 if location_title:
                     record["at"] = location_title
-                    self.check_location(location_title, item, lookup_qlod,force=self.force)
+                    self.check_location(
+                        location_title, item, lookup_qlod, force=self.force
+                    )
                     break
-
 
     def convert(
         self,
@@ -151,7 +165,7 @@ class AddressBookConverter:
         target_wiki=None,
         mode="backup",
         limit: int = None,
-        dry_run:bool=False,
+        dry_run: bool = False,
         force: bool = False,
         progress_bar=None,
     ):
@@ -174,13 +188,13 @@ class AddressBookConverter:
         if progress_bar:
             progress_bar.total = total
             progress_bar.set_description(f"Converting {total} pages")
-        wiki=target_wiki.wiki_push.toWiki
+        wiki = target_wiki.wiki_push.toWiki
         for i, (page_name, page_content) in enumerate(page_contents.items()):
             if limit and i >= limit:
                 break
             # avoid effort for existing pages if not in force mode
             if mode == "push" and target_wiki:
-                page=wiki.get_page(page_name)
+                page = wiki.get_page(page_name)
                 if page.exists and not force:
                     logging.info(f"page {page_name} exists")
                     continue

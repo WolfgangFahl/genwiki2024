@@ -6,11 +6,13 @@ Created on 2024-08-15
 
 import os
 import unittest
+
 from tqdm import tqdm
 
 from genwiki.addressbook import AddressBookConverter
 from genwiki.wiki import Wiki
 from tests.gbasetest import GenealogyBasetest
+
 
 class TestCategories(GenealogyBasetest):
     """
@@ -84,13 +86,13 @@ class TestCategories(GenealogyBasetest):
         """
         force = not self.inPublicCI()
         #
-        force=False
+        force = False
 
         # Set up source and target wikis
         source_wiki = self.wiki
 
         # Create AddressBookConverter
-        ac = AddressBookConverter(force=force,debug=self.debug)
+        ac = AddressBookConverter(force=force, debug=self.debug)
 
         # Get page contents
         page_contents = source_wiki.get_all_content()
@@ -159,13 +161,17 @@ class TestCategories(GenealogyBasetest):
         | DES = weimarTH1851
         }}
         """
-        page_name="Weimar/Adressbuch 1851"
-        dict_result = template_map.as_template_dict(page_name=page_name,page_content=page_content)
+        page_name = "Weimar/Adressbuch 1851"
+        dict_result = template_map.as_template_dict(
+            page_name=page_name, page_content=page_content
+        )
         if self.debug:
             print(dict_result)
 
         # Test SiDIF conversion
-        sidif_result = template_map.convert_template(page_name=page_name,page_content=page_content,output_format="sidif")
+        sidif_result = template_map.convert_template(
+            page_name=page_name, page_content=page_content, output_format="sidif"
+        )
         expected_sidif_lines = [
             "AddressBook1 isA AddressBook",
             '"Weimar-AB-1851_Cover.jpg" is image of AddressBook1',
@@ -192,7 +198,9 @@ class TestCategories(GenealogyBasetest):
             )
 
         # Test markup conversion
-        markup_result = template_map.convert_template(page_name=page_name,page_content=page_content,output_format="markup")
+        markup_result = template_map.convert_template(
+            page_name=page_name, page_content=page_content, output_format="markup"
+        )
         expected_markup_lines = [
             "{{AddressBook",
             "| image = Weimar-AB-1851_Cover.jpg",

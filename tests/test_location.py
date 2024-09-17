@@ -11,6 +11,7 @@ from ez_wikidata.wdsearch import WikidataSearch
 from genwiki.gov_api import GOV_API
 from genwiki.locator import Locator
 from genwiki.nominatim import NominatimWrapper
+from genwiki.wikidata import Wikidata
 from tests.gbasetest import GenealogyBasetest
 
 
@@ -22,6 +23,44 @@ class TestLocations(GenealogyBasetest):
     def setUp(self, debug=False, profile=True):
         GenealogyBasetest.setUp(self, debug=debug, profile=profile)
         self.locator = Locator(debug=debug)
+
+    def get_parts(self, items):
+        parts = {}
+        qlod = self.locator.multi_item_query(
+            query_name="WikidataItemHasParts", items=items, lang="de"
+        )
+        for record in qlod:
+            part = record["part"]
+            part = Wikidata.unprefix(part)
+            parts[part] = record
+        return parts
+
+    def test_location_hierarchy(self):
+        """
+        get a lookup of european locations
+        """
+        europe = "Q46"
+        parts = self.get_parts([europe])
+        sub_parts = self.get_parts(list(parts.keys()))
+        countries_to_regions = {}
+        for qid, record in sub_parts.items():
+            record["item"] = Wikidata.unprefix(record["item"])
+            record["part"] = Wikidata.unprefix(record["part"])
+            print(f"{qid}:{record}")
+            region_label = record["itemLabel"]
+            country_label = record["partLabel"]
+
+            # If the country is not already in the mapping, add it
+            if country_label not in countries_to_regions:
+                countries_to_regions[country_label] = region_label
+            else:
+                print(
+                    f"Duplicate assignment found for country {country_label}. Keeping the first region: {countries_to_regions[country_label]}."
+                )
+
+        # Export the mapping to a JSON file
+        with open("/tmp/countries_to_regions.json", "w", encoding="utf-8") as f:
+            json.dump(countries_to_regions, f, ensure_ascii=False, indent=4)
 
     def test_coords(self):
         """
@@ -47,17 +86,19 @@ class TestLocations(GenealogyBasetest):
         """
         test sorting items
         """
-        items={"a":"Q20","b":"Q20","c":"Q20","d":"Q300","e":"Q200"}
-        expected={'a': 'Q20', 'b': 'Q20', 'c': 'Q20', 'e': 'Q200', 'd': 'Q300'}
+        items = {"a": "Q20", "b": "Q20", "c": "Q20", "d": "Q300", "e": "Q200"}
+        expected = {"a": "Q20", "b": "Q20", "c": "Q20", "e": "Q200", "d": "Q300"}
         self.locator.sort_items(items)
-        self.assertEqual(expected,items)
+        self.assertEqual(expected, items)
 
     def testLocator(self):
         """
         test the locator
         """
         geo_names_id = "3092080"
-        qid = self.locator.lookup_wikidata_id_by_geoid(geoid_kind="geonames", geo_id=geo_names_id, lang="de")
+        qid = self.locator.lookup_wikidata_id_by_geoid(
+            geoid_kind="geonames", geo_id=geo_names_id, lang="de"
+        )
         self.assertEqual("Q255385", qid)
 
         debug = True
@@ -70,7 +111,7 @@ class TestLocations(GenealogyBasetest):
             items = self.locator.locate(gov_id)
             if debug:
                 print(f"{gov_id}:{items}")
-            self.assertEqual(expected,items)
+            self.assertEqual(expected, items)
 
     def testWikidataSearch(self):
         """ """

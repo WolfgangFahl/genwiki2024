@@ -6,7 +6,7 @@ Created on 25.08.2024
 
 import logging
 
-from geopy.exc import GeocoderTimedOut, GeocoderUnavailable, GeocoderQueryError
+from geopy.exc import GeocoderQueryError, GeocoderTimedOut, GeocoderUnavailable
 from geopy.geocoders import Nominatim
 
 

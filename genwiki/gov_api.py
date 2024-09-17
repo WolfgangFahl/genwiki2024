@@ -3,8 +3,9 @@ Created on 25.08.2024
 
 @author: wf
 """
-import os
+
 import json
+import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional
@@ -105,13 +106,13 @@ class GOV_API:
     def get_from_cache(self, gov_id: str) -> Optional[dict]:
         cache_path = self.get_cache_path(gov_id)
         if os.path.exists(cache_path):
-            with open(cache_path, 'r') as f:
+            with open(cache_path, "r") as f:
                 return json.load(f)
         return None
 
     def save_to_cache(self, gov_id: str, data: dict):
         cache_path = self.get_cache_path(gov_id)
-        with open(cache_path, 'w') as f:
+        with open(cache_path, "w") as f:
             json.dump(data, f)
 
     def get_raw_gov_object(self, gov_id: str):
