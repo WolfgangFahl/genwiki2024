@@ -170,7 +170,7 @@ class Locator:
         value_counts = Counter(items.values())
 
         # Sort items by value, then by frequency of value
-        sorted_items = sorted(items.items(), key=lambda x: (x[1], -value_counts[x[1]]))
+        sorted_items = sorted(items.items(), key=lambda x: (-value_counts[x[1]],x[1]))
 
         # Clear and update the original dictionary
         items.clear()

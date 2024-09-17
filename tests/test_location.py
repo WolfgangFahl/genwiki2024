@@ -106,9 +106,9 @@ class TestLocations(GenealogyBasetest):
 
         debug = True
         for gov_id, expected in [
-            ("adm_136611", {}),
             ("RUMURGJO84LA", {"gov-Miastko@pl": "Q255385"}),
-            ("WEIMARJO50QX", {"gov-Weimar@de": "Q3955"}),
+            ("adm_136611", {'gov-Kassel@de': 'Q2865', 'NUTS2003:DE731': 'Q2865', 'NUTS1999:DE731': 'Q2865', 'gov-Cassel@de': 'Q11160', 'geonames:6547484': 'Q32064001'}),
+            ("WEIMARJO50QX", {'NUTS2003:DEG05': 'Q3955', 'gov-Weimar@de': 'Q3955', 'NUTS1999:DEG05': 'Q3955', 'geonames:2812482': 'Q32067990'}),
             ("Vaihingen auf den Fildern", {}),
         ]:
             items = self.locator.locate(gov_id)

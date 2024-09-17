@@ -84,9 +84,9 @@ class TestCategories(GenealogyBasetest):
         """
         test converting address books
         """
-        force = not self.inPublicCI()
-        #
+        # recreate all entries
         force = True
+        #force = False
 
         # Set up source and target wikis
         source_wiki = self.wiki
