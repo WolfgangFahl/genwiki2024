@@ -7,13 +7,11 @@
     {{#ask: [[Concept:AddressBook]]
     |mainlabel=AddressBook
     |?AddressBook id = id
-    |?AddressBook URL = URL
     |?AddressBook genwikiurl = genwikiurl
     |?AddressBook title = title
     |?AddressBook subtitle = subtitle
     |?AddressBook author = author
     |?AddressBook year = year
-    |?AddressBook Page = Page
     |?AddressBook image = image
     |?AddressBook pageCount = pageCount
     |?AddressBook location = location
