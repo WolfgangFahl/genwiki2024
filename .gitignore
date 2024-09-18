@@ -163,3 +163,5 @@ cython_debug/
 # mkdocs
 docs
 #mkdocs.yaml
+# Mac
+.DS_Store

@@ -2,16 +2,45 @@
   param_list:
     - name: limit
       type: int
-      default_value: 50
+      default_value: 500
   ask: |
     {{#ask: [[Concept:AddressBook]]
     |mainlabel=AddressBook
     |?AddressBook id = id
+    |?AddressBook URL = URL
+    |?AddressBook genwikiurl = genwikiurl
     |?AddressBook title = title
     |?AddressBook subtitle = subtitle
+    |?AddressBook author = author
     |?AddressBook year = year
+    |?AddressBook Page = Page
+    |?AddressBook image = image
     |?AddressBook pageCount = pageCount
     |?AddressBook location = location
+    |?AddressBook publisher = publisher
+    |?AddressBook govSource = govSource
+    |?AddressBook onlineSource = onlineSource
+    |?AddressBook des = des
+    |?AddressBook at = at
+    |limit={{limit}}
+    }}
+'Orte':
+  param_list:
+    - name: limit
+      type: int
+      default_value: 300
+  ask: |
+    {{#ask: [[Concept:Location]]
+    |mainlabel=Location
+    |?Location path = path
+    |?Location name = name
+    |?Location coordinates = coordinates
+    |?Location wikidataid = wikidataid
+    |?Location locationKind = locationKind
+    |?Location level = level
+    |?Location identifiers = identifiers
+    |?Location comment = comment
+    |?Location partOf = partOf
     |limit={{limit}}
     }}
 'WikidataItemsNearItem':
