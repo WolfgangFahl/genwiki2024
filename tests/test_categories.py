@@ -85,7 +85,7 @@ class TestCategories(GenealogyBasetest):
         test converting address books
         """
         # recreate all entries
-        force = True
+        force = False
         #force = False
 
         # Set up source and target wikis

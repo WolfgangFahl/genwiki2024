@@ -118,7 +118,11 @@ class TestLocations(GenealogyBasetest):
 
     def testWikidataSearch(self):
         """ """
-        examples = [("Q57993", "Thalheim", "Erzgebirgskreis")]
+        examples = [("Q57993", "Thalheim", "Erzgebirgskreis"),
+                    ("Q47554","Thorn","Weichsel"),
+                    ("Q1123987","Schloss Rundale","Lettland"),
+                    ("Q193474","Krain","Herzogtum")
+                    ]
         wds = WikidataSearch()
         limit = 10
         debug = self.debug
