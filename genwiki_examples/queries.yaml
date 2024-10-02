@@ -2,7 +2,7 @@
   param_list:
     - name: limit
       type: int
-      default_value: 500
+      default_value: 50
   ask: |
     {{#ask: [[Concept:AddressBook]]
     |mainlabel=AddressBook
