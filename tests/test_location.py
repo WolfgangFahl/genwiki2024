@@ -46,8 +46,8 @@ class TestLocations(GenealogyBasetest):
         for qid, record in sub_parts.items():
             record["item"] = Wikidata.unprefix(record["item"])
             record["part"] = Wikidata.unprefix(record["part"])
-            item=record["item"]
-            part=record["part"]
+            item = record["item"]
+            part = record["part"]
 
             print(f"{qid}:{record}")
             item_label = record["itemLabel"]
@@ -57,9 +57,7 @@ class TestLocations(GenealogyBasetest):
             if part not in part_to_item:
                 part_to_item[part] = record
             else:
-                print(
-                    f"Duplicate assignment found for country {part_label}. "
-                )
+                print(f"Duplicate assignment found for country {part_label}. ")
 
         # Export the mapping to a JSON file
         with open("/tmp/region_lookup.json", "w", encoding="utf-8") as f:
@@ -107,8 +105,25 @@ class TestLocations(GenealogyBasetest):
         debug = True
         for gov_id, expected in [
             ("RUMURGJO84LA", {"gov-Miastko@pl": "Q255385"}),
-            ("adm_136611", {'gov-Kassel@de': 'Q2865', 'NUTS2003:DE731': 'Q2865', 'NUTS1999:DE731': 'Q2865', 'gov-Cassel@de': 'Q11160', 'geonames:6547484': 'Q32064001'}),
-            ("WEIMARJO50QX", {'NUTS2003:DEG05': 'Q3955', 'gov-Weimar@de': 'Q3955', 'NUTS1999:DEG05': 'Q3955', 'geonames:2812482': 'Q32067990'}),
+            (
+                "adm_136611",
+                {
+                    "gov-Kassel@de": "Q2865",
+                    "NUTS2003:DE731": "Q2865",
+                    "NUTS1999:DE731": "Q2865",
+                    "gov-Cassel@de": "Q11160",
+                    "geonames:6547484": "Q32064001",
+                },
+            ),
+            (
+                "WEIMARJO50QX",
+                {
+                    "NUTS2003:DEG05": "Q3955",
+                    "gov-Weimar@de": "Q3955",
+                    "NUTS1999:DEG05": "Q3955",
+                    "geonames:2812482": "Q32067990",
+                },
+            ),
             ("Vaihingen auf den Fildern", {}),
         ]:
             items = self.locator.locate(gov_id)
@@ -118,11 +133,12 @@ class TestLocations(GenealogyBasetest):
 
     def testWikidataSearch(self):
         """ """
-        examples = [("Q57993", "Thalheim", "Erzgebirgskreis"),
-                    ("Q47554","Thorn","Weichsel"),
-                    ("Q1123987","Schloss Rundale","Lettland"),
-                    ("Q193474","Krain","Herzogtum")
-                    ]
+        examples = [
+            ("Q57993", "Thalheim", "Erzgebirgskreis"),
+            ("Q47554", "Thorn", "Weichsel"),
+            ("Q1123987", "Schloss Rundale", "Lettland"),
+            ("Q193474", "Krain", "Herzogtum"),
+        ]
         wds = WikidataSearch()
         limit = 10
         debug = self.debug

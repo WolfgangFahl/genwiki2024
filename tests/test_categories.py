@@ -86,7 +86,7 @@ class TestCategories(GenealogyBasetest):
         """
         # recreate all entries
         force = False
-        #force = False
+        # force = False
 
         # Set up source and target wikis
         source_wiki = self.wiki

@@ -3,15 +3,17 @@ Created on 19.08.2024
 
 @author: wf
 """
+
 import json
 import logging
 import os
 from typing import Any, Dict, List
 
+from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.locator import Locator
 from genwiki.template import TemplateMap, TemplateParam
 from genwiki.wikidata import Wikidata
-from genwiki.genwiki_paths import GenWikiPaths
+
 
 class AddressBookConverter:
     """
@@ -45,10 +47,12 @@ class AddressBookConverter:
         self.year_mapping = {"weimarTH1851.parquet": 1851, "weimarTH1853.parquet": 1853}
         self.locator = Locator(debug=self.debug)
         self.target_wiki = None
-        self.region_lookup=self.get_region_lookup()
+        self.region_lookup = self.get_region_lookup()
 
     def get_region_lookup(self):
-        region_lookup_path = os.path.join(GenWikiPaths.get_examples_path(), "region_lookup.json")
+        region_lookup_path = os.path.join(
+            GenWikiPaths.get_examples_path(), "region_lookup.json"
+        )
 
         if os.path.exists(region_lookup_path):
             with open(region_lookup_path, "r") as f:
@@ -133,10 +137,10 @@ class AddressBookConverter:
             # country level
             if level == "3":
                 if item in self.region_lookup:
-                    lookup=self.region_lookup[item]
+                    lookup = self.region_lookup[item]
                     partOf = lookup["itemLabel"]
                 else:
-                    partOf=""
+                    partOf = ""
                 pass
             self.create_location_page(
                 page_title=page_title,
