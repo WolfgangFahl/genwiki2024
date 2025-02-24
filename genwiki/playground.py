@@ -363,7 +363,7 @@ set -e  # Exit on error
         for idx, god in enumerate(self.godsList()):
             mw_port = self.base_port + (idx * self.step)
             sql_port = mw_port + 1
-            name = god['name']
+            name = god["name"]
             script_content += f"""
 echo "Setting up {name} wiki..."
 profiwiki -rp -fu -cn {name} -bp {mw_port} -sp {sql_port} --all -f
@@ -372,12 +372,15 @@ profiwiki -rp -fu -cn {name} -bp {mw_port} -sp {sql_port} --all -f
             f.write(script_content)
         return output_path
 
+
 def main():
     parser = argparse.ArgumentParser(description="Wiki Playground Generator")
     parser.add_argument("--apache", action="store_true", help="Generate apache config")
     parser.add_argument("--index", action="store_true", help="Generate index.html")
     parser.add_argument("--list", action="store_true", help="List the gods")
-    parser.add_argument("--setup", action="store_true", help="Generate the setup script")
+    parser.add_argument(
+        "--setup", action="store_true", help="Generate the setup script"
+    )
     args = parser.parse_args()
 
     pg = Playground()
@@ -391,7 +394,7 @@ def main():
         pg.color_msg(GREEN, f"✅ {conf} generated.")
         handled = True
     if args.setup:
-        setup=pg.generate_setup_script()
+        setup = pg.generate_setup_script()
         pg.color_msg(GREEN, f"✅ {setup} generated.")
         handled = True
     if args.list:
