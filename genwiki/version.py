@@ -18,7 +18,7 @@ class Version(object):
     name = "genwiki2024"
     version = genwiki.__version__
     date = "2024-08-15"
-    updated = "2024-09-13"
+    updated = "2025-02-25"
     description = "genealogy Semantification"
 
     authors = "Wolfgang Fahl"
@@ -27,7 +27,7 @@ class Version(object):
     chat_url = "https://github.com/WolfgangFahl/genwiki2024/discussions"
     cm_url = "https://github.com/WolfgangFahl/genwiki2024"
 
-    license = f"""Copyright 2024 contributors. All rights reserved.
+    license = f"""Copyright 2024-2025 contributors. All rights reserved.
 
   Licensed under the Apache License 2.0
   http://www.apache.org/licenses/LICENSE-2.0

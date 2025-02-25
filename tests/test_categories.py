@@ -24,7 +24,7 @@ class TestCategories(GenealogyBasetest):
 
     """
 
-    def setUp(self, debug=True, profile=True):
+    def setUp(self, debug=False, profile=True):
         GenealogyBasetest.setUp(self, debug=debug, profile=profile)
         self.wiki_id = "genealogy"
         self.get_wiki_user(wikiId=self.wiki_id, save=self.inPublicCI())
