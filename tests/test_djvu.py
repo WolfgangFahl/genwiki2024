@@ -7,10 +7,12 @@ Created on 2025-02-24
 import json
 import os
 import time
-from tqdm import tqdm
+from dataclasses import asdict
+
 import djvu.decode
 from ngwidgets.basetest import Basetest
-from dataclasses import asdict
+from tqdm import tqdm
+
 from genwiki.djvu_core import DjVu, DjVuPage
 from genwiki.djvu_manager import DjVuManager
 from genwiki.djvu_processor import DjVuProcessor
@@ -31,14 +33,14 @@ class TestDjVu(Basetest):
         self.basepath = "/Users/wf/hd/wf-fur.bitplan.com/genwiki"
         self.baseurl = "https://wiki.genealogy.net/"
         self.limit = 10000000
-        #self.limit=50
+        # self.limit=50
         self.local = True
         if not os.path.isdir(self.basepath):
             self.local = False
             self.basepath = "/tmp/genwiki/image"
             self.limit = 50
 
-    def get_djvu(self,relurl):
+    def get_djvu(self, relurl):
         """
         get the djvu file for the relative url
         """
@@ -50,7 +52,7 @@ class TestDjVu(Basetest):
             except Exception as _ex:
                 print(f"invalid {djvu_path}")
                 return None
-        self.assertTrue(os.path.isfile(djvu_path),djvu_path)
+        self.assertTrue(os.path.isfile(djvu_path), djvu_path)
         return djvu_path
 
     def test_djvu_processor(self):
@@ -62,7 +64,7 @@ class TestDjVu(Basetest):
             "/images/9/96/vz1890-neuenhausen-zb04.djvu",
             "/images/0/08/Deutsches-Kirchliches-AB-1927.djvu",
         ]:
-            djvu_path=self.get_djvu(relurl)
+            djvu_path = self.get_djvu(relurl)
             url = djvu.decode.FileURI(djvu_path)
             # url=f"{baseurl}/{relurl}"
             dproc = DjVuProcessor()
@@ -72,7 +74,7 @@ class TestDjVu(Basetest):
             print(len(document.files))
         pass
 
-    def add_page(self,page_lod,path:str,page_index:int,page):
+    def add_page(self, page_lod, path: str, page_index: int, page):
         """
         Adds a DjVuPage to the given list of pages.
 
@@ -88,22 +90,23 @@ class TestDjVu(Basetest):
         try:
             filename = page.file.name
             if "gesperrtes" in filename:
-                filename="?"
-                valid=False
+                filename = "?"
+                valid = False
             else:
-                valid=True
+                valid = True
         except Exception as _ex:
             filename = "?"
-            valid=False
-        dpage=DjVuPage(
-            #height=page.height,
-            #width=page.width,
-            #dpi=page.dpi,
+            valid = False
+        dpage = DjVuPage(
+            # height=page.height,
+            # width=page.width,
+            # dpi=page.dpi,
             path=filename,
             page_index=page_index,
             valid=valid,
-            djvu_path=path)
-        row=asdict(dpage)
+            djvu_path=path,
+        )
+        row = asdict(dpage)
         page_lod.append(row)
         return dpage
 
@@ -112,7 +115,7 @@ class TestDjVu(Basetest):
         test all djvu pages
         """
         dvm = DjVuManager()
-        dvm_target=DjVuManager(db_path="/tmp/genwiki_djvu.db")
+        dvm_target = DjVuManager(db_path="/tmp/genwiki_djvu.db")
         dproc = DjVuProcessor()
         lod = dvm.query("all_djvu")
         total = 0
@@ -120,23 +123,23 @@ class TestDjVu(Basetest):
         debug = self.debug
         debug = False
         errors = 0
-        djvu_lod=[]
-        page_lod=[]
+        djvu_lod = []
+        page_lod = []
         for index, r in enumerate(lod, start=1):
             path = r.get("path").replace("./", "/")
             djvu_path = self.get_djvu(path)
             if not djvu_path:
-                errors+=1
+                errors += 1
                 continue
             page_index = 0
             for document, page in dproc.yield_pages(djvu_path):
                 page_count = len(document.pages)
                 page_index += 1
-                dpage=self.add_page(page_lod,path,page_index,page)
-                #if debug:
+                dpage = self.add_page(page_lod, path, page_index, page)
+                # if debug:
                 #    print(f"    {page_index:4d}/{page_count:4d}:{filename}")
-            djvu=DjVu(path=path,page_count=page_count)
-            djvu_row=asdict(djvu)
+            djvu = DjVu(path=path, page_count=page_count)
+            djvu_row = asdict(djvu)
             djvu_lod.append(djvu_row)
             total += page_index
             if total > self.limit:
@@ -148,8 +151,8 @@ class TestDjVu(Basetest):
             )
         expected_errors = 0 if self.local else 2
         self.assertTrue(errors <= expected_errors)
-        dvm_target.store(lod=page_lod,entity_name="Page",primary_key="page_key")
-        dvm_target.store(lod=djvu_lod,entity_name="DjVu",primary_key="path")
+        dvm_target.store(lod=page_lod, entity_name="Page", primary_key="page_key")
+        dvm_target.store(lod=djvu_lod, entity_name="DjVu", primary_key="path")
 
     def test_issue49(self):
         """
@@ -158,15 +161,15 @@ class TestDjVu(Basetest):
         output_dir = "/tmp/djvu_pngs"
         os.makedirs(output_dir, exist_ok=True)
         for url, page_count in [
-            #("./images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu", 1),
-            #("./images/0/08/Deutsches-Kirchliches-AB-1927.djvu", 1188),
-            ("/images/9/96/vz1890-neuenhausen-zb04.djvu",3)
+            # ("./images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu", 1),
+            # ("./images/0/08/Deutsches-Kirchliches-AB-1927.djvu", 1188),
+            ("/images/9/96/vz1890-neuenhausen-zb04.djvu", 3)
         ]:
             with self.subTest(url=url, expected_pages=page_count):
-                if not self.local and page_count>1:
+                if not self.local and page_count > 1:
                     return
                 relurl = url.lstrip(".")
-                djvu_path=self.get_djvu(relurl)
+                djvu_path = self.get_djvu(relurl)
                 dproc = DjVuProcessor()
                 if self.debug:
                     print(f"processing {relurl}")
@@ -174,10 +177,15 @@ class TestDjVu(Basetest):
                     pass
                 with tqdm(total=page_count, desc="Processing pages") as pbar:
                     for imagejob in dproc.process(djvu_path, relurl=relurl):
-                        image=imagejob.image
+                        image = imagejob.image
                         output_prefix = os.path.splitext(os.path.basename(djvu_path))[0]
-                        output_path = os.path.join(output_dir, f"{output_prefix}_page_{image.page_index:04d}.png")
-                        dproc.save_image_to_png(image.buffer, image.width, image.height, output_path)
+                        output_path = os.path.join(
+                            output_dir,
+                            f"{output_prefix}_page_{image.page_index:04d}.png",
+                        )
+                        dproc.save_image_to_png(
+                            image.buffer, image.width, image.height, output_path
+                        )
 
                         # Process the image job here
                         pass

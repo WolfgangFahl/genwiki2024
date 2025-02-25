@@ -20,6 +20,7 @@ class ImageJob:
     """
     Represents a processed DjVu page, including document, page, page job, and image data.
     """
+
     document: djvu.decode.Document
     page: djvu.decode.Page
     pagejob: djvu.decode.PageJob
@@ -49,7 +50,7 @@ class DjVuProcessor(djvu.decode.Context):
             print(message, file=sys.stderr)
             os._exit(1)
 
-    def save_image_to_png(self,color_buffer, width, height, output_path):
+    def save_image_to_png(self, color_buffer, width, height, output_path):
         """
         Saves the rendered DjVu page as a PNG file.
 
@@ -109,10 +110,14 @@ class DjVuProcessor(djvu.decode.Context):
         color_buffer ^= 0xFF000000  # Apply transparency
         return color_buffer
 
-
     def imagejob_from_pagejob(
-        self, document, page, page_index: int, relurl: str, pagejob,
-        mode=djvu.decode.RENDER_COLOR
+        self,
+        document,
+        page,
+        page_index: int,
+        relurl: str,
+        pagejob,
+        mode=djvu.decode.RENDER_COLOR,
     ) -> ImageJob:
         """
         Converts a DjVu page job to an ImageJob instance.
@@ -143,8 +148,7 @@ class DjVuProcessor(djvu.decode.Context):
 
         return ImageJob(document=document, page=page, pagejob=pagejob, image=image)
 
-
-    def yield_pages(self, djvu_path:str):
+    def yield_pages(self, djvu_path: str):
         """
         yield the pages for the given djvu_path
         """
@@ -153,7 +157,9 @@ class DjVuProcessor(djvu.decode.Context):
         for page in document.pages:
             yield document, page
 
-    def process(self, djvu_path, relurl:str,mode=djvu.decode.RENDER_COLOR, wait: bool = True):
+    def process(
+        self, djvu_path, relurl: str, mode=djvu.decode.RENDER_COLOR, wait: bool = True
+    ):
         """
         Converts a DjVu url to image buffers.
 
@@ -166,15 +172,16 @@ class DjVuProcessor(djvu.decode.Context):
         Yields:
             ImageJob: Processed page data.
         """
-        page_index=0
+        page_index = 0
         for document, page in self.yield_pages(djvu_path):
-            page_index+=1
+            page_index += 1
             pagejob = page.decode(wait=wait)
-            imagejob=self.imagejob_from_pagejob(
+            imagejob = self.imagejob_from_pagejob(
                 document=document,
                 page=page,
                 page_index=page_index,
                 relurl=relurl,
                 pagejob=pagejob,
-                mode=mode)
+                mode=mode,
+            )
             yield imagejob

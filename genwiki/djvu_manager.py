@@ -5,10 +5,13 @@ Created on 2025-02-24
 """
 
 import os
+
 from lodstorage.sql import SQLDB
+from ngwidgets.profiler import Profiler
+
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
-from ngwidgets.profiler import Profiler
+
 
 class DjVuManager:
     """
@@ -28,7 +31,7 @@ class DjVuManager:
         lod = self.sql_db.query(query.query)
         return lod
 
-    def store(self,lod,entity_name:str,primary_key:str,profile:bool=True):
+    def store(self, lod, entity_name: str, primary_key: str, profile: bool = True):
         """
         store my the given list of dicts
         """

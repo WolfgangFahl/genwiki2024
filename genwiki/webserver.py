@@ -13,7 +13,7 @@ from ngwidgets.profiler import Profiler
 from ngwidgets.users import Users
 from ngwidgets.webserver import WebserverConfig
 from ngwidgets.widgets import Link
-from nicegui import Client, ui, app
+from nicegui import Client, app, ui
 from starlette.responses import RedirectResponse
 from wd.wditem_search import WikidataItemSearch
 
