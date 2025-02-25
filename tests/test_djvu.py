@@ -162,7 +162,7 @@ class TestDjVu(Basetest):
         os.makedirs(output_dir, exist_ok=True)
         for url, page_count in [
             # ("./images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu", 1),
-            # ("./images/0/08/Deutsches-Kirchliches-AB-1927.djvu", 1188),
+            #("./images/0/08/Deutsches-Kirchliches-AB-1927.djvu", 1188),
             ("/images/9/96/vz1890-neuenhausen-zb04.djvu", 3)
         ]:
             with self.subTest(url=url, expected_pages=page_count):
@@ -173,24 +173,18 @@ class TestDjVu(Basetest):
                 dproc = DjVuProcessor()
                 if self.debug:
                     print(f"processing {relurl}")
-                for document, page in dproc.yield_pages(djvu_path):
-                    pass
-                with tqdm(total=page_count, desc="Processing pages") as pbar:
-                    for imagejob in dproc.process(djvu_path, relurl=relurl):
-                        image = imagejob.image
-                        output_prefix = os.path.splitext(os.path.basename(djvu_path))[0]
-                        output_path = os.path.join(
-                            output_dir,
-                            f"{output_prefix}_page_{image.page_index:04d}.png",
-                        )
-                        dproc.save_image_to_png(
-                            image.buffer, image.width, image.height, output_path
-                        )
-
-                        # Process the image job here
-                        pass
-                        if self.debug:
-                            pbar.update(1)  # Increment progress bar
+                #for document, page in dproc.yield_pages(djvu_path):
+                #    pass
+                for image_job in dproc.process(djvu_path, relurl=relurl):
+                    image = image_job.image
+                    output_prefix = os.path.splitext(os.path.basename(djvu_path))[0]
+                    output_path = os.path.join(
+                        output_dir,
+                        f"{output_prefix}_page_{image.page_index:04d}.png",
+                    )
+                    dproc.save_image_to_png(
+                        image_job=image_job, output_path=output_path
+                    )
 
     def testDjVuManager(self):
         """
