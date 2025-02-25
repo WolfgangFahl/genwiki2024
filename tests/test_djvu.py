@@ -176,16 +176,17 @@ class TestDjVu(Basetest):
                     print(f"processing {relurl}")
                 #for document, page in dproc.yield_pages(djvu_path):
                 #    pass
-                for image_job in dproc.process(djvu_path, relurl=relurl):
-                    image = image_job.image
-                    output_prefix = os.path.splitext(os.path.basename(djvu_path))[0]
-                    output_path = os.path.join(
-                        output_dir,
-                        f"{output_prefix}_page_{image.page_index:04d}.png",
-                    )
-                    dproc.save_image_to_png(
-                        image_job=image_job, output_path=output_path
-                    )
+                count = 0
+                for _image_job in dproc.process_parallel(
+                    djvu_path,
+                    relurl=relurl,
+                    save_png=True,
+                    png_path=output_dir
+                ):
+                    count += 1
+
+                if self.debug:
+                    print(f"Processed {count} pages")
 
     def testDjVuManager(self):
         """
