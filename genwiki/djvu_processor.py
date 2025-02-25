@@ -130,6 +130,15 @@ class DjVuProcessor(djvu.decode.Context):
         color_buffer ^= 0xFF000000  # Apply transparency
         return color_buffer
 
+    def yield_pages(self, djvu_path: str):
+        """
+        yield the pages for the given djvu_path
+        """
+        document = self.new_document(djvu.decode.FileURI(djvu_path))
+        document.decoding_job.wait()
+        for page in document.pages:
+            yield document, page
+
     def create_image_jobs(self, djvu_path: str, relurl: str) -> List[ImageJob]:
         """
         Create initial image jobs for all pages in the document
@@ -141,11 +150,11 @@ class DjVuProcessor(djvu.decode.Context):
         Returns:
             List[ImageJob]: List of initialized image jobs
         """
-        document = self.new_document(djvu.decode.FileURI(djvu_path))
-        document.decoding_job.wait()
 
         image_jobs = []
-        for page_index, page in enumerate(document.pages,start=1):
+        page_index=0
+        for document, page in self.yield_pages(djvu_path):
+            page_index+=1
             job = ImageJob(
                 document=document,
                 page=page,
@@ -156,7 +165,7 @@ class DjVuProcessor(djvu.decode.Context):
 
         return image_jobs
 
-    def decode_page(self, image_job: ImageJob, wait: bool = False) -> ImageJob:
+    def decode_page(self, image_job: ImageJob, wait: bool = True) -> ImageJob:
         """
         Decodes a single page and updates the ImageJob
 

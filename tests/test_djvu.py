@@ -135,7 +135,7 @@ class TestDjVu(Basetest):
             for document, page in dproc.yield_pages(djvu_path):
                 page_count = len(document.pages)
                 page_index += 1
-                dpage = self.add_page(page_lod, path, page_index, page)
+                _dpage = self.add_page(page_lod, path, page_index, page)
                 # if debug:
                 #    print(f"    {page_index:4d}/{page_count:4d}:{filename}")
             djvu = DjVu(path=path, page_count=page_count)
@@ -161,6 +161,7 @@ class TestDjVu(Basetest):
         output_dir = "/tmp/djvu_pngs"
         os.makedirs(output_dir, exist_ok=True)
         for url, page_count in [
+            ("./images/f/fc/Siegkreis-AB-1905-06_Honnef.djvu",35),
             # ("./images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu", 1),
             #("./images/0/08/Deutsches-Kirchliches-AB-1927.djvu", 1188),
             ("/images/9/96/vz1890-neuenhausen-zb04.djvu", 3)
