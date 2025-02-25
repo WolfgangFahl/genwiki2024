@@ -1,0 +1,43 @@
+#
+# SQL queries for DjVu files of
+# Genealogie Wiki https://wiki.genealogy.net
+# WF 2024-04-30
+#
+'total':
+   sql: |
+      SELECT
+         count(*) as files,
+         sum(page_count) as pages
+      FROM djvu
+'dpis':
+    sql: |
+      SELECT count(*),dpi
+      FROM image
+      GROUP BY dpi
+'page_count':
+    sql: |
+      SELECT path,dir_pages,page_count,page_count-dir_pages as diff
+      FROM "djvu"
+      WHERE dir_pages!=page_count
+      ORDER by page_count desc
+# Get all DjVu records
+'all_djvu':
+  sql: |
+    SELECT
+      path,
+      dir_pages,
+      page_count
+    FROM djvu
+    ORDER BY page_count
+
+# Get all Image records
+'all_images':
+  sql: |
+    SELECT
+      path,
+      width,
+      height,
+      dpi,
+      djvu_path
+    FROM image
+    ORDER BY path

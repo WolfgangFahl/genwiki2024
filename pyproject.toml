@@ -57,7 +57,14 @@ dependencies = [
     "wdgrid>=0.1.2",
     # command line progress bar
     # https://pypi.org/project/tqdm/
-    "tqdm>=4.66.5"
+    "tqdm>=4.66.5",
+    # https://github.com/FriedrichFroebel/python-djvulibre
+    # https://pypi.org/project/djvulibre-python/
+    "djvulibre-python>=0.9.1",
+    # https://pypi.org/project/pycairo/
+    "pycairo>=1.27.0",
+    # https://pypi.org/project/numpy/
+    "numpy>=2.2.3"
 ]
 
 requires-python = ">=3.9"

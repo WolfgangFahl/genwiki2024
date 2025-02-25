@@ -1,0 +1,9 @@
+#
+# DjVu SQL database endpoint
+# WF 2024-04-30
+#
+genwiki:
+  database: sqlite
+  lang: sql
+  website: https://wiki.genealogy.net/Hauptseite
+  endpoint: genwiki_examples/djvu_data.db
