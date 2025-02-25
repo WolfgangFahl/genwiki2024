@@ -155,6 +155,8 @@ class TestDjVu(Basetest):
         """
         Test loading DjVu file with python-djvu and storing relevant metadata.
         """
+        output_dir = "/tmp/djvu_pngs"
+        os.makedirs(output_dir, exist_ok=True)
         for url, page_count in [
             #("./images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu", 1),
             #("./images/0/08/Deutsches-Kirchliches-AB-1927.djvu", 1188),
@@ -172,6 +174,11 @@ class TestDjVu(Basetest):
                     pass
                 with tqdm(total=page_count, desc="Processing pages") as pbar:
                     for imagejob in dproc.process(djvu_path, relurl=relurl):
+                        image=imagejob.image
+                        output_prefix = os.path.splitext(os.path.basename(djvu_path))[0]
+                        output_path = os.path.join(output_dir, f"{output_prefix}_page_{image.page_index:04d}.png")
+                        dproc.save_image_to_png(image.buffer, image.width, image.height, output_path)
+
                         # Process the image job here
                         pass
                         if self.debug:

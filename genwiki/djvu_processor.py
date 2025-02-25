@@ -49,26 +49,34 @@ class DjVuProcessor(djvu.decode.Context):
             print(message, file=sys.stderr)
             os._exit(1)
 
-    def imagejob_from_pagejob(
-        self, document, page,page_index:int,relurl:str, pagejob,
-        mode=djvu.decode.RENDER_FOREGROUND
-    ) -> ImageJob:
+    def save_image_to_png(self,color_buffer, width, height, output_path):
         """
-        Converts a DjVu page job to an ImageJob instance.
+        Saves the rendered DjVu page as a PNG file.
 
         Args:
-            document: The DjVu document containing the page.
-            page: The specific page being processed.
-            page_index: the page index
-            relurl(str): the relative url
-            page_job: The decoded DjVu page job.
-            mode (int): Rendering mode, defaults to RENDER_COLOR.
+            color_buffer (numpy.ndarray): The rendered color buffer.
+            width (int): Width of the image.
+            height (int): Height of the image.
+            output_path (str): The path where the PNG file should be saved.
+        """
+        surface = cairo.ImageSurface.create_for_data(
+            color_buffer, cairo.FORMAT_ARGB32, width, height
+        )
+        surface.write_to_png(output_path)
 
+    def render_pagejob_to_buffer(self, pagejob, mode, width, height):
+        """
+        Renders a DjVu page job to a color buffer.
+
+        Args:
+            pagejob: The decoded DjVu page job.
+            mode (int): Rendering mode.
+            width (int): Width of the page.
+            height (int): Height of the page.
 
         Returns:
-            ImageJob: The processed image data.
+            numpy.ndarray: The rendered color buffer.
         """
-        width, height = pagejob.size
         rect = (0, 0, width, height)
 
         bytes_per_line = cairo.ImageSurface.format_stride_for_width(
@@ -86,8 +94,8 @@ class DjVuProcessor(djvu.decode.Context):
             buffer=color_buffer,
         )
 
-        mask_buffer = numpy.zeros((height, bytes_per_line // 4), dtype=numpy.uint32)
         if mode == djvu.decode.RENDER_FOREGROUND:
+            mask_buffer = numpy.zeros_like(color_buffer)
             pagejob.render(
                 djvu.decode.RENDER_MASK_ONLY,
                 rect,
@@ -96,10 +104,32 @@ class DjVuProcessor(djvu.decode.Context):
                 row_alignment=bytes_per_line,
                 buffer=mask_buffer,
             )
-            mask_buffer <<= 24
-            color_buffer |= mask_buffer
+            color_buffer |= mask_buffer << 24
 
-        color_buffer ^= 0xFF000000
+        color_buffer ^= 0xFF000000  # Apply transparency
+        return color_buffer
+
+
+    def imagejob_from_pagejob(
+        self, document, page, page_index: int, relurl: str, pagejob,
+        mode=djvu.decode.RENDER_COLOR
+    ) -> ImageJob:
+        """
+        Converts a DjVu page job to an ImageJob instance.
+
+        Args:
+            document: The DjVu document containing the page.
+            page: The specific page being processed.
+            page_index (int): The page index.
+            relurl (str): The relative URL.
+            pagejob: The decoded DjVu page job.
+            mode (int): Rendering mode, defaults to RENDER_COLOR.
+
+        Returns:
+            ImageJob: The processed image data.
+        """
+        width, height = pagejob.size
+        color_buffer = self.render_pagejob_to_buffer(pagejob, mode, width, height)
 
         image = DjVuImage(
             width=width,
@@ -110,8 +140,9 @@ class DjVuProcessor(djvu.decode.Context):
             path=page.file.name,
             buffer=color_buffer,
         )
-        imagejob = ImageJob(document=document, page=page, pagejob=pagejob, image=image)
-        return imagejob
+
+        return ImageJob(document=document, page=page, pagejob=pagejob, image=image)
+
 
     def yield_pages(self, djvu_path:str):
         """
