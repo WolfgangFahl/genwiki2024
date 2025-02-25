@@ -8,7 +8,7 @@ from typing import Optional
 
 import numpy
 from ngwidgets.yamlable import lod_storable
-
+from dataclasses import dataclass
 
 @lod_storable
 class DjVu:
@@ -38,6 +38,6 @@ class DjVuPage:
             self.page_key=f"{self.djvu_path}#{self.page_index:04d}"
         pass
 
-
+@dataclass
 class DjVuImage(DjVuPage):
     buffer: Optional[numpy.ndarray] = None

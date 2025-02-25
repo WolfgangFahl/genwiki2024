@@ -32,7 +32,7 @@ class DjVuManager:
         """
         store my the given list of dicts
         """
-        profiler = Profiler(f"caching {entity_name}to SQL", profile=profile)
+        profiler = Profiler(f"caching {entity_name} to SQL", profile=profile)
         self.entity_info = self.sql_db.createTable(
             listOfRecords=lod,
             entityName=entity_name,

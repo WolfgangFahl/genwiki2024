@@ -13,7 +13,7 @@ from ngwidgets.profiler import Profiler
 from ngwidgets.users import Users
 from ngwidgets.webserver import WebserverConfig
 from ngwidgets.widgets import Link
-from nicegui import Client, ui
+from nicegui import Client, ui, app
 from starlette.responses import RedirectResponse
 from wd.wditem_search import WikidataItemSearch
 
@@ -88,6 +88,10 @@ class GenWikiWebServer(InputWebserver):
             if self.login.authenticated():
                 await self.login.logout()
             return RedirectResponse("/")
+
+        @app.get("/djvu/{path:path}")
+        def display_djvu(self):
+            pass
 
     def configure_run(self):
         super().configure_run()

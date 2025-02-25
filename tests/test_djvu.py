@@ -7,7 +7,7 @@ Created on 2025-02-24
 import json
 import os
 import time
-
+from tqdm import tqdm
 import djvu.decode
 from ngwidgets.basetest import Basetest
 from dataclasses import asdict
@@ -38,6 +38,21 @@ class TestDjVu(Basetest):
             self.basepath = "/tmp/genwiki/image"
             self.limit = 50
 
+    def get_djvu(self,relurl):
+        """
+        get the djvu file for the relative url
+        """
+        djvu_path = self.basepath + relurl
+        url = self.baseurl + relurl
+        if not self.local:
+            try:
+                Download.download(url, djvu_path)
+            except Exception as _ex:
+                print(f"invalid {djvu_path}")
+                return None
+        self.assertTrue(os.path.isfile(djvu_path),djvu_path)
+        return djvu_path
+
     def test_djvu_processor(self):
         """
         test the DjVu processor
@@ -47,11 +62,7 @@ class TestDjVu(Basetest):
             "/images/9/96/vz1890-neuenhausen-zb04.djvu",
             "/images/0/08/Deutsches-Kirchliches-AB-1927.djvu",
         ]:
-            djvu_path = self.basepath + relurl
-            url = self.baseurl + relurl
-            if not self.local:
-                Download.download(url, djvu_path)
-            self.assertTrue(os.path.isfile(djvu_path))
+            djvu_path=self.get_djvu(relurl)
             url = djvu.decode.FileURI(djvu_path)
             # url=f"{baseurl}/{relurl}"
             dproc = DjVuProcessor()
@@ -113,15 +124,10 @@ class TestDjVu(Basetest):
         page_lod=[]
         for index, r in enumerate(lod, start=1):
             path = r.get("path").replace("./", "/")
-            djvu_path = self.basepath + path
-            url = self.baseurl + path
-            if not self.local:
-                try:
-                    Download.download(url, djvu_path)
-                except Exception as ex:
-                    print(f"invalid {djvu_path}")
-                    errors += 1
-                    continue
+            djvu_path = self.get_djvu(path)
+            if not djvu_path:
+                errors+=1
+                continue
             page_index = 0
             for document, page in dproc.yield_pages(djvu_path):
                 page_count = len(document.pages)
@@ -149,22 +155,27 @@ class TestDjVu(Basetest):
         """
         Test loading DjVu file with python-djvu and storing relevant metadata.
         """
-        cachedir = "/tmp/images"
-        for image_url, page_count in [
-            ("./images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu", 1),
-            ("./images/0/08/Deutsches-Kirchliches-AB-1927.djvu", 1188),
+        for url, page_count in [
+            #("./images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu", 1),
+            #("./images/0/08/Deutsches-Kirchliches-AB-1927.djvu", 1188),
+            ("/images/9/96/vz1890-neuenhausen-zb04.djvu",3)
         ]:
-            with self.subTest(image_url=image_url, expected_pages=page_count):
-                filename = os.path.basename(image_url)
-                relurl = os.path.dirname(image_url).lstrip("./")
-                url = f"https://wiki.genealogy.net/{relurl}/{filename}"
-                target_path = f"{cachedir}/{relurl}/{filename}"
-                Download.download(url, target_path)
+            with self.subTest(url=url, expected_pages=page_count):
+                if not self.local and page_count>1:
+                    return
+                relurl = url.lstrip(".")
+                djvu_path=self.get_djvu(relurl)
                 dproc = DjVuProcessor()
-                for document, page in dproc.yield_pages(target_path):
+                if self.debug:
+                    print(f"processing {relurl}")
+                for document, page in dproc.yield_pages(djvu_path):
                     pass
-                for imagejob in dproc.process(target_path):
-                    pass
+                with tqdm(total=page_count, desc="Processing pages") as pbar:
+                    for imagejob in dproc.process(djvu_path, relurl=relurl):
+                        # Process the image job here
+                        pass
+                        if self.debug:
+                            pbar.update(1)  # Increment progress bar
 
     def testDjVuManager(self):
         """
