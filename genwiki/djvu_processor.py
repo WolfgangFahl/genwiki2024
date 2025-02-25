@@ -3,13 +3,17 @@ Created on 2025-02-25
 
 @author: wf
 """
-from genwiki.djvu_core import DjVu, Image
+
 import os
 import sys
+from dataclasses import dataclass
+
 import cairo
 import djvu.decode
 import numpy
-from dataclasses import dataclass
+
+from genwiki.djvu_core import DjVuImage
+
 
 @dataclass
 class ImageJob:
@@ -19,7 +23,7 @@ class ImageJob:
     document: djvu.decode.Document
     page: djvu.decode.Page
     pagejob: djvu.decode.PageJob
-    image: Image
+    image: DjVuImage
 
 
 class DjVuProcessor(djvu.decode.Context):
@@ -34,7 +38,9 @@ class DjVuProcessor(djvu.decode.Context):
     def __init__(self):
         super().__init__()
         self.cairo_pixel_format = cairo.FORMAT_ARGB32
-        self.djvu_pixel_format = djvu.decode.PixelFormatRgbMask(0xFF0000, 0xFF00, 0xFF, bpp=32)
+        self.djvu_pixel_format = djvu.decode.PixelFormatRgbMask(
+            0xFF0000, 0xFF00, 0xFF, bpp=32
+        )
         self.djvu_pixel_format.rows_top_to_bottom = 1
         self.djvu_pixel_format.y_top_to_bottom = 0
 
@@ -43,7 +49,9 @@ class DjVuProcessor(djvu.decode.Context):
             print(message, file=sys.stderr)
             os._exit(1)
 
-    def imagejob_from_pagejob(self, document,page,pagejob, mode=djvu.decode.RENDER_COLOR)->ImageJob:
+    def imagejob_from_pagejob(
+        self, document, page, pagejob, mode=djvu.decode.RENDER_COLOR
+    ) -> ImageJob:
         """
         Converts a DjVu page job to an ImageJob instance.
 
@@ -60,29 +68,44 @@ class DjVuProcessor(djvu.decode.Context):
         width, height = pagejob.size
         rect = (0, 0, width, height)
 
-        bytes_per_line = cairo.ImageSurface.format_stride_for_width(self.cairo_pixel_format, width)
+        bytes_per_line = cairo.ImageSurface.format_stride_for_width(
+            self.cairo_pixel_format, width
+        )
         assert bytes_per_line % 4 == 0
 
         color_buffer = numpy.zeros((height, bytes_per_line // 4), dtype=numpy.uint32)
-        pagejob.render(mode, rect, rect, self.djvu_pixel_format,
-                        row_alignment=bytes_per_line, buffer=color_buffer)
+        pagejob.render(
+            mode,
+            rect,
+            rect,
+            self.djvu_pixel_format,
+            row_alignment=bytes_per_line,
+            buffer=color_buffer,
+        )
 
         mask_buffer = numpy.zeros((height, bytes_per_line // 4), dtype=numpy.uint32)
         if mode == djvu.decode.RENDER_FOREGROUND:
-            pagejob.render(djvu.decode.RENDER_MASK_ONLY, rect, rect, self.djvu_pixel_format,
-                            row_alignment=bytes_per_line, buffer=mask_buffer)
+            pagejob.render(
+                djvu.decode.RENDER_MASK_ONLY,
+                rect,
+                rect,
+                self.djvu_pixel_format,
+                row_alignment=bytes_per_line,
+                buffer=mask_buffer,
+            )
             mask_buffer <<= 24
             color_buffer |= mask_buffer
 
         color_buffer ^= 0xFF000000
 
-        image= Image(
+        image = DjVuImage(
             width=width,
             height=height,
             dpi=pagejob.dpi,
             djvu_path=page.file.name,
-            buffer=color_buffer)
-        imagejob= ImageJob(document=document, page=page, pagejob=pagejob, image=image)
+            buffer=color_buffer,
+        )
+        imagejob = ImageJob(document=document, page=page, pagejob=pagejob, image=image)
         return imagejob
 
     def yield_pages(self, djvu_path):
@@ -91,7 +114,7 @@ class DjVuProcessor(djvu.decode.Context):
         for page in document.pages:
             yield document, page
 
-    def process(self, djvu_path, mode=djvu.decode.RENDER_COLOR,wait:bool=True):
+    def process(self, djvu_path, mode=djvu.decode.RENDER_COLOR, wait: bool = True):
         """
         Converts a DjVu url to image buffers.
 
@@ -104,5 +127,5 @@ class DjVuProcessor(djvu.decode.Context):
             ImageJob: Processed page data.
         """
         for document, page in self.yield_pages(djvu_path):
-            pagejob=page.decode(wait=wait)
+            pagejob = page.decode(wait=wait)
             yield self.imagejob_from_pagejob(document, page, pagejob, mode)

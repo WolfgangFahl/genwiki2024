@@ -1,12 +1,14 @@
-'''
+"""
 Created on 25.02.2025
 
 @author: wf
-'''
+"""
 
 import os
 import time
+
 import requests
+
 
 class Download:
     @classmethod
@@ -28,11 +30,17 @@ class Download:
 
         remote_mtime = response.headers.get("Last-Modified")
         if remote_mtime:
-            remote_mtime = time.mktime(time.strptime(remote_mtime, "%a, %d %b %Y %H:%M:%S %Z"))
+            remote_mtime = time.mktime(
+                time.strptime(remote_mtime, "%a, %d %b %Y %H:%M:%S %Z")
+            )
         else:
             remote_mtime = None
 
-        needs_download = not file_exists or file_is_empty or (remote_mtime and remote_mtime > local_mtime)
+        needs_download = (
+            not file_exists
+            or file_is_empty
+            or (remote_mtime and remote_mtime > local_mtime)
+        )
 
         if needs_download:
             response = requests.get(url, stream=True)

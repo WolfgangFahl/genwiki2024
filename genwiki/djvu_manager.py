@@ -8,8 +8,6 @@ import os
 from lodstorage.sql import SQLDB
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
-from genwiki.djvu_core import Image
-
 
 
 class DjVuManager:
@@ -27,5 +25,5 @@ class DjVuManager:
 
     def query(self, query_name: str):
         query = self.mlqm.query4Name(query_name)
-        lod=self.sql_db.query(query.query)
+        lod = self.sql_db.query(query.query)
         return lod

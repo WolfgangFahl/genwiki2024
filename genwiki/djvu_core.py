@@ -1,15 +1,18 @@
-'''
+"""
 Created on 2025-02-25
 
 @author: wf
-'''
-from ngwidgets.yamlable import lod_storable
+"""
+
 from typing import Optional
+
 import numpy
+from ngwidgets.yamlable import lod_storable
+
 
 @lod_storable
 class DjVu:
-    """Represents a record from the djvu table."""
+    """Represents a DjVu main file e.g. bundled or indexed"""
 
     path: str
     dir_pages: int
@@ -17,11 +20,15 @@ class DjVu:
 
 
 @lod_storable
-class Image:
-    """Represents a record from the image table."""
+class Page:
+    """Represents a single djvu page"""
+
     path: str
     width: int
     height: int
     dpi: int
     djvu_path: Optional[str] = None
-    buffer: Optional[numpy.ndarray]=None
+
+
+class DjVuImage(Page):
+    buffer: Optional[numpy.ndarray] = None
