@@ -3,29 +3,31 @@ Created on 2025-02-25
 
 @author: wf
 """
+
 import logging
 import os
 import sys
+from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple, Generator
-from concurrent.futures import ThreadPoolExecutor, Future
+from typing import Generator, List, Optional, Tuple
 
 import cairo
 import djvu.decode
 import numpy
 from ngwidgets.profiler import Profiler
-from genwiki.djvu_core import DjVuImage
 
+from genwiki.djvu_core import DjVuImage
 
 @dataclass
 class ImageJob:
     """
     Represents a processed DjVu page, including document, page, page job, and image data.
     """
+
     document: djvu.decode.Document
     page: djvu.decode.Page
     page_index: int  # Added page_index to track position
-    relurl: str      # Added relurl for context
+    relurl: str  # Added relurl for context
     pagejob: Optional[djvu.decode.PageJob] = field(default=None)
     image: Optional[DjVuImage] = field(default=None)
 
@@ -34,7 +36,7 @@ class ImageJob:
         self.profiler = Profiler(f"Image Job {self.relurl}#{self.page_index:04d}")
         self.profiler.start()
 
-    def log(self,msg):
+    def log(self, msg):
         self.profiler.time(msg)
 
     def get_size(self) -> Tuple[int, int]:
@@ -43,6 +45,15 @@ class ImageJob:
             return self.pagejob.size
         return (0, 0)
 
+    @staticmethod
+    def get_prefix(relurl:str):
+        prefix = os.path.splitext(os.path.basename(relurl))[0]
+        return prefix
+
+    @property
+    def prefix(self)->str:
+        prefix=ImageJob.get_prefix(relurl=self.relurl)
+        return prefix
 
 class DjVuProcessor(djvu.decode.Context):
     """
@@ -95,18 +106,12 @@ class DjVuProcessor(djvu.decode.Context):
         Returns:
             Path to the saved PNG file
         """
-        # Create output path
-        output_prefix = os.path.splitext(os.path.basename(djvu_path))[0]
-        output_path = os.path.join(
-            output_dir,
-            f"{output_prefix}_page_{image_job.page_index:04d}.png"
-        )
+        output_path=os.path.join(output_dir, f"{image_job.prefix}_page_{image_job.page_index:04d}.png")
         image_job.log("save png start")
         # Save PNG
         self.save_image_to_png(image_job, output_path)
         return output_path
         image_job.log("save png done")
-
 
     def render_pagejob_to_buffer(self, image_job: ImageJob, mode: int) -> numpy.ndarray:
         """
@@ -177,14 +182,11 @@ class DjVuProcessor(djvu.decode.Context):
         """
 
         image_jobs = []
-        page_index=0
+        page_index = 0
         for document, page in self.yield_pages(djvu_path):
-            page_index+=1
+            page_index += 1
             job = ImageJob(
-                document=document,
-                page=page,
-                page_index=page_index,
-                relurl=relurl
+                document=document, page=page, page_index=page_index, relurl=relurl
             )
             image_jobs.append(job)
 
@@ -208,7 +210,9 @@ class DjVuProcessor(djvu.decode.Context):
         image_job.pagejob = pagejob
         return image_job
 
-    def render_page(self, image_job: ImageJob, mode: int = djvu.decode.RENDER_COLOR) -> ImageJob:
+    def render_page(
+        self, image_job: ImageJob, mode: int = djvu.decode.RENDER_COLOR
+    ) -> ImageJob:
         """
         Renders a page and updates the ImageJob with the rendered image
 
@@ -225,6 +229,12 @@ class DjVuProcessor(djvu.decode.Context):
 
         width, height = image_job.get_size()
         color_buffer = self.render_pagejob_to_buffer(image_job, mode)
+        try:
+            # Attempt to safely decode the file name
+            filename = image_job.page.file.name.encode("utf-8", errors="replace").decode("utf-8")
+        except Exception as e:
+            logging.warning(f"Failed to decode filename for page {image_job.page_index}: {e}")
+            filename = f"unknown_page_{image_job.page_index:04d}.djvu"
 
         image = DjVuImage(
             width=width,
@@ -232,7 +242,7 @@ class DjVuProcessor(djvu.decode.Context):
             dpi=image_job.pagejob.dpi,
             page_index=image_job.page_index,
             djvu_path=image_job.relurl,
-            path=image_job.page.file.name,
+            path=filename,
             buffer=color_buffer,
         )
 
@@ -242,8 +252,15 @@ class DjVuProcessor(djvu.decode.Context):
 
         return image_job
 
-    def process(self, djvu_path: str, relurl: str, mode: int = djvu.decode.RENDER_COLOR,
-            wait: bool = True, save_png: bool = False, png_path: str = None) -> Generator[ImageJob, None, None]:
+    def process(
+        self,
+        djvu_path: str,
+        relurl: str,
+        mode: int = djvu.decode.RENDER_COLOR,
+        wait: bool = True,
+        save_png: bool = False,
+        output_path: str = None,
+    ) -> Generator[ImageJob, None, None]:
         """
         Converts a DjVu URL to image buffers with sequential decoding and rendering.
         """
@@ -253,9 +270,8 @@ class DjVuProcessor(djvu.decode.Context):
         image_jobs = self.create_image_jobs(djvu_path, relurl)
         profiler.time("create image jobs")
 
-        # Prepare png output directory if needed
-        if save_png and png_path:
-            os.makedirs(png_path, exist_ok=True)
+        # Prepare output directory if needed
+        os.makedirs(output_path, exist_ok=True)
 
         # Process each page sequentially
         for job in image_jobs:
@@ -267,13 +283,20 @@ class DjVuProcessor(djvu.decode.Context):
             profiler.time(f"process page {rendered_job.page_index:4d}")
 
             # Step 4: Optionally save to PNG
-            if save_png and png_path:
-                self.save_as_png(rendered_job, png_path, djvu_path)
+            if save_png:
+                self.save_as_png(rendered_job, output_path, djvu_path)
 
             yield rendered_job
 
-    def process_parallel(self, djvu_path: str, relurl: str, mode: int = djvu.decode.RENDER_COLOR,
-            wait: bool = True, save_png: bool = False, png_path: str = None) -> Generator[ImageJob, None, None]:
+    def process_parallel(
+        self,
+        djvu_path: str,
+        relurl: str,
+        mode: int = djvu.decode.RENDER_COLOR,
+        wait: bool = True,
+        save_png: bool = False,
+        output_path: str = None,
+    ) -> Generator[ImageJob, None, None]:
         """
         Converts a DjVu URL to image buffers with fully parallel decoding and rendering.
         """
@@ -283,13 +306,14 @@ class DjVuProcessor(djvu.decode.Context):
         image_jobs = self.create_image_jobs(djvu_path, relurl)
         profiler.time("create image jobs")
 
-        # Prepare png output directory if needed
-        if save_png and png_path:
-            os.makedirs(png_path, exist_ok=True)
+        # Prepare output directory if needed
+        os.makedirs(output_path, exist_ok=True)
 
         # Step 2: Decode all pages in parallel
         with ThreadPoolExecutor() as executor:
-            decode_futures = [executor.submit(self.decode_page, job, wait) for job in image_jobs]
+            decode_futures = [
+                executor.submit(self.decode_page, job, wait) for job in image_jobs
+            ]
 
         # Step 3 & 4: Render and save all pages in parallel
         max_workers = os.cpu_count() * 4
@@ -299,7 +323,9 @@ class DjVuProcessor(djvu.decode.Context):
             # Submit rendering jobs as decoding completes
             for future in decode_futures:
                 decoded_job = future.result()
-                render_futures.append(executor.submit(self.render_page, decoded_job, mode))
+                render_futures.append(
+                    executor.submit(self.render_page, decoded_job, mode)
+                )
 
             # Process rendered jobs as they become available
             for future in render_futures:
@@ -307,26 +333,7 @@ class DjVuProcessor(djvu.decode.Context):
                 profiler.time(f"process page {rendered_job.page_index:4d}")
 
                 # Optionally save to PNG in parallel (submit to executor)
-                if save_png and png_path:
-                    executor.submit(
-                        self.save_as_png, rendered_job, png_path, djvu_path
-                    )
+                if save_png:
+                    executor.submit(self.save_as_png, rendered_job, output_path, djvu_path)
 
                 yield rendered_job
-
-
-# Example usage:
-if __name__ == "__main__":
-    # Setup logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    # Test the processor
-    processor = DjVuProcessor()
-    djvu_path = "path/to/document.djvu"
-    relurl = "document.djvu"
-
-    # Process in parallel and save each page
-    for job in processor.process(djvu_path, relurl):
-        output_path = f"output_page_{job.page_index}.png"
-        processor.save_image_to_png(job, output_path)
-        print(f"Saved page {job.page_index} to {output_path}")

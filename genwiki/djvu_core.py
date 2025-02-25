@@ -4,20 +4,11 @@ Created on 2025-02-25
 @author: wf
 """
 
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, List
 
 import numpy
 from ngwidgets.yamlable import lod_storable
-
-
-@lod_storable
-class DjVu:
-    """Represents a DjVu main file e.g. bundled or indexed"""
-
-    path: str
-    page_count: int
-    dir_pages: Optional[int] = None
 
 
 @lod_storable
@@ -39,6 +30,18 @@ class DjVuPage:
             # we expect no more than 9999 pages per document in the genwiki context that is proven
             self.page_key = f"{self.djvu_path}#{self.page_index:04d}"
         pass
+
+@dataclass
+class DjVu:
+    """Represents a DjVu main file e.g. bundled or indexed"""
+    path: str
+    page_count: int
+    dir_pages: Optional[int] = None
+
+@lod_storable
+class DjVuFile(DjVu):
+    """Represents a DjVu main file e.g. bundled or indexed"""
+    pages: List[DjVuPage] = field(default_factory=list)
 
 
 @dataclass

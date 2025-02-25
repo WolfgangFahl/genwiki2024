@@ -105,4 +105,6 @@ only-include = ["genwiki","genwiki_examples"]
 "genwiki_examples" = "genwiki_examples"
 
 [project.scripts]
-genwiki = "genwiki.genwiki_cmd:main"
+genwiki  = "genwiki.genwiki_cmd:main"
+djvuconv = "genwiki.djvu_cmd:main"
+

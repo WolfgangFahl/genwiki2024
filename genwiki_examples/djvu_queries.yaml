@@ -24,9 +24,7 @@
 'all_djvu':
   sql: |
     SELECT
-      path,
-      dir_pages,
-      page_count
+      *
     FROM djvu
     ORDER BY page_count
 
@@ -34,10 +32,6 @@
 'all_images':
   sql: |
     SELECT
-      path,
-      width,
-      height,
-      dpi,
-      djvu_path
+      *
     FROM image
     ORDER BY path
