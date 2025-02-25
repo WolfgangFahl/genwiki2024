@@ -6,7 +6,7 @@ Created on 2025-02-25
 
 from dataclasses import dataclass, field
 from typing import Optional, List
-
+import os
 import numpy
 from ngwidgets.yamlable import lod_storable
 
@@ -31,6 +31,16 @@ class DjVuPage:
             self.page_key = f"{self.djvu_path}#{self.page_index:04d}"
         pass
 
+    @property
+    def png_file(self) -> str:
+        """
+        Returns the PNG file name derived from the DjVu file path and page index.
+        """
+        prefix = os.path.splitext(os.path.basename(self.djvu_path))[0]
+        png_file= f"{prefix}_page_{self.page_index:04d}.png"
+        return png_file
+
+
 @dataclass
 class DjVu:
     """Represents a DjVu main file e.g. bundled or indexed"""
@@ -42,6 +52,21 @@ class DjVu:
 class DjVuFile(DjVu):
     """Represents a DjVu main file e.g. bundled or indexed"""
     pages: List[DjVuPage] = field(default_factory=list)
+
+    def get_page_by_page_index(self, page_index: int) -> Optional[DjVuPage]:
+        """
+        Retrieve a page by its page index.
+
+        Args:
+            page_index (int): The index of the page to retrieve.
+
+        Returns:
+            Optional[DjVuPage]: The requested DjVuPage if found, otherwise None.
+        """
+        for page in self.pages:
+            if page.page_index == page_index:
+                return page
+        return None
 
 
 @dataclass

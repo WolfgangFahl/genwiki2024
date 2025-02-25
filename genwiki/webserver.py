@@ -14,7 +14,7 @@ from ngwidgets.users import Users
 from ngwidgets.webserver import WebserverConfig
 from ngwidgets.widgets import Link
 from nicegui import Client, app, ui
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, HTMLResponse
 from wd.wditem_search import WikidataItemSearch
 
 from genwiki.convert import ParquetAdressbokToSql
@@ -24,14 +24,14 @@ from genwiki.query_view import QueryView
 from genwiki.version import Version
 from genwiki.wiki import Wiki
 from genwiki.wikidata_view import WikidataItemView
-
+from genwiki.djvu_viewer import DjVuViewer
 
 class GenWikiWebServer(InputWebserver):
     """WebServer class that manages the server and handles GenWiki operations."""
 
     @classmethod
     def get_config(cls) -> WebserverConfig:
-        copy_right = "(c)2024 Wolfgang Fahl"
+        copy_right = "(c)2024-2025 Wolfgang Fahl"
         config = WebserverConfig(
             copy_right=copy_right,
             version=Version(),
@@ -51,6 +51,8 @@ class GenWikiWebServer(InputWebserver):
         InputWebserver.__init__(self, config=GenWikiWebServer.get_config())
         users = Users(self.config.base_path)
         self.login = Login(self, users)
+        self.djvu_viewer = DjVuViewer(app=app)
+
         address_db_path = os.path.join(self.config.storage_path, "address.db")
         if os.path.isfile(address_db_path) and os.path.getsize(address_db_path) > 0:
             self.sql_db = SQLDB(address_db_path, check_same_thread=False)
@@ -90,8 +92,12 @@ class GenWikiWebServer(InputWebserver):
             return RedirectResponse("/")
 
         @app.get("/djvu/{path:path}")
-        def display_djvu(self):
-            pass
+        def display_djvu(path: str, page: int = 1)->HTMLResponse:
+            """
+            Fetches and displays a specific PNG page of a DjVu file.
+            """
+            html_response=self.djvu_viewer.get_page(path, page)
+            return html_response
 
     def configure_run(self):
         super().configure_run()

@@ -15,8 +15,6 @@ from tqdm import tqdm
 from genwiki.djvu_core import DjVu, DjVuPage, DjVuFile
 from genwiki.djvu_manager import DjVuManager
 from genwiki.djvu_processor import DjVuProcessor, ImageJob
-from genwiki.genwiki_paths import GenWikiPaths
-
 
 class DjVuCmd:
     """
