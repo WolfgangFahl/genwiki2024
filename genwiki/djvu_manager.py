@@ -8,7 +8,7 @@ import os
 from lodstorage.sql import SQLDB
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
-
+from ngwidgets.profiler import Profiler
 
 class DjVuManager:
     """
@@ -27,3 +27,24 @@ class DjVuManager:
         query = self.mlqm.query4Name(query_name)
         lod = self.sql_db.query(query.query)
         return lod
+
+    def store(self,lod,entity_name:str,primary_key:str,profile:bool=True):
+        """
+        store my the given list of dicts
+        """
+        profiler = Profiler(f"caching {entity_name}to SQL", profile=profile)
+        self.entity_info = self.sql_db.createTable(
+            listOfRecords=lod,
+            entityName=entity_name,
+            primaryKey=primary_key,
+            withCreate=True,
+            withDrop=True,
+            sampleRecordCount=20,
+        )
+        self.sql_db.store(
+            listOfRecords=lod,
+            entityInfo=self.entity_info,
+            executeMany=True,
+            fixNone=True,
+        )
+        profiler.time()

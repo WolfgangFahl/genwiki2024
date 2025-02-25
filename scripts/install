@@ -4,7 +4,8 @@
 if [[ -n "$GITHUB_ACTIONS" && -x "$(command -v apt-get)" ]]; then
     echo "Running in GitHub Actions with apt-get available. Installing dependencies..."
     sudo apt-get update
-    sudo apt-get install -y libcairo2-dev pkg-config
+    # install dependencies
+    sudo apt-get install -y libcairo2-dev pkg-config djvulibre-bin libdjvulibre-dev
 fi
 # simple install via pyproject.toml
 pip install .
