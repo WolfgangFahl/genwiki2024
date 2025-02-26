@@ -268,7 +268,7 @@ class DjVuProcessor:
         document = self.context.new_document(djvu.decode.FileURI(djvu_path))
         document.decoding_job.wait()
         for page in document.pages:
-                yield document, page
+            yield document, page
 
     def create_image_jobs(self, djvu_path: str, relurl: str) -> List[ImageJob]:
         """
@@ -290,7 +290,9 @@ class DjVuProcessor:
                 document=document,
                 page=page,
                 page_index=page_index,
-                relurl=relurl
+                relurl=relurl,
+                debug=self.debug,
+                verbose=self.verbose
             )
             image_jobs.append(job)
 

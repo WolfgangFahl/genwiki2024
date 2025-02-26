@@ -57,19 +57,24 @@ class TestDjVu(Basetest):
         """
         test the DjVu processor
         """
-        for relurl in [
-            "/images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu",
-            "/images/9/96/vz1890-neuenhausen-zb04.djvu",
-            "/images/0/08/Deutsches-Kirchliches-AB-1927.djvu",
+        for relurl,elen in [
+            ("/images/2/2f/Sorau-AB-1913.djvu",255),
+            ("/images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu",1),
+            ("/images/9/96/vz1890-neuenhausen-zb04.djvu",3),
+            ("/images/0/08/Deutsches-Kirchliches-AB-1927.djvu",1188)
         ]:
             djvu_path = self.get_djvu(relurl)
             url = djvu.decode.FileURI(djvu_path)
             # url=f"{baseurl}/{relurl}"
             dproc = DjVuProcessor()
-            print(f"processing {url}")
-            document = dproc.new_document(url)
+            if self.debug:
+                print(f"processing {url}")
+            document = dproc.context.new_document(url)
             document.decoding_job.wait()
-            print(len(document.files))
+            if self.debug:
+                page_count=len(document.files)
+                print(f"{page_count} pages")
+            self.assertEqual(elen,page_count)
         pass
 
     def test_all_djvu(self):
@@ -106,9 +111,10 @@ class TestDjVu(Basetest):
             sort="asc",
             output_path=self.output_dir,
             parallel=True,
-            url="/images/9/96/vz1890-neuenhausen-zb04.djvu",
+            url="/images/2/2f/Sorau-AB-1913.djvu",
+            #url="/images/9/96/vz1890-neuenhausen-zb04.djvu",
             debug=True,
-            verbose=False,
+            verbose=True,
         )
         djvu_cmd = DjVuCmd(args=args)
         djvu_cmd.handle_args()

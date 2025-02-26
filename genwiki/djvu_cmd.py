@@ -79,7 +79,7 @@ class DjVuCmd:
             "--output-path", default=output_path, help="Path for PNG files"
         )
         parser.add_argument(
-            "--parallel", action="store_true", help="Use parallel processing"
+            "--serial", action="store_true", help="Use serial processing - parallel is default"
         )
         parser.add_argument(
             "--sort",
@@ -233,6 +233,8 @@ class DjVuCmd:
         Second pass: Convert DjVu files to PNG using the database
         """
         djvu_files=self.get_djvu_files()
+        # select the process function parallel or serial
+        process_func=self.dproc.process if self.args.serial else self.dproc.process_parallel
         with tqdm(
             total=len(djvu_files), desc="Converting DjVu to PNG", unit="file"
         ) as pbar:
@@ -244,7 +246,7 @@ class DjVuCmd:
                     tar_file = os.path.join(self.args.output_path, prefix + ".tar")
                     if os.path.isfile(tar_file) and not self.args.force:
                         continue
-                    for image_job in self.dproc.process_parallel(
+                    for image_job in process_func(
                         djvu_path,
                         relurl=path,
                         save_png=True,
