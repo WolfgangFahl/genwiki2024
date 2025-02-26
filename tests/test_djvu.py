@@ -57,11 +57,11 @@ class TestDjVu(Basetest):
         """
         test the DjVu processor
         """
-        for relurl,elen in [
-            ("/images/2/2f/Sorau-AB-1913.djvu",255),
-            ("/images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu",1),
-            ("/images/9/96/vz1890-neuenhausen-zb04.djvu",3),
-            ("/images/0/08/Deutsches-Kirchliches-AB-1927.djvu",1188)
+        for relurl, elen in [
+            ("/images/2/2f/Sorau-AB-1913.djvu", 255),
+            ("/images/9/96/Elberfeld-AB-1896-97-Stadtplan.djvu", 1),
+            ("/images/9/96/vz1890-neuenhausen-zb04.djvu", 3),
+            ("/images/0/08/Deutsches-Kirchliches-AB-1927.djvu", 1188),
         ]:
             djvu_path = self.get_djvu(relurl)
             url = djvu.decode.FileURI(djvu_path)
@@ -72,10 +72,36 @@ class TestDjVu(Basetest):
             document = dproc.context.new_document(url)
             document.decoding_job.wait()
             if self.debug:
-                page_count=len(document.files)
+                page_count = len(document.files)
                 print(f"{page_count} pages")
-            self.assertEqual(elen,page_count)
+            self.assertEqual(elen, page_count)
         pass
+
+    def test_update_database(self):
+        """
+        test updating the database
+        """
+        if self.inPublicCI():
+            return
+        db_path = os.path.expanduser("~/.solutions/genwiki2024/storage/genwiki_djvu.db")
+        if not os.path.exists(db_path):
+            return
+        args = argparse.Namespace(
+            command="dbupdate",
+            db_path=db_path,
+            base_path=DjVuCmd.default_base_path,
+            limit=10000000,
+            url=None,
+            sort="asc",
+            force=False,
+            output_path=self.output_dir,
+            parallel=False,
+            debug=True,
+            verbose=False,
+            serial=False,
+        )
+        djvu_cmd = DjVuCmd(args=args)
+        djvu_cmd.handle_args()
 
     def test_all_djvu(self):
         """
@@ -94,7 +120,7 @@ class TestDjVu(Basetest):
             parallel=False,
             debug=True,
             verbose=False,
-            serial=False
+            serial=False,
         )
         djvu_cmd = DjVuCmd(args=args)
         djvu_cmd.handle_args()
@@ -115,7 +141,7 @@ class TestDjVu(Basetest):
             output_path=self.output_dir,
             parallel=True,
             url="/images/2/2f/Sorau-AB-1913.djvu",
-            #url="/images/9/96/vz1890-neuenhausen-zb04.djvu",
+            # url="/images/9/96/vz1890-neuenhausen-zb04.djvu",
             debug=True,
             serial=False,
             verbose=True,

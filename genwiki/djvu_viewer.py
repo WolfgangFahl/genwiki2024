@@ -7,7 +7,6 @@ Created on 2025-02-25
 import io
 import mimetypes
 import os
-import tarfile
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -15,6 +14,7 @@ from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from genwiki.djvu_core import DjVuFile
+from genwiki.tarball import Tarball
 
 
 class DjVuViewer:
@@ -39,27 +39,6 @@ class DjVuViewer:
             )
             DjVuViewer._static_mounted = True
 
-    def read_from_tar(self, tarball_path: Path, filename: str) -> bytes:
-        """
-        Reads a file directly from a tarball.
-
-        Args:
-            tarball_path (Path): Path to the tar archive.
-            filename (str): Name of the file inside the archive.
-
-        Returns:
-            bytes: The file contents.
-        """
-        with tarfile.open(tarball_path, "r") as tar:
-            try:
-                member = tar.getmember(filename)
-                with tar.extractfile(member) as file:
-                    return file.read()
-            except KeyError:
-                raise HTTPException(
-                    status_code=404, detail=f"File {filename} not found in tarball"
-                )
-
     def get_content(self, file: str) -> Response:
         """
         Retrieves a content file (PNG, JPG, YAML, etc.) from the tarball and serves it as a response.
@@ -83,8 +62,12 @@ class DjVuViewer:
         if not tarball_path.exists():
             raise HTTPException(status_code=404, detail="Tarball not found")
 
-        file_content = self.read_from_tar(tarball_path, filename)
-        file_stream = io.BytesIO(file_content)
+        try:
+            file_content = Tarball.read_from_tar(tarball_path, filename)
+        except KeyError:
+            raise HTTPException(
+                status_code=404, detail=f"File {filename} not found in tarball"
+            )
         # Detect MIME type based on file extension
         media_type, _ = mimetypes.guess_type(filename)
         if media_type is None:

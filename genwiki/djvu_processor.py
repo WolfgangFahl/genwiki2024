@@ -28,7 +28,8 @@ class ImageJob:
     """
     Represents a processed DjVu page, including document, page, page job, and image data.
     """
-    djvu_path: str# fully qualifying path of the container DjVu document
+
+    djvu_path: str  # fully qualifying path of the container DjVu document
     document: djvu.decode.Document
     page: djvu.decode.Page
     page_index: int  # Added page_index to track position
@@ -72,9 +73,9 @@ class ImageJob:
     def filename(self) -> str:
         try:
             # Attempt to safely decode the file name
-            filename = self.page.file.name.encode(
-                "utf-8", errors="replace"
-            ).decode("utf-8")
+            filename = self.page.file.name.encode("utf-8", errors="replace").decode(
+                "utf-8"
+            )
         except Exception as e:
             if self.debug:
                 logging.warn(
@@ -84,14 +85,15 @@ class ImageJob:
         return filename
 
     @property
-    def dirname(self)->str:
-        dirname=os.path.dirname(self.djvu_path)
+    def dirname(self) -> str:
+        dirname = os.path.dirname(self.djvu_path)
         return dirname
 
     @property
-    def filepath(self)->str:
-        filepath=os.path.join(self.dirname,self.filename)
+    def filepath(self) -> str:
+        filepath = os.path.join(self.dirname, self.filename)
         return filepath
+
 
 class DjVuContext(djvu.decode.Context):
     """
@@ -253,9 +255,9 @@ class DjVuProcessor:
         color_buffer ^= 0xFF000000  # Apply transparency
         return color_buffer
 
-    def ensure_file_exists(self,path:str):
+    def ensure_file_exists(self, path: str):
         if not os.path.isfile(path):
-            msg=f"file {path} not found"
+            msg = f"file {path} not found"
             raise ValueError(msg)
 
     def yield_pages(self, djvu_path: str):
@@ -290,7 +292,7 @@ class DjVuProcessor:
                 page_index=page_index,
                 relurl=relurl,
                 debug=self.debug,
-                verbose=self.verbose
+                verbose=self.verbose,
             )
             image_jobs.append(job)
 
@@ -308,14 +310,14 @@ class DjVuProcessor:
             ImageJob: Updated image job with pagejob
         """
         try:
-            file_size_msg=""
-            filepath=image_job.filepath
+            file_size_msg = ""
+            filepath = image_job.filepath
             # check whether the document is bundled or not
-            if image_job.document.type!=2:
+            if image_job.document.type != 2:
                 # we need to check the file is external
                 self.ensure_file_exists(filepath)
                 file_size = os.path.getsize(filepath)
-                file_size_msg=(f"{filepath}:{file_size} bytes ")
+                file_size_msg = f"{filepath}:{file_size} bytes "
             image_job.log(f" page.decode {file_size_msg}start")
             pagejob = image_job.page.decode(wait=wait)
             image_job.log(" page.decode done")
@@ -342,11 +344,12 @@ class DjVuProcessor:
         try:
             image_job.log(" render start")
             if not image_job.pagejob:
-                raise ValueError(f"PageJob not available for page {image_job.page_index}")
+                raise ValueError(
+                    f"PageJob not available for page {image_job.page_index}"
+                )
 
             width, height = image_job.get_size()
             color_buffer = self.render_pagejob_to_buffer(image_job, mode)
-
 
             image = DjVuImage(
                 width=width,
@@ -366,7 +369,7 @@ class DjVuProcessor:
             image_job.error = e
         return image_job
 
-    def prepare(self, output_path: str,relurl:str):
+    def prepare(self, output_path: str, relurl: str):
         """
         Prepares the output directory and sets up temporary storage if tarball creation is enabled.
 
@@ -387,7 +390,9 @@ class DjVuProcessor:
             self.output_path = self.temp_dir
         else:
             self.output_path = output_path
-        self.profiler = Profiler(f"processing {relurl}", profile=self.verbose or self.debug)
+        self.profiler = Profiler(
+            f"processing {relurl}", profile=self.verbose or self.debug
+        )
         # Prepare output directory if needed
         os.makedirs(self.final_output_path, exist_ok=True)
 
@@ -417,7 +422,7 @@ class DjVuProcessor:
         """
         Converts a DjVu URL to image buffers with sequential decoding and rendering.
         """
-        self.prepare(output_path=output_path,relurl=relurl)
+        self.prepare(output_path=output_path, relurl=relurl)
         # Step 1: Create image jobs for all pages
         image_jobs = self.create_image_jobs(djvu_path, relurl)
         self.profiler.time(f" create image jobs")
@@ -460,7 +465,7 @@ class DjVuProcessor:
         Yields:
             Generator[ImageJob, None, None]: A generator yielding image jobs.
         """
-        self.prepare(output_path=output_path,relurl=relurl)
+        self.prepare(output_path=output_path, relurl=relurl)
 
         # Step 1: Create image jobs for all pages
         image_jobs = self.create_image_jobs(djvu_path, relurl)

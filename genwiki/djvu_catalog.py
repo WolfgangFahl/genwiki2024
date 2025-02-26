@@ -3,11 +3,17 @@ Created on 26.08.2024
 
 @author: wf
 """
+
 import os
-from genwiki.query_view import QueryView  # Assuming QueryView is in `genwiki.query_view`
+
+from ngwidgets.widgets import Link
+
 from genwiki.djvu_manager import DjVuManager
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
-from ngwidgets.widgets import Link
+from genwiki.query_view import (
+    QueryView,
+)  # Assuming QueryView is in `genwiki.query_view`
+
 
 class DjVuCatalog(QueryView):
     """
@@ -15,18 +21,20 @@ class DjVuCatalog(QueryView):
     """
 
     def __init__(self, solution):
-        self.solution=solution
-        self.webserver=self.solution.webserver
-        storage_path=solution.webserver.config.storage_path
-        db_path=os.path.join(storage_path,"genwiki_djvu.db")
+        self.solution = solution
+        self.webserver = self.solution.webserver
+        storage_path = solution.webserver.config.storage_path
+        db_path = os.path.join(storage_path, "genwiki_djvu.db")
         yaml_path = os.path.join(self.webserver.examples_path(), "djvu_queries.yaml")
         self.mlqm = MultiLanguageQueryManager(yaml_path=yaml_path)
         try:
             self.dvm = DjVuManager(db_path=db_path)
-            super().__init__(solution=solution,
+            super().__init__(
+                solution=solution,
                 mlqm=self.mlqm,
                 sql_db=self.dvm.sql_db,
-                wiki=self.webserver.wiki)
+                wiki=self.webserver.wiki,
+            )
             self.query_name = "all_djvu"
         except Exception as ex:
             self.solution.handle_exception(ex)
@@ -51,10 +59,12 @@ class DjVuCatalog(QueryView):
         for key, value in record_copy.items():
             if isinstance(value, str) and value.startswith("/images/"):
                 filename = value.split("/")[-1]
-                wiki_url = f"https://wiki.genealogy.net/index.php?title=Datei%3A{filename}"
+                wiki_url = (
+                    f"https://wiki.genealogy.net/index.php?title=Datei%3A{filename}"
+                )
                 local_url = f"/djvu/{filename}"
-                view_record["wiki"]=Link.create(url=wiki_url,text=filename)
-                view_record["view"]=Link.create(url=local_url,text=filename)
+                view_record["wiki"] = Link.create(url=wiki_url, text=filename)
+                view_record["view"] = Link.create(url=local_url, text=filename)
             else:
                 view_record[key] = value
             pass
@@ -75,8 +85,8 @@ class DjVuCatalog(QueryView):
         """
         Fetches DjVu catalog data based on the selected query.
         """
-        self.lod=self.dvm.query(self.query_name)
-        self.view_lod=self.get_view_lod(self.lod)
+        self.lod = self.dvm.query(self.query_name)
+        self.view_lod = self.get_view_lod(self.lod)
         return self.view_lod
 
     def setup_ui(self):

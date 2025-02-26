@@ -18,8 +18,8 @@ from starlette.responses import FileResponse, HTMLResponse, RedirectResponse
 from wd.wditem_search import WikidataItemSearch
 
 from genwiki.convert import ParquetAdressbokToSql
-from genwiki.djvu_viewer import DjVuViewer
 from genwiki.djvu_catalog import DjVuCatalog
+from genwiki.djvu_viewer import DjVuViewer
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.query_view import QueryView
@@ -157,7 +157,9 @@ class GenWikiSolution(InputWebSolution):
         """
         super().setup_menu(detailed=detailed)
         with self.header:
-            self.link_button("DjVu Catalog", "/djvu/catalog", "library_books")  # Add menu entry
+            self.link_button(
+                "DjVu Catalog", "/djvu/catalog", "library_books"
+            )  # Add menu entry
             if self.authenticated():
                 self.link_button("logout", "/logout", "logout", new_tab=False)
             else:
@@ -229,4 +231,3 @@ class GenWikiSolution(InputWebSolution):
             self.djvu_catalog_view.setup_ui()
 
         await self.setup_content_div(show)
-

@@ -10,6 +10,7 @@ import os
 import time
 import traceback
 from dataclasses import asdict
+from typing import List
 
 from ngwidgets.profiler import Profiler
 from tqdm import tqdm
@@ -17,7 +18,7 @@ from tqdm import tqdm
 from genwiki.djvu_core import DjVu, DjVuFile, DjVuPage
 from genwiki.djvu_manager import DjVuManager
 from genwiki.djvu_processor import DjVuProcessor, ImageJob
-from pip._vendor import DEBUNDLED
+from genwiki.tarball import Tarball
 
 
 class DjVuCmd:
@@ -48,7 +49,7 @@ class DjVuCmd:
         )
         parser.add_argument(
             "--command",
-            choices=["catalog", "convert","thumbnails","dbupdate"],
+            choices=["catalog", "convert", "thumbnails", "dbupdate"],
             required=True,
             help="Command to execute",
         )
@@ -79,7 +80,9 @@ class DjVuCmd:
             "--output-path", default=output_path, help="Path for PNG files"
         )
         parser.add_argument(
-            "--serial", action="store_true", help="Use serial processing - parallel is default"
+            "--serial",
+            action="store_true",
+            help="Use serial processing - parallel is default",
         )
         parser.add_argument(
             "--sort",
@@ -107,7 +110,6 @@ class DjVuCmd:
         self.dvm = DjVuManager(db_path=self.args.db_path)
         self.dproc = DjVuProcessor(debug=self.args.debug, verbose=self.args.verbose)
         self.profiler = Profiler(self.args.command)
-        self.profiler.start()
         if self.args.command == "catalog":
             self.catalog_djvu()
         elif self.args.command == "convert":
@@ -116,6 +118,8 @@ class DjVuCmd:
             self.generate_thumbnails()
         elif self.args.command == "dbupdate":
             self.update_database()
+        else:
+            print(f"unknown command {self.args.command}")
 
     def add_page(self, page_lod, path: str, page_index: int, page):
         """
@@ -197,14 +201,10 @@ class DjVuCmd:
                 page_count = len(document.pages)
                 page_index += 1
                 _dpage = self.add_page(page_lod, path, page_index, page)
-                bundled=document.type==2
+                bundled = document.type == 2
                 # if debug:
                 #    print(f"    {page_index:4d}/{page_count:4d}:{filename}")
-            djvu = DjVu(
-                path=path,
-                page_count=page_count,
-                bundled=bundled
-            )
+            djvu = DjVu(path=path, page_count=page_count, bundled=bundled)
             djvu_row = asdict(djvu)
             djvu_lod.append(djvu_row)
             total += page_index
@@ -232,9 +232,11 @@ class DjVuCmd:
         """
         Second pass: Convert DjVu files to PNG using the database
         """
-        djvu_files=self.get_djvu_files()
+        djvu_files = self.get_djvu_files()
         # select the process function parallel or serial
-        process_func=self.dproc.process if self.args.serial else self.dproc.process_parallel
+        process_func = (
+            self.dproc.process if self.args.serial else self.dproc.process_parallel
+        )
         with tqdm(
             total=len(djvu_files), desc="Converting DjVu to PNG", unit="file"
         ) as pbar:
@@ -253,7 +255,7 @@ class DjVuCmd:
                         output_path=self.args.output_path,
                     ):
                         # collect upstream errors
-                        if hasattr(image_job, 'error') and image_job.error:
+                        if hasattr(image_job, "error") and image_job.error:
                             self.errors.append(image_job.error)
                             continue
                         if djvu_file is None:
@@ -281,8 +283,8 @@ class DjVuCmd:
                 except BaseException as e:
                     self.errors.append(e)
                 finally:
-                    error_count=len(self.errors)
-                    status_msg="✅" if error_count==0 else f"❌ {error_count}"
+                    error_count = len(self.errors)
+                    status_msg = "✅" if error_count == 0 else f"❌ {error_count}"
                     pbar.set_postfix_str(status_msg)
                     pbar.update(1)
         self.report_errors()
@@ -294,29 +296,53 @@ class DjVuCmd:
         self.errors.append(Exception("generate thumbnails not implemented yet"))
         self.report_errors()
 
+    def get_db_records(
+        self,
+        tarball_file: str,
+        yaml_file: str,
+    ) -> List:
+        lod = []
+        yaml_data = Tarball.read_from_tar(tarball_file, yaml_file).decode("utf-8")
+        djvu_file = DjVuFile.from_yaml(yaml_data)
+        for page in djvu_file.pages:
+            lod.append(asdict(page))
+        return lod
+
     def update_database(self):
         """
         Updates the DjVu database.
         """
-        djvu_files=self.get_djvu_files()
+        djvu_files = self.get_djvu_files()
+        error_count = 0
+        page_lod = []
         with tqdm(
-            total=len(djvu_files), desc="Converting DjVu to PNG", unit="file"
+            total=len(djvu_files),
+            desc="Updating the DjVu meta data database",
+            unit="file",
         ) as pbar:
             for path in djvu_files:
                 try:
-                    djvu_path = self.args.base_path + path
+                    # djvu_path = self.args.base_path + path
                     prefix = ImageJob.get_prefix(path)
                     tar_file = os.path.join(self.args.output_path, prefix + ".tar")
                     if not os.path.isfile(tar_file):
                         raise Exception(f"tar file for {path} missing")
+                    tar_lod = self.get_db_records(tar_file, prefix + ".yaml")
+                    page_lod.extend(tar_lod)
                 except BaseException as e:
                     self.errors.append(e)
                 finally:
-                    error_count=len(self.errors)
-                    status_msg="✅" if error_count==0 else f"❌ {error_count}"
+                    error_count = len(self.errors)
+                    status_msg = "✅" if error_count == 0 else f"❌ {error_count}"
                     pbar.set_postfix_str(status_msg)
                     pbar.update(1)
         self.report_errors()
+        err_percent = error_count / len(djvu_files) * 100
+        # if we have less than 1% errors
+        if err_percent < 1.0:
+            self.dvm.store(
+                lod=page_lod, entity_name="Page", primary_key="page_key", with_drop=True
+            )
 
 
 def main():

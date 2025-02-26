@@ -31,11 +31,22 @@ class DjVuManager:
         lod = self.sql_db.query(query.query)
         return lod
 
-    def store(self, lod, entity_name: str, primary_key: str, profile: bool = True):
+    def store(
+        self,
+        lod,
+        entity_name: str,
+        primary_key: str,
+        with_drop: bool = False,
+        profile: bool = True,
+    ):
         """
         store my the given list of dicts
         """
-        profiler = Profiler(f"caching {entity_name} to SQL", profile=profile)
+        profiler = Profiler(
+            f"storing {len(lod)} {entity_name} records  to SQL", profile=profile
+        )
+        if with_drop:
+            self.sql_db.execute(f"DROP TABLE IF EXISTS {entity_name}")
         self.entity_info = self.sql_db.createTable(
             listOfRecords=lod,
             entityName=entity_name,
