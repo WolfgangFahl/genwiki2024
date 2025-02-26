@@ -64,7 +64,7 @@ class QueryView:
         self.query = self.mlqm.query4Name(self.query_name)
         if self.params_view:
             self.params_view.delete()
-        if self.query.params.has_params:
+        if self.query and self.query.params and self.query.params.has_params:
             self.query.set_default_params(self.query.params.params_dict)
             self.params_view = ParamsView(
                 solution=self.solution, params=self.query.params
@@ -96,7 +96,7 @@ class QueryView:
         (re) load the query results
         """
         try:
-            if self.query.params.has_params:
+            if self.query.params and self.query.params.has_params:
                 self.query.query = self.query.params.apply_parameters()
                 self.params_view.close()
             lod = await run.io_bound(self.get_query_lod)
@@ -119,6 +119,7 @@ class QueryView:
             with self.grid_row:
                 self.lod_grid = ListOfDictsGrid()
                 self.lod_grid.load_lod(lod)
+            self.lod_grid.sizeColumnsToFit()
             self.grid_row.update()
         except Exception as ex:
             self.solution.handle_exception(ex)
