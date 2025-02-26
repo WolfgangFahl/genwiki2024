@@ -264,7 +264,11 @@ class DjVuCmd:
                         dproc.wrap_as_tarball(djvu_path)
                 except Exception as e:
                     self.errors.append(e)
-                pbar.update(1)
+                finally:
+                    error_count=len(self.errors)
+                    status_msg="✅" if error_count==0 else f"❌ {error_count}"
+                    pbar.set_postfix_str(status_msg)
+                    pbar.update(1)
         self.report_errors()
 
 
