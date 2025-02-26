@@ -48,7 +48,7 @@ class DjVuCmd:
         )
         parser.add_argument(
             "--command",
-            choices=["catalog", "convert"],
+            choices=["catalog", "convert","thumbnails","dbupdate"],
             required=True,
             help="Command to execute",
         )
@@ -104,12 +104,18 @@ class DjVuCmd:
         """
         handle the command line arguments
         """
+        self.dvm = DjVuManager(db_path=self.args.db_path)
+        self.dproc = DjVuProcessor(debug=self.args.debug, verbose=self.args.verbose)
         self.profiler = Profiler(self.args.command)
         self.profiler.start()
         if self.args.command == "catalog":
             self.catalog_djvu()
         elif self.args.command == "convert":
             self.convert_djvu()
+        elif self.args.command == "thumbnails":
+            self.generate_thumbnails()
+        elif self.args.command == "dbupdate":
+            self.update_database()
 
     def add_page(self, page_lod, path: str, page_index: int, page):
         """
@@ -174,11 +180,8 @@ class DjVuCmd:
         """
         First pass: Catalog DjVu files into the database
         """
-
-        dvm = DjVuManager()
-        dvm_target = DjVuManager(db_path=self.args.db_path)
-        dproc = DjVuProcessor(debug=self.args.debug, verbose=self.args.verbose)
-        lod = dvm.query("all_djvu")
+        bootstrap_dvm = DjVuManager()
+        lod = bootstrap_dvm.query("all_djvu")
         total = 0
         start_time = time.time()
         djvu_lod = []
@@ -190,7 +193,7 @@ class DjVuCmd:
                 self.errors.append(Exception(f"missing {djvu_path}"))
                 continue
             page_index = 0
-            for document, page in dproc.yield_pages(djvu_path):
+            for document, page in self.dproc.yield_pages(djvu_path):
                 page_count = len(document.pages)
                 page_index += 1
                 _dpage = self.add_page(page_lod, path, page_index, page)
@@ -212,22 +215,24 @@ class DjVuCmd:
             print(
                 f"{index:4d} {page_count:4d} {total:7d} {pages_per_sec:7.0f} pages/s: {path}"
             )
-        dvm_target.store(lod=page_lod, entity_name="Page", primary_key="page_key")
-        dvm_target.store(lod=djvu_lod, entity_name="DjVu", primary_key="path")
+        self.dvm.store(lod=page_lod, entity_name="Page", primary_key="page_key")
+        self.dvm.store(lod=djvu_lod, entity_name="DjVu", primary_key="path")
         self.report_errors()
+
+    def get_djvu_files(self):
+        # Handle single-file mode
+        if self.args.url:
+            djvu_files = [self.args.url]
+        else:
+            lod = self.dvm.query("all_djvu")
+            djvu_files = [r.get("path").replace("./", "/") for r in lod]
+        return djvu_files
 
     def convert_djvu(self):
         """
         Second pass: Convert DjVu files to PNG using the database
         """
-        dvm = DjVuManager(db_path=self.args.db_path)
-        dproc = DjVuProcessor(debug=self.args.debug, verbose=self.args.verbose)
-        # Handle single-file mode
-        if self.args.url:
-            djvu_files = [self.args.url]
-        else:
-            lod = dvm.query("all_djvu")
-            djvu_files = [r.get("path").replace("./", "/") for r in lod]
+        djvu_files=self.get_djvu_files()
         with tqdm(
             total=len(djvu_files), desc="Converting DjVu to PNG", unit="file"
         ) as pbar:
@@ -238,9 +243,8 @@ class DjVuCmd:
                     prefix = ImageJob.get_prefix(path)
                     tar_file = os.path.join(self.args.output_path, prefix + ".tar")
                     if os.path.isfile(tar_file) and not self.args.force:
-                        pbar.update(1)
                         continue
-                    for image_job in dproc.process_parallel(
+                    for image_job in self.dproc.process_parallel(
                         djvu_path,
                         relurl=path,
                         save_png=True,
@@ -262,12 +266,43 @@ class DjVuCmd:
                         djvu_file.pages.append(djvu_page)
                         prefix = image_job.prefix
                         pass
-                    yaml_file = os.path.join(dproc.output_path, prefix + ".yaml")
+                    yaml_file = os.path.join(self.dproc.output_path, prefix + ".yaml")
                     djvu_file.save_to_yaml_file(yaml_file)
 
                     # Ensure tarball is created after YAML is saved
-                    if dproc.tar:
-                        dproc.wrap_as_tarball(djvu_path)
+                    if self.dproc.tar:
+                        self.dproc.wrap_as_tarball(djvu_path)
+                except BaseException as e:
+                    self.errors.append(e)
+                finally:
+                    error_count=len(self.errors)
+                    status_msg="✅" if error_count==0 else f"❌ {error_count}"
+                    pbar.set_postfix_str(status_msg)
+                    pbar.update(1)
+        self.report_errors()
+
+    def generate_thumbnails(self):
+        """
+        Generates thumbnails for all DjVu files.
+        """
+        self.errors.append(Exception("generate thumbnails not implemented yet"))
+        self.report_errors()
+
+    def update_database(self):
+        """
+        Updates the DjVu database.
+        """
+        djvu_files=self.get_djvu_files()
+        with tqdm(
+            total=len(djvu_files), desc="Converting DjVu to PNG", unit="file"
+        ) as pbar:
+            for path in djvu_files:
+                try:
+                    djvu_path = self.args.base_path + path
+                    prefix = ImageJob.get_prefix(path)
+                    tar_file = os.path.join(self.args.output_path, prefix + ".tar")
+                    if not os.path.isfile(tar_file):
+                        raise Exception(f"tar file for {path} missing")
                 except BaseException as e:
                     self.errors.append(e)
                 finally:

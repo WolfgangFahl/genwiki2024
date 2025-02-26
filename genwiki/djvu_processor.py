@@ -281,7 +281,6 @@ class DjVuProcessor:
         Returns:
             List[ImageJob]: List of initialized image jobs
         """
-
         image_jobs = []
         page_index = 0
         for document, page in self.yield_pages(djvu_path):
@@ -413,7 +412,7 @@ class DjVuProcessor:
         self.prepare(output_path=output_path)
         # Step 1: Create image jobs for all pages
         image_jobs = self.create_image_jobs(djvu_path, relurl)
-        self.profiler.time(" create image jobs")
+        self.profiler.time(f" create image jobs for {relurl}")
 
         # Process each page sequentially
         for job in image_jobs:
