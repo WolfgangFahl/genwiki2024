@@ -17,6 +17,7 @@ from tqdm import tqdm
 from genwiki.djvu_core import DjVu, DjVuFile, DjVuPage
 from genwiki.djvu_manager import DjVuManager
 from genwiki.djvu_processor import DjVuProcessor, ImageJob
+from pip._vendor import DEBUNDLED
 
 
 class DjVuCmd:
@@ -193,9 +194,14 @@ class DjVuCmd:
                 page_count = len(document.pages)
                 page_index += 1
                 _dpage = self.add_page(page_lod, path, page_index, page)
+                bundled=document.type==2
                 # if debug:
                 #    print(f"    {page_index:4d}/{page_count:4d}:{filename}")
-            djvu = DjVu(path=path, page_count=page_count)
+            djvu = DjVu(
+                path=path,
+                page_count=page_count,
+                bundled=bundled
+            )
             djvu_row = asdict(djvu)
             djvu_lod.append(djvu_row)
             total += page_index

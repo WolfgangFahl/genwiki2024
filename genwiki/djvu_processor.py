@@ -28,7 +28,7 @@ class ImageJob:
     """
     Represents a processed DjVu page, including document, page, page job, and image data.
     """
-
+    djvu_path: str# fully qualifying path of the container DjVu document
     document: djvu.decode.Document
     page: djvu.decode.Page
     page_index: int  # Added page_index to track position
@@ -66,6 +66,30 @@ class ImageJob:
         prefix = ImageJob.get_prefix(relurl=self.relurl)
         return prefix
 
+    @property
+    def filename(self) -> str:
+        try:
+            # Attempt to safely decode the file name
+            filename = self.page.file.name.encode(
+                "utf-8", errors="replace"
+            ).decode("utf-8")
+        except Exception as e:
+            if self.debug:
+                logging.warn(
+                    f"Failed to decode filename for page {self.page_index}: {e}"
+                )
+            filename = f"page_{self.page_index:04d}.djvu"
+        return filename
+
+    @property
+    def dirname(self)->str:
+        dirname=os.path.dirname(self.djvu_path)
+        return dirname
+
+    @property
+    def filepath(self)->str:
+        filepath=os.path.join(self.dirname,self.filename)
+        return filepath
 
 class DjVuContext(djvu.decode.Context):
     """
@@ -228,13 +252,19 @@ class DjVuProcessor:
         color_buffer ^= 0xFF000000  # Apply transparency
         return color_buffer
 
+    def ensure_file_exists(self,path:str):
+        if not os.path.isfile(path):
+            msg=f"file {path} not found"
+            raise ValueError(msg)
+
     def yield_pages(self, djvu_path: str):
         """
         yield the pages for the given djvu_path
         """
-        if not os.path.isfile(djvu_path):
-            msg=f"file {djvu_path} not found"
-            raise ValueError(msg)
+        # Important: calling new_document with an invalid file will crash the
+        # software since this is a c-level call that does circument proper
+        # Exception handling!
+        self.ensure_file_exists(djvu_path)
         document = self.context.new_document(djvu.decode.FileURI(djvu_path))
         document.decoding_job.wait()
         for page in document.pages:
@@ -257,7 +287,11 @@ class DjVuProcessor:
         for document, page in self.yield_pages(djvu_path):
             page_index += 1
             job = ImageJob(
-                document=document, page=page, page_index=page_index, relurl=relurl
+                djvu_path=djvu_path,
+                document=document,
+                page=page,
+                page_index=page_index,
+                relurl=relurl
             )
             image_jobs.append(job)
 
@@ -274,6 +308,14 @@ class DjVuProcessor:
         Returns:
             ImageJob: Updated image job with pagejob
         """
+        # Important: calling new_document with an invalid file will crash the
+        # software since this is a c-level call that does circument proper
+        # Exception handling!
+        filepath=image_job.filepath
+        # check whether the document is bundled or not
+        if image_job.document.type!=2:
+            # we need to check the file is external
+            self.ensure_file_exists(filepath)
         image_job.log(" page.decode start")
         pagejob = image_job.page.decode(wait=wait)
         image_job.log(" page.decode done")
@@ -300,17 +342,7 @@ class DjVuProcessor:
 
         width, height = image_job.get_size()
         color_buffer = self.render_pagejob_to_buffer(image_job, mode)
-        try:
-            # Attempt to safely decode the file name
-            filename = image_job.page.file.name.encode(
-                "utf-8", errors="replace"
-            ).decode("utf-8")
-        except Exception as e:
-            if self.debug:
-                logging.warn(
-                    f"Failed to decode filename for page {image_job.page_index}: {e}"
-                )
-            filename = f"unknown_page_{image_job.page_index:04d}.djvu"
+
 
         image = DjVuImage(
             width=width,
@@ -318,7 +350,7 @@ class DjVuProcessor:
             dpi=image_job.pagejob.dpi,
             page_index=image_job.page_index,
             djvu_path=image_job.relurl,
-            path=filename,
+            path=image_job.filename,
             buffer=color_buffer,
         )
 

@@ -86,7 +86,7 @@ class TestDjVu(Basetest):
             output_path=self.output_dir,
             parallel=False,
             debug=True,
-            vebose=False,
+            verbose=False,
         )
         djvu_cmd = DjVuCmd(args=args)
         djvu_cmd.handle_args()

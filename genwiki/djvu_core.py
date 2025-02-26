@@ -48,6 +48,7 @@ class DjVu:
 
     path: str
     page_count: int
+    bundled: bool=False
     dir_pages: Optional[int] = None
 
 
