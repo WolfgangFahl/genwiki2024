@@ -232,10 +232,13 @@ class DjVuProcessor:
         """
         yield the pages for the given djvu_path
         """
+        if not os.path.isfile(djvu_path):
+            msg=f"file {djvu_path} not found"
+            raise ValueError(msg)
         document = self.context.new_document(djvu.decode.FileURI(djvu_path))
         document.decoding_job.wait()
         for page in document.pages:
-            yield document, page
+                yield document, page
 
     def create_image_jobs(self, djvu_path: str, relurl: str) -> List[ImageJob]:
         """
