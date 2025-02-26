@@ -1,5 +1,5 @@
 """
-Created on 06.05.2024
+Created on 2024-05-06
 
 @author: wf
 """
@@ -35,10 +35,12 @@ class ParamsView:
         """
         hide the details of the dict edit
         """
-        self.dict_edit.close()
+        if self.dict_edit:
+            self.dict_edit.close()
 
     def delete(self):
-        self.dict_edit.card.delete()
+        if self.dict_edit:
+            self.dict_edit.card.delete()
         self.dict_edit = None
 
     def setup(self):
