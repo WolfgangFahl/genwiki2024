@@ -310,12 +310,15 @@ class DjVuProcessor:
         # Important: calling new_document with an invalid file will crash the
         # software since this is a c-level call that does circument proper
         # Exception handling!
+        file_size_msg=""
         filepath=image_job.filepath
         # check whether the document is bundled or not
         if image_job.document.type!=2:
             # we need to check the file is external
             self.ensure_file_exists(filepath)
-        image_job.log(" page.decode start")
+            file_size = os.path.getsize(filepath)
+            file_size_msg=(f"{filepath}:{file_size} bytes ")
+        image_job.log(f" page.decode {file_size_msg}start")
         pagejob = image_job.page.decode(wait=wait)
         image_job.log(" page.decode done")
         # Update the image job with the decoded page job
