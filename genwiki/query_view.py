@@ -33,11 +33,11 @@ class QueryView:
         self.timeout = 5.0
         self.params_view = None
 
-    def setup_ui(self):
+    def setup_ui(self,query_name:str="Gesamtanzahl"):
         """
         setup the user interface
         """
-        self.query_name = "Gesamtanzahl"
+        self.query_name = query_name
         with ui.row() as self.query_row:
             self.query_select = self.solution.add_select(
                 "Abfrage",

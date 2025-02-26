@@ -4,17 +4,21 @@
 # WF 2024-04-30
 #
 'total':
+   param_list:
+
    sql: |
       SELECT
          count(*) as files,
          sum(page_count) as pages
       FROM djvu
 'dpis':
+    param_list:
     sql: |
       SELECT count(*),dpi
       FROM image
       GROUP BY dpi
 'page_count':
+    param_list:
     sql: |
       SELECT path,dir_pages,page_count,page_count-dir_pages as diff
       FROM "djvu"
@@ -22,16 +26,22 @@
       ORDER by page_count desc
 # Get all DjVu records
 'all_djvu':
+  param_list:
   sql: |
     SELECT
       *
     FROM djvu
     ORDER BY page_count
 
-# Get all Image records
+# Get all Image records with a configurable limit
 'all_images':
+  param_list:
+    - name: limit
+      type: int
+      default_value: 50
   sql: |
     SELECT
       *
     FROM image
     ORDER BY path
+    LIMIT {{ limit }}

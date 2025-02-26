@@ -24,7 +24,7 @@ class DjVuManager:
         self.mlqm = MultiLanguageQueryManager(yaml_path=yaml_path)
         if db_path is None:
             db_path = os.path.join(examples_path, "djvu_data.db")
-        self.sql_db = SQLDB(db_path)
+        self.sql_db = SQLDB(db_path, check_same_thread=False)
 
     def query(self, query_name: str):
         query = self.mlqm.query4Name(query_name)
