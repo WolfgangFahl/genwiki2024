@@ -77,6 +77,12 @@ class DjVuCmd:
             help="Maximum number of pages to process",
         )
         parser.add_argument(
+            "--max-errors",
+            type=float,
+            default=1.0,
+            help="Maximum allowed error percentage before skipping database update",
+        )
+        parser.add_argument(
             "--output-path", default=output_path, help="Path for PNG files"
         )
         parser.add_argument(
@@ -338,12 +344,16 @@ class DjVuCmd:
                     pbar.update(1)
         self.report_errors()
         err_percent = error_count / len(djvu_files) * 100
-        # if we have less than 1% errors
-        if err_percent < 1.0:
+        max_errors = self.args.max_errors
+
+        # Check if the error percentage exceeds the threshold
+        if err_percent > round(max_errors, 1):
+            print(f"{err_percent:.1f}% errors ❌ > {max_errors:.1f}% limit no database update")
+        else:
+            print(f"{err_percent:.1f}% errors ✅ < {max_errors:.1f}% limit")
             self.dvm.store(
                 lod=page_lod, entity_name="Page", primary_key="page_key", with_drop=True
             )
-
 
 def main():
     """
