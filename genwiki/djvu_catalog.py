@@ -84,4 +84,3 @@ class DjVuCatalog(QueryView):
         Sets up the UI components for the DjVu catalog.
         """
         super().setup_ui(query_name=self.query_name)
-        self.query_select.options = ["all_djvu", "bundled_djvu", "unbundled_djvu"]
