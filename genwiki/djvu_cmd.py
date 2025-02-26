@@ -252,6 +252,9 @@ class DjVuCmd:
                         save_png=True,
                         output_path=self.args.output_path,
                     ):
+                        if hasattr(image_job, 'error') and image_job.error:
+                            self.errors.append(image_job.error)
+                            continue
                         if djvu_file is None:
                             page_count = len(image_job.document.pages)
                             djvu_file = DjVuFile(path=path, page_count=page_count)

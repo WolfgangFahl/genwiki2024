@@ -92,6 +92,7 @@ class TestDjVu(Basetest):
             parallel=False,
             debug=True,
             verbose=False,
+            serial=False
         )
         djvu_cmd = DjVuCmd(args=args)
         djvu_cmd.handle_args()
@@ -114,6 +115,7 @@ class TestDjVu(Basetest):
             url="/images/2/2f/Sorau-AB-1913.djvu",
             #url="/images/9/96/vz1890-neuenhausen-zb04.djvu",
             debug=True,
+            serial=False,
             verbose=True,
         )
         djvu_cmd = DjVuCmd(args=args)

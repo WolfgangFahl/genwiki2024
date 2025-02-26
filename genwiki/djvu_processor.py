@@ -37,6 +37,8 @@ class ImageJob:
     image: Optional[DjVuImage] = field(default=None)
     verbose: bool = False
     debug: bool = False
+    # keep track of any errors
+    error: Optional[Exception] = field(default=None)
 
     def __post_init__(self):
         """Initialize profiler if not provided"""
@@ -165,8 +167,7 @@ class DjVuProcessor:
 
     def handle_message(self, message):
         if isinstance(message, djvu.decode.ErrorMessage):
-            print(message, file=sys.stderr)
-            os._exit(1)
+            raise Exception(message)
 
     def save_image_to_png(self, image_job: ImageJob, output_path: str):
         """
@@ -261,9 +262,6 @@ class DjVuProcessor:
         """
         yield the pages for the given djvu_path
         """
-        # Important: calling new_document with an invalid file will crash the
-        # software since this is a c-level call that does circument proper
-        # Exception handling!
         self.ensure_file_exists(djvu_path)
         document = self.context.new_document(djvu.decode.FileURI(djvu_path))
         document.decoding_job.wait()
@@ -309,22 +307,23 @@ class DjVuProcessor:
         Returns:
             ImageJob: Updated image job with pagejob
         """
-        # Important: calling new_document with an invalid file will crash the
-        # software since this is a c-level call that does circument proper
-        # Exception handling!
-        file_size_msg=""
-        filepath=image_job.filepath
-        # check whether the document is bundled or not
-        if image_job.document.type!=2:
-            # we need to check the file is external
-            self.ensure_file_exists(filepath)
-            file_size = os.path.getsize(filepath)
-            file_size_msg=(f"{filepath}:{file_size} bytes ")
-        image_job.log(f" page.decode {file_size_msg}start")
-        pagejob = image_job.page.decode(wait=wait)
-        image_job.log(" page.decode done")
-        # Update the image job with the decoded page job
-        image_job.pagejob = pagejob
+        try:
+            file_size_msg=""
+            filepath=image_job.filepath
+            # check whether the document is bundled or not
+            if image_job.document.type!=2:
+                # we need to check the file is external
+                self.ensure_file_exists(filepath)
+                file_size = os.path.getsize(filepath)
+                file_size_msg=(f"{filepath}:{file_size} bytes ")
+            image_job.log(f" page.decode {file_size_msg}start")
+            pagejob = image_job.page.decode(wait=wait)
+            image_job.log(" page.decode done")
+            # Update the image job with the decoded page job
+            image_job.pagejob = pagejob
+        except Exception as e:
+            # Store exception but don't raise
+            image_job.error = e
         return image_job
 
     def render_page(
@@ -340,28 +339,31 @@ class DjVuProcessor:
         Returns:
             ImageJob: Updated image job with rendered image
         """
-        image_job.log(" render start")
-        if not image_job.pagejob:
-            raise ValueError(f"PageJob not available for page {image_job.page_index}")
+        try:
+            image_job.log(" render start")
+            if not image_job.pagejob:
+                raise ValueError(f"PageJob not available for page {image_job.page_index}")
 
-        width, height = image_job.get_size()
-        color_buffer = self.render_pagejob_to_buffer(image_job, mode)
+            width, height = image_job.get_size()
+            color_buffer = self.render_pagejob_to_buffer(image_job, mode)
 
 
-        image = DjVuImage(
-            width=width,
-            height=height,
-            dpi=image_job.pagejob.dpi,
-            page_index=image_job.page_index,
-            djvu_path=image_job.relurl,
-            path=image_job.filename,
-            buffer=color_buffer,
-        )
+            image = DjVuImage(
+                width=width,
+                height=height,
+                dpi=image_job.pagejob.dpi,
+                page_index=image_job.page_index,
+                djvu_path=image_job.relurl,
+                path=image_job.filename,
+                buffer=color_buffer,
+            )
 
-        # Update the image job with the rendered image
-        image_job.image = image
-        image_job.log(" render done")
-
+            # Update the image job with the rendered image
+            image_job.image = image
+            image_job.log(" render done")
+        except Exception as e:
+            # Store exception but don't raise
+            image_job.error = e
         return image_job
 
     def prepare(self, output_path: str,relurl:str):
