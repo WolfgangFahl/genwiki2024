@@ -453,7 +453,7 @@ class DjVuProcessor:
         Yields:
             Generator[ImageJob, None, None]: A generator yielding image jobs.
         """
-        self.prepare(output_path=output_path)
+        self.prepare(output_path=output_path,relurl=relurl)
 
         # Step 1: Create image jobs for all pages
         image_jobs = self.create_image_jobs(djvu_path, relurl)
