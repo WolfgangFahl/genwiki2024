@@ -359,12 +359,13 @@ class DjVuProcessor:
 
         return image_job
 
-    def prepare(self, output_path: str):
+    def prepare(self, output_path: str,relurl:str):
         """
         Prepares the output directory and sets up temporary storage if tarball creation is enabled.
 
         Args:
             output_path (str): The final destination path for output files.
+            relurl(str): the relative url to process
 
         Attributes:
             final_output_path (str): The actual output path where the final files will be stored.
@@ -379,7 +380,7 @@ class DjVuProcessor:
             self.output_path = self.temp_dir
         else:
             self.output_path = output_path
-        self.profiler = Profiler("processing", profile=self.verbose or self.debug)
+        self.profiler = Profiler(f"processing {relurl}", profile=self.verbose or self.debug)
         # Prepare output directory if needed
         os.makedirs(self.final_output_path, exist_ok=True)
 
@@ -409,10 +410,10 @@ class DjVuProcessor:
         """
         Converts a DjVu URL to image buffers with sequential decoding and rendering.
         """
-        self.prepare(output_path=output_path)
+        self.prepare(output_path=output_path,relurl=relurl)
         # Step 1: Create image jobs for all pages
         image_jobs = self.create_image_jobs(djvu_path, relurl)
-        self.profiler.time(f" create image jobs for {relurl}")
+        self.profiler.time(f" create image jobs")
 
         # Process each page sequentially
         for job in image_jobs:
