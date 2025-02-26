@@ -262,7 +262,7 @@ class DjVuCmd:
                     # Ensure tarball is created after YAML is saved
                     if dproc.tar:
                         dproc.wrap_as_tarball(djvu_path)
-                except Exception as e:
+                except BaseException as e:
                     self.errors.append(e)
                 finally:
                     error_count=len(self.errors)
