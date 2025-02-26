@@ -4,12 +4,14 @@ Created on 2025-02-25
 @author: wf
 """
 
+import io
+import mimetypes
 import os
 import tarfile
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from genwiki.djvu_core import DjVuFile
@@ -58,6 +60,40 @@ class DjVuViewer:
                     status_code=404, detail=f"File {filename} not found in tarball"
                 )
 
+    def get_content(self, file: str) -> Response:
+        """
+        Retrieves a content file (PNG, JPG, YAML, etc.) from the tarball and serves it as a response.
+
+        Args:
+            file (str): The full path in the format <DjVu name>/<file name>.
+
+        Returns:
+            Response: The requested content file with the correct media type.
+        """
+        try:
+            djvu_name, filename = file.split("/", 1)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid file path format. Expected <DjVu name>/<file name>.",
+            )
+
+        tarball_path = Path(self.image_path) / f"{djvu_name}.tar"
+
+        if not tarball_path.exists():
+            raise HTTPException(status_code=404, detail="Tarball not found")
+
+        file_content = self.read_from_tar(tarball_path, filename)
+        file_stream = io.BytesIO(file_content)
+        # Detect MIME type based on file extension
+        media_type, _ = mimetypes.guess_type(filename)
+        if media_type is None:
+            media_type = "application/octet-stream"  # Default for unknown types
+
+        content_response = Response(content=file_content, media_type=media_type)
+
+        return content_response
+
     def get_page(self, path: str, page_index: int) -> HTMLResponse:
         """
         Fetches and renders an HTML page displaying the PNG image of the given DjVu file page from a tarball.
@@ -80,12 +116,13 @@ class DjVuViewer:
                 status_code=500, detail="Error reading YAML from tarball"
             )
 
-        if page_index < 0 or page_index >= len(djvu_file.pages):
+        page_count = len(djvu_file.pages)
+        if page_index < 1 or page_index > page_count:
             raise HTTPException(status_code=404, detail=f"Page {page_index} not found")
 
-        djvu_page = djvu_file.pages[page_index]
+        djvu_page = djvu_file.pages[page_index - 1]
         image_filename = djvu_page.png_file
-        image_url = f"/djvu/image/{Path(path).stem}/{image_filename}"
+        image_url = f"/djvu/content/{Path(path).stem}/{image_filename}"
 
         return HTMLResponse(
             content=self.get_markup(path, page_index, len(djvu_file.pages), image_url)
@@ -106,14 +143,14 @@ class DjVuViewer:
         Returns:
             str: HTML markup.
         """
-        first_page = 0
-        last_page = total_pages - 1
+        first_page = 1  # Fix: Pages start from 1
+        last_page = total_pages  # Fix: Last page is total_pages, not total_pages - 1
         prev_page = max(first_page, page_index - 1)
         next_page = min(last_page, page_index + 1)
         fast_backward = max(first_page, page_index - 10)
         fast_forward = min(last_page, page_index + 10)
 
-        return f"""
+        markup = f"""
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -129,14 +166,16 @@ class DjVuViewer:
         </head>
         <body>
             <div class="nav">
-                <a href="/djvu/{path}?page={first_page}">⏮</a>
-                <a href="/djvu/{path}?page={fast_backward}">⏪</a>
-                <a href="/djvu/{path}?page={prev_page}">◀</a>
-                <a href="/djvu/{path}?page={next_page}">▶</a>
-                <a href="/djvu/{path}?page={fast_forward}">⏩</a>
-                <a href="/djvu/{path}?page={last_page}">⏭</a>
+                <a href="/djvu/{path}?page={first_page}" title="First Page (1/{total_pages})">⏮</a>
+                <a href="/djvu/{path}?page={fast_backward}" title="Fast Backward (Jump -10 Pages)">⏪</a>
+                <a href="/djvu/{path}?page={prev_page}" title="Previous Page">⏴</a>
+                <span>{page_index} / {total_pages}</span>
+                <a href="/djvu/{path}?page={next_page}" title="Next Page">⏵</a>
+                <a href="/djvu/{path}?page={fast_forward}" title="Fast Forward (Jump +10 Pages)">⏩</a>
+                <a href="/djvu/{path}?page={last_page}" title="Last Page ({total_pages}/{total_pages})">⏭</a>
             </div>
             <img src="{image_url}" alt="DjVu Page {page_index}">
         </body>
         </html>
         """
+        return markup

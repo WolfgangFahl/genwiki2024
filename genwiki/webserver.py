@@ -14,7 +14,7 @@ from ngwidgets.users import Users
 from ngwidgets.webserver import WebserverConfig
 from ngwidgets.widgets import Link
 from nicegui import Client, app, ui
-from starlette.responses import HTMLResponse, RedirectResponse
+from starlette.responses import FileResponse, HTMLResponse, RedirectResponse
 from wd.wditem_search import WikidataItemSearch
 
 from genwiki.convert import ParquetAdressbokToSql
@@ -91,6 +91,20 @@ class GenWikiWebServer(InputWebserver):
             if self.login.authenticated():
                 await self.login.logout()
             return RedirectResponse("/")
+
+        @app.get("/djvu/content/{file:path}")
+        def get_content(file: str) -> FileResponse:
+            """
+            Serves content from a wrapped DjVu file.
+
+            Args:
+                file (str): The full path  <DjVu name>/<file name>.
+
+            Returns:
+                FileResponse: The requested content file (PNG, JPG, YAML, etc.).
+            """
+            file_response = self.djvu_viewer.get_content(file)
+            return file_response
 
         @app.get("/djvu/{path:path}")
         def display_djvu(path: str, page: int = 1) -> HTMLResponse:

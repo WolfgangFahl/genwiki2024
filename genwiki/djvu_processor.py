@@ -6,13 +6,13 @@ Created on 2025-02-25
 
 import logging
 import os
-from pathlib import Path
 import shutil
 import sys
 import tarfile
 import tempfile
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Generator, List, Optional, Tuple
 
 import cairo
@@ -48,7 +48,7 @@ class ImageJob:
 
     def log(self, msg):
         if self.verbose or self.debug:
-            self.profiler.time(" "+msg)
+            self.profiler.time(" " + msg)
 
     def get_size(self) -> Tuple[int, int]:
         """Get the width and height of the page if pagejob is available"""
@@ -66,6 +66,7 @@ class ImageJob:
         prefix = ImageJob.get_prefix(relurl=self.relurl)
         return prefix
 
+
 class DjVuContext(djvu.decode.Context):
     """
     A lightweight wrapper around djvu.decode.Context to handle messages.
@@ -82,7 +83,8 @@ class DjVuContext(djvu.decode.Context):
         if self.message_handler:
             self.message_handler(message)
 
-class DjVuProcessor():
+
+class DjVuProcessor:
     """
     Processes DjVu files and converts pages to image buffers.
 
@@ -102,7 +104,7 @@ class DjVuProcessor():
         self.tar = tar
         self.verbose = verbose
         self.debug = debug
-        self.context = DjVuContext() # delegate context instance
+        self.context = DjVuContext()  # delegate context instance
         self.context.message_handler = self.handle_message
         self.cairo_pixel_format = cairo.FORMAT_ARGB32
         self.djvu_pixel_format = djvu.decode.PixelFormatRgbMask(
@@ -111,10 +113,9 @@ class DjVuProcessor():
         self.djvu_pixel_format.rows_top_to_bottom = 1
         self.djvu_pixel_format.y_top_to_bottom = 0
 
-    def create_tarball(self,
-        source_dir: str,
-        output_tar: str,
-        include_ext: Optional[List[str]] = None):
+    def create_tarball(
+        self, source_dir: str, output_tar: str, include_ext: Optional[List[str]] = None
+    ):
         """
         Creates a tar archive from the given source directory, including only specific file types.
 
@@ -128,7 +129,11 @@ class DjVuProcessor():
                 Defaults to ["yaml", "png", "jpg"].
         """
         if include_ext is None:
-            include_ext = ["yaml","png","jpg"]  # yaml metadata, png lossless original, jpg thumbnails
+            include_ext = [
+                "yaml",
+                "png",
+                "jpg",
+            ]  # yaml metadata, png lossless original, jpg thumbnails
         with tarfile.open(output_tar, "w") as tar:
             for file in os.listdir(source_dir):
                 if any(file.lower().endswith(ext) for ext in include_ext):
@@ -298,9 +303,10 @@ class DjVuProcessor():
                 "utf-8", errors="replace"
             ).decode("utf-8")
         except Exception as e:
-            logging.warning(
-                f"Failed to decode filename for page {image_job.page_index}: {e}"
-            )
+            if self.debug:
+                logging.warn(
+                    f"Failed to decode filename for page {image_job.page_index}: {e}"
+                )
             filename = f"unknown_page_{image_job.page_index:04d}.djvu"
 
         image = DjVuImage(
@@ -332,14 +338,14 @@ class DjVuProcessor():
             output_path (str): The working output path (either temporary or final).
             profiler (Profiler): Profiler instance for tracking processing time.
         """
-        self.final_output_path=output_path
+        self.final_output_path = output_path
         if self.tar:
             # Use a temporary directory for intermediate PNG storage
             self.temp_dir = tempfile.mkdtemp()
-            self.output_path=self.temp_dir
+            self.output_path = self.temp_dir
         else:
-            self.output_path=output_path
-        self.profiler = Profiler("processing",profile=self.verbose or self.debug)
+            self.output_path = output_path
+        self.profiler = Profiler("processing", profile=self.verbose or self.debug)
         # Prepare output directory if needed
         os.makedirs(self.final_output_path, exist_ok=True)
 
@@ -351,7 +357,9 @@ class DjVuProcessor():
             djvu_path (str): The path to the original DjVu file.
 
         """
-        tarball_path = os.path.join(self.final_output_path, f"{Path(djvu_path).stem}.tar")
+        tarball_path = os.path.join(
+            self.final_output_path, f"{Path(djvu_path).stem}.tar"
+        )
         self.create_tarball(self.output_path, tarball_path)
         shutil.rmtree(self.temp_dir)
 
@@ -371,7 +379,6 @@ class DjVuProcessor():
         # Step 1: Create image jobs for all pages
         image_jobs = self.create_image_jobs(djvu_path, relurl)
         self.profiler.time(" create image jobs")
-
 
         # Process each page sequentially
         for job in image_jobs:

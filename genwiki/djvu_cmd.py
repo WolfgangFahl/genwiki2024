@@ -8,8 +8,10 @@ import argparse
 import logging
 import os
 import time
+import traceback
 from dataclasses import asdict
 
+from ngwidgets.profiler import Profiler
 from tqdm import tqdm
 
 from genwiki.djvu_core import DjVu, DjVuFile, DjVuPage
@@ -22,13 +24,14 @@ class DjVuCmd:
     command line handling for djvu processing/converting
     """
 
+    # @FIXME - remove hard coded default_base_path
     default_base_path = os.getenv(
         "GENWIKI_PATH", "/Users/wf/hd/wf-fur.bitplan.com/genwiki"
     )
 
     def __init__(self, args: argparse.Namespace):
         self.args = args
-        # @FIXME - remove hard coded default_base_path
+        self.errors = []
 
     @classmethod
     def get_argparser(cls) -> argparse.ArgumentParser:
@@ -100,6 +103,8 @@ class DjVuCmd:
         """
         handle the command line arguments
         """
+        self.profiler = Profiler(self.args.command)
+        self.profiler.start()
         if self.args.command == "catalog":
             self.catalog_djvu()
         elif self.args.command == "convert":
@@ -141,24 +146,47 @@ class DjVuCmd:
         page_lod.append(row)
         return dpage
 
+    def report_errors(self):
+        """
+        Reports errors collected during processing.
+
+        - ✅ Shows ✅ (check mark) if no errors.
+        - ❌ Shows ❌ (cross mark) with error count if errors occurred.
+        - 📝 Lists errors if `args.debug` is enabled.
+        - 📜 Shows stack traces if `args.verbose` is enabled.
+        """
+        if not self.errors:
+            msg = " ✅ Ok"
+        else:
+            msg = f" ❌ {len(self.errors)} errors"
+        self.profiler.time(msg)
+
+        if self.args.debug:
+            for i, error in enumerate(self.errors, 1):
+                print(f"📝 {i}. {error}")
+
+            if self.args.verbose:
+                for error in self.errors:
+                    print("📜", traceback.format_exc())
+
     def catalog_djvu(self):
         """
         First pass: Catalog DjVu files into the database
         """
+
         dvm = DjVuManager()
         dvm_target = DjVuManager(db_path=self.args.db_path)
         dproc = DjVuProcessor(debug=self.args.debug, verbose=self.args.verbose)
         lod = dvm.query("all_djvu")
         total = 0
         start_time = time.time()
-        self.errors = 0
         djvu_lod = []
         page_lod = []
         for index, r in enumerate(lod, start=1):
             path = r.get("path").replace("./", "/")
             djvu_path = self.args.base_path + path
             if not djvu_path:
-                self.errors += 1
+                self.errors.append(Exception(f"missing {djvu_path}"))
                 continue
             page_index = 0
             for document, page in dproc.yield_pages(djvu_path):
@@ -180,6 +208,7 @@ class DjVuCmd:
             )
         dvm_target.store(lod=page_lod, entity_name="Page", primary_key="page_key")
         dvm_target.store(lod=djvu_lod, entity_name="DjVu", primary_key="path")
+        self.report_errors()
 
     def convert_djvu(self):
         """
@@ -197,41 +226,46 @@ class DjVuCmd:
             total=len(djvu_files), desc="Converting DjVu to PNG", unit="file"
         ) as pbar:
             for path in djvu_files:
-                djvu_path = self.args.base_path + path
-                djvu_file = None
-                prefix = ImageJob.get_prefix(path)
-                tar_file = os.path.join(self.args.output_path, prefix + ".tar")
-                if os.path.isfile(tar_file) and not self.args.force:
-                    continue
-                for image_job in dproc.process_parallel(
-                    djvu_path,
-                    relurl=path,
-                    save_png=True,
-                    output_path=self.args.output_path,
-                ):
-                    if djvu_file is None:
-                        page_count = len(image_job.document.pages)
-                        djvu_file = DjVuFile(path=path, page_count=page_count)
-                    image = image_job.image
-                    djvu_page = DjVuPage(
-                        path=image.path,
-                        page_index=image.page_index,
-                        valid=image.valid,
-                        width=image.width,
-                        height=image.height,
-                        dpi=image.dpi,
-                        djvu_path=image.djvu_path,
-                    )
-                    djvu_file.pages.append(djvu_page)
-                    prefix = image_job.prefix
-                    pass
-                pbar.update(1)
-                yaml_file = os.path.join(dproc.output_path, prefix + ".yaml")
-                djvu_file.save_to_yaml_file(yaml_file)
+                try:
+                    djvu_path = self.args.base_path + path
+                    djvu_file = None
+                    prefix = ImageJob.get_prefix(path)
+                    tar_file = os.path.join(self.args.output_path, prefix + ".tar")
+                    if os.path.isfile(tar_file) and not self.args.force:
+                        continue
+                    for image_job in dproc.process_parallel(
+                        djvu_path,
+                        relurl=path,
+                        save_png=True,
+                        output_path=self.args.output_path,
+                    ):
+                        if djvu_file is None:
+                            page_count = len(image_job.document.pages)
+                            djvu_file = DjVuFile(path=path, page_count=page_count)
+                        image = image_job.image
+                        djvu_page = DjVuPage(
+                            path=image.path,
+                            page_index=image.page_index,
+                            valid=image.valid,
+                            width=image.width,
+                            height=image.height,
+                            dpi=image.dpi,
+                            djvu_path=image.djvu_path,
+                        )
+                        djvu_file.pages.append(djvu_page)
+                        prefix = image_job.prefix
+                        pass
+                    yaml_file = os.path.join(dproc.output_path, prefix + ".yaml")
+                    djvu_file.save_to_yaml_file(yaml_file)
 
-                # Ensure tarball is created after YAML is saved
-                if dproc.tar:
-                    dproc.wrap_as_tarball(djvu_path)
+                    # Ensure tarball is created after YAML is saved
+                    if dproc.tar:
+                        dproc.wrap_as_tarball(djvu_path)
+                except Exception as e:
+                    self.errors.append(e)
+                pbar.update(1)
+        self.report_errors()
+
 
 def main():
     """
