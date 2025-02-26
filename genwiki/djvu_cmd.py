@@ -232,6 +232,7 @@ class DjVuCmd:
                     prefix = ImageJob.get_prefix(path)
                     tar_file = os.path.join(self.args.output_path, prefix + ".tar")
                     if os.path.isfile(tar_file) and not self.args.force:
+                        pbar.update(1)
                         continue
                     for image_job in dproc.process_parallel(
                         djvu_path,
