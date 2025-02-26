@@ -26,7 +26,7 @@ class TestDjVu(Basetest):
 
         Basetest.setUp(self, debug=debug, profile=profile)
         self.basepath = DjVuCmd.default_base_path
-        self.output_dir=os.path.join(self.basepath,"djvu_images")
+        self.output_dir = os.path.join(self.basepath, "djvu_images")
         self.baseurl = "https://wiki.genealogy.net/"
         self.limit = 10000000
         # self.limit=50
@@ -37,7 +37,6 @@ class TestDjVu(Basetest):
             self.output_dir = "/tmp/genwiki/djvu_images"
             self.limit = 50
         os.makedirs(self.output_dir, exist_ok=True)
-
 
     def get_djvu(self, relurl):
         """
@@ -87,6 +86,7 @@ class TestDjVu(Basetest):
             output_path=self.output_dir,
             parallel=False,
             debug=True,
+            vebose=False,
         )
         djvu_cmd = DjVuCmd(args=args)
         djvu_cmd.handle_args()
@@ -108,6 +108,7 @@ class TestDjVu(Basetest):
             parallel=True,
             url="/images/9/96/vz1890-neuenhausen-zb04.djvu",
             debug=True,
+            verbose=False,
         )
         djvu_cmd = DjVuCmd(args=args)
         djvu_cmd.handle_args()

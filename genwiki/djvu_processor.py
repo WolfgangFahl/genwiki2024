@@ -6,7 +6,11 @@ Created on 2025-02-25
 
 import logging
 import os
+from pathlib import Path
+import shutil
 import sys
+import tarfile
+import tempfile
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Generator, List, Optional, Tuple
@@ -17,6 +21,7 @@ import numpy
 from ngwidgets.profiler import Profiler
 
 from genwiki.djvu_core import DjVuImage
+
 
 @dataclass
 class ImageJob:
@@ -30,14 +35,20 @@ class ImageJob:
     relurl: str  # Added relurl for context
     pagejob: Optional[djvu.decode.PageJob] = field(default=None)
     image: Optional[DjVuImage] = field(default=None)
+    verbose: bool = False
+    debug: bool = False
 
     def __post_init__(self):
         """Initialize profiler if not provided"""
-        self.profiler = Profiler(f"Image Job {self.relurl}#{self.page_index:04d}")
+        self.profiler = Profiler(
+            f"Image Job {self.relurl}#{self.page_index:04d}",
+            profile=self.verbose or self.debug,
+        )
         self.profiler.start()
 
     def log(self, msg):
-        self.profiler.time(msg)
+        if self.verbose or self.debug:
+            self.profiler.time(" "+msg)
 
     def get_size(self) -> Tuple[int, int]:
         """Get the width and height of the page if pagejob is available"""
@@ -46,16 +57,32 @@ class ImageJob:
         return (0, 0)
 
     @staticmethod
-    def get_prefix(relurl:str):
+    def get_prefix(relurl: str):
         prefix = os.path.splitext(os.path.basename(relurl))[0]
         return prefix
 
     @property
-    def prefix(self)->str:
-        prefix=ImageJob.get_prefix(relurl=self.relurl)
+    def prefix(self) -> str:
+        prefix = ImageJob.get_prefix(relurl=self.relurl)
         return prefix
 
-class DjVuProcessor(djvu.decode.Context):
+class DjVuContext(djvu.decode.Context):
+    """
+    A lightweight wrapper around djvu.decode.Context to handle messages.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.message_handler = None
+
+    def handle_message(self, message):
+        """
+        Handles messages from the DjVu decoding context.
+        """
+        if self.message_handler:
+            self.message_handler(message)
+
+class DjVuProcessor():
     """
     Processes DjVu files and converts pages to image buffers.
 
@@ -63,14 +90,49 @@ class DjVuProcessor(djvu.decode.Context):
     with Copyright © 2010-2021 Jakub Wilk <jwilk@jwilk.net> and GNU General Public License version 2
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, tar: bool = True, verbose: bool = False, debug: bool = False):
+        """
+        Initializes the DjVuProcessor.
+
+        Args:
+            tar(bool,optional): Enable tarball creation (default: True).
+            verbose (bool, optional): Enable verbose output (default: False).
+            debug (bool, optional): Enable debug logging (default: False).
+        """
+        self.tar = tar
+        self.verbose = verbose
+        self.debug = debug
+        self.context = DjVuContext() # delegate context instance
+        self.context.message_handler = self.handle_message
         self.cairo_pixel_format = cairo.FORMAT_ARGB32
         self.djvu_pixel_format = djvu.decode.PixelFormatRgbMask(
             0xFF0000, 0xFF00, 0xFF, bpp=32
         )
         self.djvu_pixel_format.rows_top_to_bottom = 1
         self.djvu_pixel_format.y_top_to_bottom = 0
+
+    def create_tarball(self,
+        source_dir: str,
+        output_tar: str,
+        include_ext: Optional[List[str]] = None):
+        """
+        Creates a tar archive from the given source directory, including only specific file types.
+
+        Args:
+            source_dir (str): Directory containing files to archive.
+            output_tar (str): Path to the output tar file.
+            include_ext (Optional[List[str]]): List of file extensions to include.
+                - "yaml": Includes metadata files.
+                - "png": Includes lossless original images.
+                - "jpg": Includes compressed thumbnails.
+                Defaults to ["yaml", "png", "jpg"].
+        """
+        if include_ext is None:
+            include_ext = ["yaml","png","jpg"]  # yaml metadata, png lossless original, jpg thumbnails
+        with tarfile.open(output_tar, "w") as tar:
+            for file in os.listdir(source_dir):
+                if any(file.lower().endswith(ext) for ext in include_ext):
+                    tar.add(os.path.join(source_dir, file), arcname=file)
 
     def handle_message(self, message):
         if isinstance(message, djvu.decode.ErrorMessage):
@@ -94,19 +156,20 @@ class DjVuProcessor(djvu.decode.Context):
         )
         surface.write_to_png(output_path)
 
-    def save_as_png(self, image_job: ImageJob, output_dir: str, djvu_path: str) -> str:
+    def save_as_png(self, image_job: ImageJob, output_dir: str) -> str:
         """
         Save an image job as PNG in the specified directory
 
         Args:
             image_job: The image job to save
             output_dir: Directory to save to
-            djvu_path: Original DjVu path for naming
 
         Returns:
             Path to the saved PNG file
         """
-        output_path=os.path.join(output_dir, f"{image_job.prefix}_page_{image_job.page_index:04d}.png")
+        output_path = os.path.join(
+            output_dir, f"{image_job.prefix}_page_{image_job.page_index:04d}.png"
+        )
         image_job.log("save png start")
         # Save PNG
         self.save_image_to_png(image_job, output_path)
@@ -164,7 +227,7 @@ class DjVuProcessor(djvu.decode.Context):
         """
         yield the pages for the given djvu_path
         """
-        document = self.new_document(djvu.decode.FileURI(djvu_path))
+        document = self.context.new_document(djvu.decode.FileURI(djvu_path))
         document.decoding_job.wait()
         for page in document.pages:
             yield document, page
@@ -231,9 +294,13 @@ class DjVuProcessor(djvu.decode.Context):
         color_buffer = self.render_pagejob_to_buffer(image_job, mode)
         try:
             # Attempt to safely decode the file name
-            filename = image_job.page.file.name.encode("utf-8", errors="replace").decode("utf-8")
+            filename = image_job.page.file.name.encode(
+                "utf-8", errors="replace"
+            ).decode("utf-8")
         except Exception as e:
-            logging.warning(f"Failed to decode filename for page {image_job.page_index}: {e}")
+            logging.warning(
+                f"Failed to decode filename for page {image_job.page_index}: {e}"
+            )
             filename = f"unknown_page_{image_job.page_index:04d}.djvu"
 
         image = DjVuImage(
@@ -252,6 +319,42 @@ class DjVuProcessor(djvu.decode.Context):
 
         return image_job
 
+    def prepare(self, output_path: str):
+        """
+        Prepares the output directory and sets up temporary storage if tarball creation is enabled.
+
+        Args:
+            output_path (str): The final destination path for output files.
+
+        Attributes:
+            final_output_path (str): The actual output path where the final files will be stored.
+            temp_dir (Optional[str]): A temporary directory for intermediate storage if tarball creation is enabled.
+            output_path (str): The working output path (either temporary or final).
+            profiler (Profiler): Profiler instance for tracking processing time.
+        """
+        self.final_output_path=output_path
+        if self.tar:
+            # Use a temporary directory for intermediate PNG storage
+            self.temp_dir = tempfile.mkdtemp()
+            self.output_path=self.temp_dir
+        else:
+            self.output_path=output_path
+        self.profiler = Profiler("processing",profile=self.verbose or self.debug)
+        # Prepare output directory if needed
+        os.makedirs(self.final_output_path, exist_ok=True)
+
+    def wrap_as_tarball(self, djvu_path: str):
+        """
+        Wraps processed output files into a tarball
+
+        Args:
+            djvu_path (str): The path to the original DjVu file.
+
+        """
+        tarball_path = os.path.join(self.final_output_path, f"{Path(djvu_path).stem}.tar")
+        self.create_tarball(self.output_path, tarball_path)
+        shutil.rmtree(self.temp_dir)
+
     def process(
         self,
         djvu_path: str,
@@ -264,14 +367,11 @@ class DjVuProcessor(djvu.decode.Context):
         """
         Converts a DjVu URL to image buffers with sequential decoding and rendering.
         """
-        profiler = Profiler("processing")
-
+        self.prepare(output_path=output_path)
         # Step 1: Create image jobs for all pages
         image_jobs = self.create_image_jobs(djvu_path, relurl)
-        profiler.time("create image jobs")
+        self.profiler.time(" create image jobs")
 
-        # Prepare output directory if needed
-        os.makedirs(output_path, exist_ok=True)
 
         # Process each page sequentially
         for job in image_jobs:
@@ -280,11 +380,11 @@ class DjVuProcessor(djvu.decode.Context):
 
             # Step 3: Render the page
             rendered_job = self.render_page(decoded_job, mode)
-            profiler.time(f"process page {rendered_job.page_index:4d}")
+            self.profiler.time(f" process page {rendered_job.page_index:4d}")
 
             # Step 4: Optionally save to PNG
             if save_png:
-                self.save_as_png(rendered_job, output_path, djvu_path)
+                self.save_as_png(rendered_job, self.output_path)
 
             yield rendered_job
 
@@ -299,15 +399,23 @@ class DjVuProcessor(djvu.decode.Context):
     ) -> Generator[ImageJob, None, None]:
         """
         Converts a DjVu URL to image buffers with fully parallel decoding and rendering.
+
+        Args:
+            djvu_path (str): Path to the DjVu file.
+            relurl (str): Relative URL for referencing the file.
+            mode (int, optional): Rendering mode (default: djvu.decode.RENDER_COLOR).
+            wait (bool, optional): Whether to wait for processing to complete (default: True).
+            save_png (bool, optional): Whether to save output as PNG files (default: False).
+            output_path (str, optional): Directory path to save PNG files (default: None).
+
+        Yields:
+            Generator[ImageJob, None, None]: A generator yielding image jobs.
         """
-        profiler = Profiler("processing")
+        self.prepare(output_path=output_path)
 
         # Step 1: Create image jobs for all pages
         image_jobs = self.create_image_jobs(djvu_path, relurl)
-        profiler.time("create image jobs")
-
-        # Prepare output directory if needed
-        os.makedirs(output_path, exist_ok=True)
+        self.profiler.time(" create image jobs")
 
         # Step 2: Decode all pages in parallel
         with ThreadPoolExecutor() as executor:
@@ -330,10 +438,10 @@ class DjVuProcessor(djvu.decode.Context):
             # Process rendered jobs as they become available
             for future in render_futures:
                 rendered_job = future.result()
-                profiler.time(f"process page {rendered_job.page_index:4d}")
+                self.profiler.time(f" process page {rendered_job.page_index:4d}")
 
                 # Optionally save to PNG in parallel (submit to executor)
                 if save_png:
-                    executor.submit(self.save_as_png, rendered_job, output_path, djvu_path)
+                    executor.submit(self.save_as_png, rendered_job, self.output_path)
 
                 yield rendered_job

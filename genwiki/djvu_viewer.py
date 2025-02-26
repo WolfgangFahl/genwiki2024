@@ -3,89 +3,17 @@ Created on 2025-02-25
 
 @author: wf
 """
-import os
-from pathlib import Path
-from fastapi import HTTPException, FastAPI
-from fastapi.staticfiles import StaticFiles
-from genwiki.djvu_core import DjVuFile
-from starlette.responses import HTMLResponse
-
-class DjVuViewer:
-    """
-    Handles loading and retrieving DjVu page metadata from YAML files and sets up static file serving.
-    """
-
-    _static_mounted = False  # Ensures mount is only done once
-
-    def __init__(self, app: FastAPI, base_path: str = None):
-        if base_path is None:
-            base_path = os.getenv("GENWIKI_PATH", "/Users/wf/hd/wf-fur.bitplan.com/genwiki")
-        self.image_path = os.path.join(base_path, "djvu_images")
-
-        if not DjVuViewer._static_mounted:
-            app.mount("/static/djvu", StaticFiles(directory=self.image_path), name="djvu_images")
-            DjVuViewer._static_mounted = True
-
-
-    """
-Created on 2025-02-25
-
-@author: wf
-"""
 
 import os
+import tarfile
 from pathlib import Path
-import yaml
-from fastapi import HTTPException, FastAPI
-from fastapi.staticfiles import StaticFiles
-from genwiki.djvu_core import DjVuFile
 
-class DjVuViewer:
-    """
-    Handles loading and retrieving DjVu page metadata from YAML files and sets up static file serving.
-    """
-
-    _static_mounted = False  # Ensures mount is only done once
-
-    def __init__(self, app: FastAPI, base_path: str = None):
-        if base_path is None:
-            base_path = os.getenv("GENWIKI_PATH", "/Users/wf/hd/wf-fur.bitplan.com/genwiki")
-        self.image_path = os.path.join(base_path, "djvu_images")
-
-        if not DjVuViewer._static_mounted:
-            app.mount("/static/djvu", StaticFiles(directory=self.image_path), name="djvu_images")
-            DjVuViewer._static_mounted = True
-
-    def get_page(self, path: str, page_index: int)->HTMLResponse:
-        """
-        Fetches and renders an HTML page displaying the PNG image of the given DjVu file page.
-        """
-        yaml_file = Path(self.image_path) / f"{Path(path).stem}.yaml"
-
-        if not yaml_file.exists():
-            raise HTTPException(status_code=404, detail="YAML metadata not found")
-
-        djvu_file = DjVuFile.load_from_yaml_file(yaml_file)
-        djvu_page = djvu_file.get_page_by_page_index(page_index)
-
-        if not djvu_page:
-            raise HTTPException(status_code=404, detail=f"Page {page_index} not found")
-
-        image_filename = Path(djvu_page.path).name
-        image_url = f"/static/djvu/{image_filename}"
-"""
-Created on 2025-02-25
-
-@author: wf
-"""
-
-import os
-from pathlib import Path
-import yaml
-from fastapi import HTTPException, FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+
 from genwiki.djvu_core import DjVuFile
+
 
 class DjVuViewer:
     """
@@ -96,39 +24,95 @@ class DjVuViewer:
 
     def __init__(self, app: FastAPI, base_path: str = None):
         if base_path is None:
-            base_path = os.getenv("GENWIKI_PATH", "/Users/wf/hd/wf-fur.bitplan.com/genwiki")
+            base_path = os.getenv(
+                "GENWIKI_PATH", "/Users/wf/hd/wf-fur.bitplan.com/genwiki"
+            )
         self.image_path = os.path.join(base_path, "djvu_images")
 
         if not DjVuViewer._static_mounted:
-            app.mount("/static/djvu", StaticFiles(directory=self.image_path), name="djvu_images")
+            app.mount(
+                "/static/djvu",
+                StaticFiles(directory=self.image_path),
+                name="djvu_images",
+            )
             DjVuViewer._static_mounted = True
+
+    def read_from_tar(self, tarball_path: Path, filename: str) -> bytes:
+        """
+        Reads a file directly from a tarball.
+
+        Args:
+            tarball_path (Path): Path to the tar archive.
+            filename (str): Name of the file inside the archive.
+
+        Returns:
+            bytes: The file contents.
+        """
+        with tarfile.open(tarball_path, "r") as tar:
+            try:
+                member = tar.getmember(filename)
+                with tar.extractfile(member) as file:
+                    return file.read()
+            except KeyError:
+                raise HTTPException(
+                    status_code=404, detail=f"File {filename} not found in tarball"
+                )
 
     def get_page(self, path: str, page_index: int) -> HTMLResponse:
         """
-        Fetches and renders an HTML page displaying the PNG image of the given DjVu file page.
+        Fetches and renders an HTML page displaying the PNG image of the given DjVu file page from a tarball.
         """
-        yaml_file = Path(self.image_path) / f"{Path(path).stem}.yaml"
+        tarball_file = Path(self.image_path) / f"{Path(path).stem}.tar"
+        yaml_file = f"{Path(path).stem}.yaml"
 
-        if not yaml_file.exists():
-            raise HTTPException(status_code=404, detail="YAML metadata not found")
+        if not tarball_file.exists():
+            raise HTTPException(status_code=404, detail="Tarball not found")
 
-        djvu_file = DjVuFile.load_from_yaml_file(yaml_file)
-        djvu_page = djvu_file.get_page_by_page_index(page_index)
+        try:
+            yaml_data = self.read_from_tar(tarball_file, yaml_file).decode("utf-8")
+            djvu_file = DjVuFile.from_yaml(yaml_data)
+        except HTTPException:
+            raise HTTPException(
+                status_code=404, detail="YAML metadata not found in tarball"
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=500, detail="Error reading YAML from tarball"
+            )
 
-        if not djvu_page:
+        if page_index < 0 or page_index >= len(djvu_file.pages):
             raise HTTPException(status_code=404, detail=f"Page {page_index} not found")
 
+        djvu_page = djvu_file.pages[page_index]
         image_filename = djvu_page.png_file
-        image_url = f"/static/djvu/{image_filename}"
-        html_markup=self.get_markup(path, page_index, image_url)
-        return HTMLResponse(content=html_markup)
+        image_url = f"/djvu/image/{Path(path).stem}/{image_filename}"
 
-        return self.get_markup(path, page_index, image_url)
+        return HTMLResponse(
+            content=self.get_markup(path, page_index, len(djvu_file.pages), image_url)
+        )
 
-    def get_markup(self, path: str, page_index: int, image_url: str) -> str:
+    def get_markup(
+        self, path: str, page_index: int, total_pages: int, image_url: str
+    ) -> str:
         """
-        Returns the HTML markup for displaying the DjVu page.
+        Returns the HTML markup for displaying the DjVu page with navigation.
+
+        Args:
+            path (str): DjVu file path.
+            page_index (int): Current page index.
+            total_pages (int): Total number of pages in the DjVu document.
+            image_url (str): URL to the PNG file.
+
+        Returns:
+            str: HTML markup.
         """
+        first_page = 0
+        last_page = total_pages - 1
+        prev_page = max(first_page, page_index - 1)
+        next_page = min(last_page, page_index + 1)
+        fast_backward = max(first_page, page_index - 10)
+        fast_forward = min(last_page, page_index + 10)
+
         return f"""
         <!DOCTYPE html>
         <html lang="en">
@@ -140,16 +124,19 @@ class DjVuViewer:
                 body {{ font-family: Arial, sans-serif; text-align: center; }}
                 img {{ max-width: 100%; height: auto; }}
                 .nav {{ margin-top: 20px; }}
-                .nav a {{ margin: 0 10px; text-decoration: none; font-weight: bold; }}
+                .nav a {{ margin: 0 10px; text-decoration: none; font-weight: bold; font-size: 24px; }}
             </style>
         </head>
         <body>
-            <h1>DjVu Viewer</h1>
-            <img src="{image_url}" alt="DjVu Page {page_index}">
             <div class="nav">
-                <a href="/djvu/{path}?page={page_index-1}">Previous</a>
-                <a href="/djvu/{path}?page={page_index+1}">Next</a>
+                <a href="/djvu/{path}?page={first_page}">⏮</a>
+                <a href="/djvu/{path}?page={fast_backward}">⏪</a>
+                <a href="/djvu/{path}?page={prev_page}">◀</a>
+                <a href="/djvu/{path}?page={next_page}">▶</a>
+                <a href="/djvu/{path}?page={fast_forward}">⏩</a>
+                <a href="/djvu/{path}?page={last_page}">⏭</a>
             </div>
+            <img src="{image_url}" alt="DjVu Page {page_index}">
         </body>
         </html>
         """

@@ -4,9 +4,10 @@ Created on 2025-02-25
 @author: wf
 """
 
-from dataclasses import dataclass, field
-from typing import Optional, List
 import os
+from dataclasses import dataclass, field
+from typing import List, Optional
+
 import numpy
 from ngwidgets.yamlable import lod_storable
 
@@ -37,20 +38,23 @@ class DjVuPage:
         Returns the PNG file name derived from the DjVu file path and page index.
         """
         prefix = os.path.splitext(os.path.basename(self.djvu_path))[0]
-        png_file= f"{prefix}_page_{self.page_index:04d}.png"
+        png_file = f"{prefix}_page_{self.page_index:04d}.png"
         return png_file
 
 
 @dataclass
 class DjVu:
     """Represents a DjVu main file e.g. bundled or indexed"""
+
     path: str
     page_count: int
     dir_pages: Optional[int] = None
 
+
 @lod_storable
 class DjVuFile(DjVu):
     """Represents a DjVu main file e.g. bundled or indexed"""
+
     pages: List[DjVuPage] = field(default_factory=list)
 
     def get_page_by_page_index(self, page_index: int) -> Optional[DjVuPage]:

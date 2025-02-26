@@ -12,15 +12,19 @@ from dataclasses import asdict
 
 from tqdm import tqdm
 
-from genwiki.djvu_core import DjVu, DjVuPage, DjVuFile
+from genwiki.djvu_core import DjVu, DjVuFile, DjVuPage
 from genwiki.djvu_manager import DjVuManager
 from genwiki.djvu_processor import DjVuProcessor, ImageJob
+
 
 class DjVuCmd:
     """
     command line handling for djvu processing/converting
     """
-    default_base_path = os.getenv("GENWIKI_PATH", "/Users/wf/hd/wf-fur.bitplan.com/genwiki")
+
+    default_base_path = os.getenv(
+        "GENWIKI_PATH", "/Users/wf/hd/wf-fur.bitplan.com/genwiki"
+    )
 
     def __init__(self, args: argparse.Namespace):
         self.args = args
@@ -31,14 +35,12 @@ class DjVuCmd:
         """
         Get the argument parser for the DjVu command
         """
-        output_path=os.path.join(cls.default_base_path,"djvu_images")
+        output_path = os.path.join(cls.default_base_path, "djvu_images")
         parser = argparse.ArgumentParser(description="Process DjVu files")  #
         parser.add_argument(
-            "-d",
-            "--debug",
-            action="store_true",
-            default=False,
-            help="enable debugging",
+            "--base-path",
+            default=cls.default_base_path,
+            help="Base path for DjVu files",
         )
         parser.add_argument(
             "--command",
@@ -47,19 +49,21 @@ class DjVuCmd:
             help="Command to execute",
         )
         parser.add_argument(
-            "--db-path", default="/tmp/genwiki_djvu.db", help="Path to the database"
+            "-d",
+            "--debug",
+            action="store_true",
+            default=False,
+            help="Enable debugging",
         )
         parser.add_argument(
-            "--base-path",
-            default=cls.default_base_path,
-            help="Base path for DjVu files",
+            "--db-path", default="/tmp/genwiki_djvu.db", help="Path to the database"
         )
         parser.add_argument(
             "-f",
             "--force",
             action="store_true",
             default=False,
-            help="force recreation",
+            help="Force recreation",
         )
         parser.add_argument(
             "--limit",
@@ -68,16 +72,23 @@ class DjVuCmd:
             help="Maximum number of pages to process",
         )
         parser.add_argument(
+            "--output-path", default=output_path, help="Path for PNG files"
+        )
+        parser.add_argument(
+            "--parallel", action="store_true", help="Use parallel processing"
+        )
+        parser.add_argument(
             "--sort",
             choices=["asc", "desc"],
             default="asc",
             help="Sort by page count (asc=smallest first)",
         )
         parser.add_argument(
-            "--output-path", default=output_path, help="Path for PNG files"
-        )
-        parser.add_argument(
-            "--parallel", action="store_true", help="Use parallel processing"
+            "-v",
+            "--verbose",
+            action="store_true",
+            default=False,
+            help="Enable debugging",
         )
         parser.add_argument(
             "--url", help="Process a single DjVu file (only valid in convert mode)"
@@ -136,7 +147,7 @@ class DjVuCmd:
         """
         dvm = DjVuManager()
         dvm_target = DjVuManager(db_path=self.args.db_path)
-        dproc = DjVuProcessor()
+        dproc = DjVuProcessor(debug=self.args.debug, verbose=self.args.verbose)
         lod = dvm.query("all_djvu")
         total = 0
         start_time = time.time()
@@ -175,48 +186,52 @@ class DjVuCmd:
         Second pass: Convert DjVu files to PNG using the database
         """
         dvm = DjVuManager(db_path=self.args.db_path)
-        dproc = DjVuProcessor()
+        dproc = DjVuProcessor(debug=self.args.debug, verbose=self.args.verbose)
         # Handle single-file mode
         if self.args.url:
             djvu_files = [self.args.url]
         else:
             lod = dvm.query("all_djvu")
             djvu_files = [r.get("path").replace("./", "/") for r in lod]
-        with tqdm(total=len(djvu_files), desc="Converting DjVu to PNG", unit="file") as pbar:
+        with tqdm(
+            total=len(djvu_files), desc="Converting DjVu to PNG", unit="file"
+        ) as pbar:
             for path in djvu_files:
                 djvu_path = self.args.base_path + path
-                djvu_file=None
-                prefix=ImageJob.get_prefix(path)
-                yaml_file=os.path.join(self.args.output_path,prefix+".yaml")
-                if os.path.isfile(yaml_file) and not self.args.force:
+                djvu_file = None
+                prefix = ImageJob.get_prefix(path)
+                tar_file = os.path.join(self.args.output_path, prefix + ".tar")
+                if os.path.isfile(tar_file) and not self.args.force:
                     continue
                 for image_job in dproc.process_parallel(
                     djvu_path,
                     relurl=path,
                     save_png=True,
-                    output_path=self.args.output_path
+                    output_path=self.args.output_path,
                 ):
                     if djvu_file is None:
-                        page_count=len(image_job.document.pages)
-                        djvu_file=DjVuFile(
-                            path=path,
-                            page_count=page_count)
-                    image=image_job.image
-                    djvu_page=DjVuPage(
+                        page_count = len(image_job.document.pages)
+                        djvu_file = DjVuFile(path=path, page_count=page_count)
+                    image = image_job.image
+                    djvu_page = DjVuPage(
                         path=image.path,
                         page_index=image.page_index,
                         valid=image.valid,
                         width=image.width,
                         height=image.height,
                         dpi=image.dpi,
-                        djvu_path=image.djvu_path
+                        djvu_path=image.djvu_path,
                     )
                     djvu_file.pages.append(djvu_page)
-                    prefix=image_job.prefix
+                    prefix = image_job.prefix
                     pass
                 pbar.update(1)
+                yaml_file = os.path.join(dproc.output_path, prefix + ".yaml")
                 djvu_file.save_to_yaml_file(yaml_file)
 
+                # Ensure tarball is created after YAML is saved
+                if dproc.tar:
+                    dproc.wrap_as_tarball(djvu_path)
 
 def main():
     """

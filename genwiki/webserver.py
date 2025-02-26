@@ -14,17 +14,18 @@ from ngwidgets.users import Users
 from ngwidgets.webserver import WebserverConfig
 from ngwidgets.widgets import Link
 from nicegui import Client, app, ui
-from starlette.responses import RedirectResponse, HTMLResponse
+from starlette.responses import HTMLResponse, RedirectResponse
 from wd.wditem_search import WikidataItemSearch
 
 from genwiki.convert import ParquetAdressbokToSql
+from genwiki.djvu_viewer import DjVuViewer
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.query_view import QueryView
 from genwiki.version import Version
 from genwiki.wiki import Wiki
 from genwiki.wikidata_view import WikidataItemView
-from genwiki.djvu_viewer import DjVuViewer
+
 
 class GenWikiWebServer(InputWebserver):
     """WebServer class that manages the server and handles GenWiki operations."""
@@ -92,11 +93,11 @@ class GenWikiWebServer(InputWebserver):
             return RedirectResponse("/")
 
         @app.get("/djvu/{path:path}")
-        def display_djvu(path: str, page: int = 1)->HTMLResponse:
+        def display_djvu(path: str, page: int = 1) -> HTMLResponse:
             """
             Fetches and displays a specific PNG page of a DjVu file.
             """
-            html_response=self.djvu_viewer.get_page(path, page)
+            html_response = self.djvu_viewer.get_page(path, page)
             return html_response
 
     def configure_run(self):
