@@ -88,15 +88,11 @@ class DjVuViewer:
             raise HTTPException(status_code=404, detail="Tarball not found")
 
         try:
-            yaml_data = self.read_from_tar(tarball_file, yaml_file).decode("utf-8")
+            yaml_data = Tarball.read_from_tar(tarball_file, yaml_file).decode("utf-8")
             djvu_file = DjVuFile.from_yaml(yaml_data)
-        except HTTPException:
-            raise HTTPException(
-                status_code=404, detail="YAML metadata not found in tarball"
-            )
         except Exception:
             raise HTTPException(
-                status_code=500, detail="Error reading YAML from tarball"
+                status_code=500, detail=f"Error reading {yaml_file} from tarball"
             )
 
         page_count = len(djvu_file.pages)
