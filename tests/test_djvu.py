@@ -81,6 +81,8 @@ class TestDjVu(Basetest):
         """
         test all djvu pages
         """
+        if self.inPublicCI():
+            return
         args = argparse.Namespace(
             command="catalog",
             db_path="/tmp/test_genwiki_djvu.db",
