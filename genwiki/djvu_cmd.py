@@ -323,8 +323,7 @@ class DjVuCmd:
                     error_count = len(self.errors)
                     status_msg = "✅" if error_count == 0 else f"❌ {error_count}"
                     _,mem_usage = self.dproc.check_memory_usage()
-
-                    pbar.set_postfix_str(f"{mem_usage:.2f} GB {status_msg}")
+                    pbar.set_postfix_str(f"{mem_usage:.2f} GB {page_count} pages {status_msg}")
                     pbar.update(1)
         self.report_errors()
 
