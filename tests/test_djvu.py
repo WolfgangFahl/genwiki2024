@@ -124,11 +124,14 @@ class TestDjVu(Basetest):
             debug=True,
             verbose=False,
             serial=False,
+            batch_size=100,
+            limit_gb=16,
+            max_workers=None
         )
         djvu_cmd = DjVuCmd(args=args)
         djvu_cmd.handle_args()
         expected_errors = 0 if self.local else 2
-        self.assertTrue(djvu_cmd.errors <= expected_errors)
+        self.assertTrue(len(djvu_cmd.errors) <= expected_errors)
 
     def test_convert(self):
         """
@@ -143,8 +146,8 @@ class TestDjVu(Basetest):
             sort="asc",
             output_path=self.output_dir,
             parallel=True,
-            url="/images/2/2f/Sorau-AB-1913.djvu",
-            # url="/images/9/96/vz1890-neuenhausen-zb04.djvu",
+            #url="/images/2/2f/Sorau-AB-1913.djvu",
+            url="/images/9/96/vz1890-neuenhausen-zb04.djvu",
             debug=True,
             serial=False,
             batch_size=100,

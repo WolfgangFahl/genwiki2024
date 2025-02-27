@@ -407,8 +407,6 @@ class DjVuProcessor:
             # Store exception but don't raise
             image_job.error = e
         finally:
-            # Explicitly release the pagejob reference and force garbage collection
-            image_job.pagejob = None
             gc.collect()
         return image_job
 
@@ -440,7 +438,7 @@ class DjVuProcessor:
                 height=height,
                 dpi=image_job.pagejob.dpi,
                 iso_date=image_job.iso_date,
-                size=image_job.filesize,
+                filesize=image_job.filesize,
                 page_index=image_job.page_index,
                 djvu_path=image_job.relurl,
                 path=image_job.filename,
