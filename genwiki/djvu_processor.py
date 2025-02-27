@@ -214,13 +214,17 @@ class DjVuProcessor:
         if isinstance(message, djvu.decode.ErrorMessage):
             raise Exception(message)
 
-    def save_image_to_png(self, image_job: ImageJob, output_path: str):
+    def save_image_to_png(self,
+        image_job: ImageJob,
+        output_path: str,
+        free_buffer:bool=True):
         """
         Saves the rendered DjVu page as a PNG file.
 
         Args:
             image_job (ImageJob): The processed image job containing buffer data
             output_path (str): The path where the PNG file should be saved.
+            free_buffer(bool): if True free the output buffer
         """
         if not image_job.image or image_job.image.buffer is None:
             raise ValueError("Image buffer not available in ImageJob")
@@ -230,6 +234,8 @@ class DjVuProcessor:
             image_job.image.buffer, cairo.FORMAT_ARGB32, width, height
         )
         surface.write_to_png(output_path)
+        if free_buffer:
+            image_job.image.buffer = None
 
     def save_as_png(self, image_job: ImageJob, output_dir: str) -> str:
         """
@@ -248,8 +254,8 @@ class DjVuProcessor:
         image_job.log("save png start")
         # Save PNG
         self.save_image_to_png(image_job, output_path)
-        return output_path
         image_job.log("save png done")
+        return output_path
 
     def render_pagejob_to_buffer(self, image_job: ImageJob, mode: int) -> numpy.ndarray:
         """
@@ -467,6 +473,7 @@ class DjVuProcessor:
         mode: int = djvu.decode.RENDER_COLOR,
         wait: bool = True,
         save_png: bool = False,
+        free_buffer: bool=True,
         output_path: str = None,
     ) -> Generator[ImageJob, None, None]:
         """
@@ -488,7 +495,10 @@ class DjVuProcessor:
 
             # Step 4: Optionally save to PNG
             if save_png:
-                self.save_as_png(rendered_job, self.output_path)
+                self.save_as_png(rendered_job, self.output_path,free_buffer=free_buffer)
+            else:
+                if rendered_job.image and free_buffer:
+                    rendered_job.image.buffer = None
 
             yield rendered_job
 
@@ -498,6 +508,7 @@ class DjVuProcessor:
         mode: int = djvu.decode.RENDER_COLOR,
         wait: bool = True,
         save_png: bool = False,
+        free_buffer: bool=True
     ) -> Generator[ImageJob, None, None]:
         """
         Process a batch of image jobs with parallel execution.
@@ -527,6 +538,8 @@ class DjVuProcessor:
                 # Optionally save to PNG in parallel
                 if save_png:
                     executor.submit(self.save_as_png, rendered_job, self.output_path)
+                if rendered_job.image and free_buffer:
+                    rendered_job.image.buffer = None
 
                 yield rendered_job
 
