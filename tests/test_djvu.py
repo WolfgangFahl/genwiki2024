@@ -96,6 +96,9 @@ class TestDjVu(Basetest):
             force=False,
             output_path=self.output_dir,
             parallel=False,
+            batch_size=100,
+            limit_gb=16,
+            max_workers=None,
             debug=True,
             verbose=False,
             serial=False,
@@ -144,6 +147,9 @@ class TestDjVu(Basetest):
             # url="/images/9/96/vz1890-neuenhausen-zb04.djvu",
             debug=True,
             serial=False,
+            batch_size=100,
+            limit_gb=16,
+            max_workers=None,
             verbose=True,
         )
         djvu_cmd = DjVuCmd(args=args)

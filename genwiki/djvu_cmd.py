@@ -275,7 +275,7 @@ class DjVuCmd:
             self.dproc.process if self.args.serial else self.dproc.process_parallel
         )
         with tqdm(
-            total=len(djvu_files), desc="Converting DjVu to PNG", unit="file"
+            total=len(djvu_files), desc="DjVu", unit="file"
         ) as pbar:
             for path in djvu_files:
                 try:
@@ -322,7 +322,9 @@ class DjVuCmd:
                 finally:
                     error_count = len(self.errors)
                     status_msg = "✅" if error_count == 0 else f"❌ {error_count}"
-                    pbar.set_postfix_str(status_msg)
+                    _,mem_usage = self.dproc.check_memory_usage()
+
+                    pbar.set_postfix_str(f"{mem_usage:.2f} GB {status_msg}")
                     pbar.update(1)
         self.report_errors()
 
