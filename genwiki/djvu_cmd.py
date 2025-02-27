@@ -277,6 +277,7 @@ class DjVuCmd:
         with tqdm(
             total=len(djvu_files), desc="DjVu", unit="file"
         ) as pbar:
+            page_count=0
             for path in djvu_files:
                 try:
                     djvu_path = self.args.base_path + path
