@@ -3,8 +3,6 @@ Created on 2025-02-25
 
 @author: wf
 """
-
-import io
 import mimetypes
 import os
 from pathlib import Path

@@ -7,6 +7,9 @@ import datetime
 import gc
 import logging
 import os
+import sys
+if sys.platform != 'win32':
+    import resource
 import shutil
 import tarfile
 import tempfile
@@ -153,6 +156,7 @@ class DjVuProcessor:
         verbose: bool = False,
         debug: bool = False,
         batch_size: int = 100,
+        limit_gb: int = 16,
         max_workers: int = None
     ):
         """
@@ -163,12 +167,14 @@ class DjVuProcessor:
             verbose (bool, optional): Enable verbose output (default: False).
             debug (bool, optional): Enable debug logging (default: False).
             batch_size (int, optional): Number of pages to process in each batch (default: 100).
+            limit_gb(int): maximum amount of memory to be used in GB
             max_workers (int, optional): Maximum number of worker threads (default: min(CPU count, 8)).
         """
         self.tar = tar
         self.verbose = verbose
         self.debug = debug
         self.batch_size = batch_size
+        self.limit_gb = limit_gb
 
         # Set a reasonable default for max_workers if not specified
         if max_workers is None:
@@ -213,6 +219,23 @@ class DjVuProcessor:
     def handle_message(self, message):
         if isinstance(message, djvu.decode.ErrorMessage):
             raise Exception(message)
+
+    def check_memory_usage(self):
+        """Check if memory usage exceeds the given limit in GB"""
+        if sys.platform == 'win32':
+            # On Windows, we'll just do a GC and return False (no check)
+            gc.collect()
+            return False, 0
+        else:
+            # Get current memory usage in bytes
+            usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+            # Convert to GB (note: on some systems this is KB, others it's bytes)
+            if sys.platform == 'darwin':  # macOS reports in bytes
+                usage_gb = usage / (1024 * 1024 * 1024)
+            else:  # Linux reports in KB
+                usage_gb = usage / (1024 * 1024)
+
+            return usage_gb >= self.limit_gb, usage_gb
 
     def save_image_to_png(self,
         image_job: ImageJob,
@@ -532,6 +555,11 @@ class DjVuProcessor:
 
             # Process rendered jobs as they become available
             for future in render_futures:
+                # check memory before processing
+                exceeds_limit, usage = self.check_memory_usage()
+                if exceeds_limit:
+                    msg=f"Memory usage {usage} GB exceeds {self.limit_gb} GB limit"
+                    raise Exception(msg)
                 rendered_job = future.result()
                 self.profiler.time(f" process page {rendered_job.page_index:4d}")
 

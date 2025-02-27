@@ -83,10 +83,16 @@ class DjVuCmd:
             help="Maximum number of pages to process",
         )
         parser.add_argument(
+            "--limit_gb",
+            type=int,
+            default=16,
+            help="memory limit in GB [default: %(default)s]",
+        )
+        parser.add_argument(
             "--max-errors",
             type=float,
             default=1.0,
-            help="Maximum allowed error percentage before skipping database update",
+            help="Maximum allowed error percentage before skipping database update [default: %(default)s]",
         )
         # In get_argparser method, add this argument
         parser.add_argument(
@@ -131,6 +137,7 @@ class DjVuCmd:
             debug=self.args.debug,
             verbose=self.args.verbose,
             batch_size=self.args.batch_size,
+            limit_gb=self.args.limit_gb,
             max_workers=self.args.max_workers)
         self.profiler = Profiler(self.args.command)
         if self.args.command == "catalog":
