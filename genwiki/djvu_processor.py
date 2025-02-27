@@ -257,6 +257,9 @@ class DjVuProcessor:
             image_job.image.buffer, cairo.FORMAT_ARGB32, width, height
         )
         surface.write_to_png(output_path)
+        surface.flush()
+        surface.finish()
+        surface = None  # Explicitly free Cairo surface
         if free_buffer:
             image_job.image.buffer = None
 
@@ -403,6 +406,10 @@ class DjVuProcessor:
         except Exception as e:
             # Store exception but don't raise
             image_job.error = e
+        finally:
+            # Explicitly release the pagejob reference and force garbage collection
+            image_job.pagejob = None
+            gc.collect()
         return image_job
 
     def render_page(
