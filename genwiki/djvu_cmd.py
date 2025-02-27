@@ -48,6 +48,12 @@ class DjVuCmd:
             help="Base path for DjVu files",
         )
         parser.add_argument(
+            "--batch-size",
+            type=int,
+            default=100,
+            help="Number of pages to process in each batch (default: 100)",
+        )
+        parser.add_argument(
             "--command",
             choices=["catalog", "convert", "thumbnails", "dbupdate"],
             required=True,
@@ -82,6 +88,13 @@ class DjVuCmd:
             default=1.0,
             help="Maximum allowed error percentage before skipping database update",
         )
+        # In get_argparser method, add this argument
+        parser.add_argument(
+            "--max-workers",
+            type=int,
+            default=None,
+            help="Maximum number of worker threads (default: CPU count * 4)",
+        )
         parser.add_argument(
             "--output-path", default=output_path, help="Path for PNG files"
         )
@@ -114,7 +127,11 @@ class DjVuCmd:
         handle the command line arguments
         """
         self.dvm = DjVuManager(db_path=self.args.db_path)
-        self.dproc = DjVuProcessor(debug=self.args.debug, verbose=self.args.verbose)
+        self.dproc = DjVuProcessor(
+            debug=self.args.debug,
+            verbose=self.args.verbose,
+            batch_size=self.args.batch_size,
+            max_workers=self.args.max_workers)
         self.profiler = Profiler(self.args.command)
         if self.args.command == "catalog":
             self.catalog_djvu()
@@ -210,7 +227,14 @@ class DjVuCmd:
                 bundled = document.type == 2
                 # if debug:
                 #    print(f"    {page_index:4d}/{page_count:4d}:{filename}")
-            djvu = DjVu(path=path, page_count=page_count, bundled=bundled)
+            iso_date, filesize = ImageJob.get_fileinfo(djvu_path)
+            djvu = DjVu(
+                path=path,
+                page_count=page_count,
+                bundled=bundled,
+                iso_date=iso_date,
+                filesize=filesize
+            )
             djvu_row = asdict(djvu)
             djvu_lod.append(djvu_row)
             total += page_index

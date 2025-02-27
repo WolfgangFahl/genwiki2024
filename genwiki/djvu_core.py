@@ -19,11 +19,14 @@ class DjVuPage:
     path: str
     page_index: int
     valid: bool = False
+    iso_date: Optional[str]=None
+    filesize: Optional[int]=None
     width: Optional[int] = None
     height: Optional[int] = None
     dpi: Optional[int] = None
     djvu_path: Optional[str] = None
     page_key: Optional[str] = None
+    error_msg: Optional[str] = None
 
     def __post_init__(self):
         """Post-initialization logic for DjVuPage."""
@@ -49,6 +52,8 @@ class DjVu:
     path: str
     page_count: int
     bundled: bool = False
+    iso_date: Optional[str]=None
+    filesize: Optional[int]=None
     dir_pages: Optional[int] = None
 
 

@@ -3,11 +3,11 @@ Created on 2025-02-25
 
 @author: wf
 """
-
+import datetime
+import gc
 import logging
 import os
 import shutil
-import sys
 import tarfile
 import tempfile
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -36,9 +36,12 @@ class ImageJob:
     relurl: str  # Added relurl for context
     pagejob: Optional[djvu.decode.PageJob] = field(default=None)
     image: Optional[DjVuImage] = field(default=None)
+    # flags
     verbose: bool = False
     debug: bool = False
-    # keep track of any errors
+    # fields for database records
+    iso_date: Optional[str] = field(default=None)
+    filesize: Optional[int] = field(default=None)
     error: Optional[Exception] = field(default=None)
 
     def __post_init__(self):
@@ -58,6 +61,30 @@ class ImageJob:
         if self.pagejob:
             return self.pagejob.size
         return (0, 0)
+
+    @staticmethod
+    def get_fileinfo(filepath:str):
+        filesize=None
+        iso_date=None
+        if os.path.exists(filepath):
+            # Set file size in bytes
+            filesize = os.path.getsize(filepath)
+
+            # Get file modification time and convert to UTC ISO format with second precision
+            mtime = os.path.getmtime(filepath)
+            datetime_obj = datetime.datetime.fromtimestamp(mtime, tz=datetime.timezone.utc)
+            iso_date = datetime_obj.isoformat(timespec='seconds')
+        return iso_date,filesize
+
+    def set_fileinfo(self,filepath:str):
+        """
+        Set filesize and ISO date with sec prec for
+        the given filepath
+
+        Args:
+            filepath (str): Path to the file
+        """
+        self.iso_date,self.filesize=self.get_fileinfo(filepath)
 
     @staticmethod
     def get_prefix(relurl: str):
@@ -120,7 +147,14 @@ class DjVuProcessor:
     with Copyright © 2010-2021 Jakub Wilk <jwilk@jwilk.net> and GNU General Public License version 2
     """
 
-    def __init__(self, tar: bool = True, verbose: bool = False, debug: bool = False):
+    def __init__(
+        self,
+        tar: bool = True,
+        verbose: bool = False,
+        debug: bool = False,
+        batch_size: int = 100,
+        max_workers: int = None
+    ):
         """
         Initializes the DjVuProcessor.
 
@@ -128,10 +162,19 @@ class DjVuProcessor:
             tar(bool,optional): Enable tarball creation (default: True).
             verbose (bool, optional): Enable verbose output (default: False).
             debug (bool, optional): Enable debug logging (default: False).
+            batch_size (int, optional): Number of pages to process in each batch (default: 100).
+            max_workers (int, optional): Maximum number of worker threads (default: min(CPU count, 8)).
         """
         self.tar = tar
         self.verbose = verbose
         self.debug = debug
+        self.batch_size = batch_size
+
+        # Set a reasonable default for max_workers if not specified
+        if max_workers is None:
+            self.max_workers = os.cpu_count() * 4
+        else:
+            self.max_workers = max_workers
         self.context = DjVuContext()  # delegate context instance
         self.context.message_handler = self.handle_message
         self.cairo_pixel_format = cairo.FORMAT_ARGB32
@@ -316,9 +359,14 @@ class DjVuProcessor:
             if image_job.document.type != 2:
                 # we need to check the file is external
                 self.ensure_file_exists(filepath)
-                file_size = os.path.getsize(filepath)
-                file_size_msg = f"{filepath}:{file_size} bytes "
-            image_job.log(f" page.decode {file_size_msg}start")
+                image_job.set_fileinfo(filepath)
+                file_size_msg = f"{filepath}:{image_job.filesize} bytes "
+            else:
+                # For bundled files, get the container metadata
+                container_path = image_job.djvu_path
+                if os.path.exists(container_path):
+                    image_job.set_fileinfo(container_path)
+            image_job.log(f" page.decode {file_size_msg} start")
             pagejob = image_job.page.decode(wait=wait)
             image_job.log(" page.decode done")
             # Update the image job with the decoded page job
@@ -355,6 +403,8 @@ class DjVuProcessor:
                 width=width,
                 height=height,
                 dpi=image_job.pagejob.dpi,
+                iso_date=image_job.iso_date,
+                size=image_job.filesize,
                 page_index=image_job.page_index,
                 djvu_path=image_job.relurl,
                 path=image_job.filename,
@@ -442,6 +492,48 @@ class DjVuProcessor:
 
             yield rendered_job
 
+    def process_batch(
+        self,
+        image_jobs: List[ImageJob],
+        mode: int = djvu.decode.RENDER_COLOR,
+        wait: bool = True,
+        save_png: bool = False,
+    ) -> Generator[ImageJob, None, None]:
+        """
+        Process a batch of image jobs with parallel execution.
+        To be called from within process_parallel.
+        """
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            # Step 2: Decode all pages in parallel
+            decode_futures = [
+                executor.submit(self.decode_page, job, wait) for job in image_jobs
+            ]
+
+            # Step 3 & 4: Render and save all pages in parallel
+            render_futures: List[Future] = []
+
+            # Submit rendering jobs as decoding completes
+            for future in decode_futures:
+                decoded_job = future.result()
+                render_futures.append(
+                    executor.submit(self.render_page, decoded_job, mode)
+                )
+
+            # Process rendered jobs as they become available
+            for future in render_futures:
+                rendered_job = future.result()
+                self.profiler.time(f" process page {rendered_job.page_index:4d}")
+
+                # Optionally save to PNG in parallel
+                if save_png:
+                    executor.submit(self.save_as_png, rendered_job, self.output_path)
+
+                yield rendered_job
+
+        # Clean up memory after processing the batch
+        gc.collect()
+        self.profiler.time(" memory cleaned after batch")
+
     def process_parallel(
         self,
         djvu_path: str,
@@ -469,33 +561,18 @@ class DjVuProcessor:
 
         # Step 1: Create image jobs for all pages
         image_jobs = self.create_image_jobs(djvu_path, relurl)
-        self.profiler.time(" create image jobs")
+        total_pages = len(image_jobs)
+        self.profiler.time(f" create {total_pages} image jobs")
 
-        # Step 2: Decode all pages in parallel
-        with ThreadPoolExecutor() as executor:
-            decode_futures = [
-                executor.submit(self.decode_page, job, wait) for job in image_jobs
-            ]
+        # Process Steps 2 to 5 in batches
+        for batch_start in range(0, total_pages, self.batch_size):
+            batch_end = min(batch_start + self.batch_size, total_pages)
+            batch = image_jobs[batch_start:batch_end]
 
-        # Step 3 & 4: Render and save all pages in parallel
-        max_workers = os.cpu_count() * 4
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            render_futures: List[Future] = []
+            self.profiler.time(f" processing batch {batch_start//self.batch_size + 1}: pages {batch_start+1}-{batch_end}")
 
-            # Submit rendering jobs as decoding completes
-            for future in decode_futures:
-                decoded_job = future.result()
-                render_futures.append(
-                    executor.submit(self.render_page, decoded_job, mode)
-                )
-
-            # Process rendered jobs as they become available
-            for future in render_futures:
-                rendered_job = future.result()
-                self.profiler.time(f" process page {rendered_job.page_index:4d}")
-
-                # Optionally save to PNG in parallel (submit to executor)
-                if save_png:
-                    executor.submit(self.save_as_png, rendered_job, self.output_path)
-
+            # Process this batch
+            for rendered_job in self.process_batch(
+                batch, mode, wait, save_png
+            ):
                 yield rendered_job
