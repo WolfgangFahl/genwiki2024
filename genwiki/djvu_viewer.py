@@ -172,8 +172,7 @@ class DjVuViewer:
                 <a href="/djvu/{path}?page={first_page}" title="First Page (1/{total_pages})">⏮</a>
                 <a href="/djvu/{path}?page={fast_backward}" title="Fast Backward (Jump -10 Pages)">⏪</a>
                 <a href="/djvu/{path}?page={prev_page}" title="Previous Page">⏴</a>
-                <span>{page_index} / {total_pages}</span>
-                {select_markup}
+                <span>{select_markup} / {total_pages}</span>
                 <a href="/djvu/{path}?page={next_page}" title="Next Page">⏵</a>
                 <a href="/djvu/{path}?page={fast_forward}" title="Fast Forward (Jump +10 Pages)">⏩</a>
                 <a href="/djvu/{path}?page={last_page}" title="Last Page ({total_pages}/{total_pages})">⏭</a>
