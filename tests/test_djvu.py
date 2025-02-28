@@ -37,6 +37,8 @@ class TestDjVu(Basetest):
             self.output_dir = "/tmp/genwiki/djvu_images"
             self.limit = 50
         os.makedirs(self.output_dir, exist_ok=True)
+        self.db_path = os.path.expanduser("~/.solutions/genwiki2024/storage/genwiki_djvu.db")
+
 
     def get_djvu(self, relurl):
         """
@@ -52,6 +54,33 @@ class TestDjVu(Basetest):
                 return None
         self.assertTrue(os.path.isfile(djvu_path), djvu_path)
         return djvu_path
+
+    def test_queries(self):
+        """
+        test all queries
+        """
+        if self.inPublicCI():
+            return
+        if not os.path.exists(self.db_path):
+            return
+        pass
+        query_params={
+            "all_pages":{"limit":50},
+            "pages_of_djvu": {"djvu_path":"/images/a/a1/Treuen-Vogtland-AB-1905.djvu"}
+        }
+        djvm=DjVuManager(db_path=self.db_path)
+        djvm.sql_db.debug=self.debug
+        # Get all available queries from the MultiLanguageQueryManager
+        for query_name in djvm.mlqm.query_names:
+            if self.debug:
+                print(query_name)
+            param_dict=query_params.get(query_name,{})
+            if param_dict:
+                pass
+            lod=djvm.query(query_name,param_dict=param_dict)
+            if self.debug:
+                print(f"{len(lod)} records")
+
 
     def test_djvu_processor(self):
         """
@@ -83,12 +112,11 @@ class TestDjVu(Basetest):
         """
         if self.inPublicCI():
             return
-        db_path = os.path.expanduser("~/.solutions/genwiki2024/storage/genwiki_djvu.db")
-        if not os.path.exists(db_path):
+        if not os.path.exists(self.db_path):
             return
         args = argparse.Namespace(
             command="dbupdate",
-            db_path=db_path,
+            db_path=self.db_path,
             base_path=DjVuCmd.default_base_path,
             limit=10000000,
             url=None,

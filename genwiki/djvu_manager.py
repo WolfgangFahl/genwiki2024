@@ -26,9 +26,12 @@ class DjVuManager:
             db_path = os.path.join(examples_path, "djvu_data.db")
         self.sql_db = SQLDB(db_path, check_same_thread=False)
 
-    def query(self, query_name: str):
+    def query(self, query_name: str,param_dict=None):
+        if param_dict is None:
+            param_dict={}
         query = self.mlqm.query4Name(query_name)
-        lod = self.sql_db.query(query.query)
+        sql_query = query.params.apply_parameters_with_check(param_dict)
+        lod = self.sql_db.query(sql_query,params=param_dict)
         return lod
 
     def store(

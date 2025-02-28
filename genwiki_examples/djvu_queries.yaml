@@ -1,30 +1,39 @@
 #
 # SQL queries for DjVu files of
 # Genealogie Wiki https://wiki.genealogy.net
-# WF 2024-04-30
+# WF 2025-02-28
 #
-'total':
-   param_list:
 
-   sql: |
-      SELECT
-         count(*) as files,
-         sum(page_count) as pages
-      FROM djvu
-'dpis':
-    param_list:
-    sql: |
-      SELECT count(*),dpi
-      FROM image
-      GROUP BY dpi
-'page_count':
-    param_list:
-    sql: |
-      SELECT path,dir_pages,page_count,page_count-dir_pages as diff
-      FROM "djvu"
-      WHERE dir_pages!=page_count
-      ORDER by page_count desc
-# Get all DjVu records
+
+# Gesamtanzahl der Dateien und Seiten ermitteln
+'total':
+  param_list:
+  sql: |
+    SELECT
+      count(*) as dateien,
+      sum(page_count) as seiten
+    FROM djvu
+
+# Bilder nach DPI zählen
+'dpi':
+  param_list:
+  sql: |
+    SELECT count(*), dpi
+    FROM Page
+    GROUP BY dpi
+
+# Seitenanzahl-Informationen
+'page_and_size':
+  param_list:
+  sql: |
+    SELECT
+      path,
+      page_count,
+      filesize
+    FROM djvu
+    ORDER BY page_count DESC,filesize DESC
+
+# Alle DjVu-Datensätze abrufen
 'all_djvu':
   param_list:
   sql: |
@@ -33,8 +42,8 @@
     FROM djvu
     ORDER BY page_count
 
-# Get all Image records with a configurable limit
-'all_images':
+# Alle Bild-Datensätze mit konfigurierbarem Limit abrufen
+'all_pages':
   param_list:
     - name: limit
       type: int
@@ -42,6 +51,32 @@
   sql: |
     SELECT
       *
-    FROM image
+    FROM page
     ORDER BY path
     LIMIT {{ limit }}
+
+# Seiten nach DjVu-Pfad abrufen
+'pages_of_djvu':
+  param_list:
+    - name: djvu_path
+      type: text
+      default_value: /images//a/a1/Treuen-Vogtland-AB-1905.djvu
+  sql: |
+    SELECT
+      *
+    FROM page
+    WHERE djvu_path = "{{ djvu_path }}"
+    ORDER BY page_index
+
+# Gültige und ungültige Seiten pro DjVu zählen
+'djvu_by_valid_pages':
+  param_list:
+  sql: |
+    SELECT
+      djvu_path,
+      COUNT(*) as total_pages,
+      SUM(CASE WHEN valid THEN 1 ELSE 0 END) as valid_pages,
+      SUM(CASE WHEN NOT valid THEN 1 ELSE 0 END) as invalid_pages
+    FROM page
+    GROUP BY djvu_path
+    ORDER BY valid_pages DESC
