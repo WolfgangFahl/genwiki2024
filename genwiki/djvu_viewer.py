@@ -105,6 +105,31 @@ class DjVuViewer:
             content=self.get_markup(path, page_index, len(djvu_file.pages), image_url)
         )
 
+    def create_page_dropdown(self,path, current_page, total_pages):
+        """
+        Create an HTML select dropdown for page navigation
+
+        Args:
+            path: Path of the DjVu file
+            current_page: Currently displayed page number
+            total_pages: Total number of pages in the document
+
+        Returns:
+            HTML select element with page options
+        """
+        options = []
+        for page_num in range(1, total_pages + 1):
+            selected = " selected" if page_num == current_page else ""
+            options.append(f'<option value="{page_num}"{selected}>{page_num}</option>')
+
+        options_html = "\n".join(options)
+
+        select_html = f'''<select onchange="window.location.href='/djvu/{path}?page='+this.value">
+        {options_html}
+    </select>'''
+
+        return select_html
+
     def get_markup(
         self, path: str, page_index: int, total_pages: int, image_url: str
     ) -> str:
@@ -126,6 +151,7 @@ class DjVuViewer:
         next_page = min(last_page, page_index + 1)
         fast_backward = max(first_page, page_index - 10)
         fast_forward = min(last_page, page_index + 10)
+        select_markup=self.create_page_dropdown(path, page_index, total_pages)
 
         markup = f"""
         <!DOCTYPE html>
@@ -147,6 +173,7 @@ class DjVuViewer:
                 <a href="/djvu/{path}?page={fast_backward}" title="Fast Backward (Jump -10 Pages)">⏪</a>
                 <a href="/djvu/{path}?page={prev_page}" title="Previous Page">⏴</a>
                 <span>{page_index} / {total_pages}</span>
+                {select_markup}
                 <a href="/djvu/{path}?page={next_page}" title="Next Page">⏵</a>
                 <a href="/djvu/{path}?page={fast_forward}" title="Fast Forward (Jump +10 Pages)">⏩</a>
                 <a href="/djvu/{path}?page={last_page}" title="Last Page ({total_pages}/{total_pages})">⏭</a>
