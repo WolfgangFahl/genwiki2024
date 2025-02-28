@@ -240,14 +240,14 @@ class DjVuProcessor:
     def save_image_to_png(self,
         image_job: ImageJob,
         output_path: str,
-        free_buffer:bool=True):
+        free_buffer:bool=False):
         """
         Saves the rendered DjVu page as a PNG file.
 
         Args:
             image_job (ImageJob): The processed image job containing buffer data
             output_path (str): The path where the PNG file should be saved.
-            free_buffer(bool): if True free the output buffer
+            free_buffer(bool): if True free the image buffer
         """
         if not image_job.image or image_job.image.buffer is None:
             raise ValueError("Image buffer not available in ImageJob")
@@ -261,15 +261,16 @@ class DjVuProcessor:
         surface.finish()
         surface = None  # Explicitly free Cairo surface
         if free_buffer:
-            image_job.image.buffer = None
+            image_job.image.buffer=None
 
-    def save_as_png(self, image_job: ImageJob, output_dir: str) -> str:
+    def save_as_png(self, image_job: ImageJob, output_dir: str,free_buffer:bool) -> str:
         """
         Save an image job as PNG in the specified directory
 
         Args:
             image_job: The image job to save
             output_dir: Directory to save to
+            free_buffer(bool): if True free the buffer
 
         Returns:
             Path to the saved PNG file
@@ -279,7 +280,7 @@ class DjVuProcessor:
         )
         image_job.log("save png start")
         # Save PNG
-        self.save_image_to_png(image_job, output_path)
+        self.save_image_to_png(image_job, output_path,free_buffer)
         image_job.log("save png done")
         return output_path
 
@@ -523,10 +524,7 @@ class DjVuProcessor:
 
             # Step 4: Optionally save to PNG
             if save_png:
-                self.save_as_png(rendered_job, self.output_path,free_buffer=free_buffer)
-            else:
-                if rendered_job.image and free_buffer:
-                    rendered_job.image.buffer = None
+                self.save_as_png(rendered_job, self.output_path,free_buffer)
 
             yield rendered_job
 
@@ -570,9 +568,7 @@ class DjVuProcessor:
 
                 # Optionally save to PNG in parallel
                 if save_png:
-                    executor.submit(self.save_as_png, rendered_job, self.output_path)
-                if rendered_job.image and free_buffer:
-                    rendered_job.image.buffer = None
+                    executor.submit(self.save_as_png, rendered_job, self.output_path,free_buffer)
 
                 yield rendered_job
 
@@ -619,6 +615,6 @@ class DjVuProcessor:
 
             # Process this batch
             for rendered_job in self.process_batch(
-                batch, mode, wait, save_png
+                batch, mode, wait, save_png=save_png
             ):
                 yield rendered_job
