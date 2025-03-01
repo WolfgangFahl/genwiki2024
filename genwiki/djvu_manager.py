@@ -11,6 +11,7 @@ from ngwidgets.profiler import Profiler
 
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
+from setuptools.package_index import REL
 
 
 class DjVuManager:
@@ -63,5 +64,6 @@ class DjVuManager:
             entityInfo=self.entity_info,
             executeMany=True,
             fixNone=True,
+            replace=True # avoid UNIQUE constraint errors
         )
         profiler.time()

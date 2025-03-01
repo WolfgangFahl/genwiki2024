@@ -10,8 +10,8 @@
   param_list:
   sql: |
     SELECT
-      count(*) as dateien,
-      sum(page_count) as seiten
+      count(*) as files,
+      sum(page_count) as pages
     FROM djvu
 
 # Bilder nach DPI zählen
