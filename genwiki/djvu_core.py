@@ -54,6 +54,8 @@ class DjVu:
     bundled: bool = False
     iso_date: Optional[str]=None
     filesize: Optional[int]=None
+    tar_filesize: Optional[int]=None
+    tar_iso_date: Optional[str]=None
     dir_pages: Optional[int] = None
 
 

@@ -11,7 +11,7 @@ import time
 import traceback
 from dataclasses import asdict
 from typing import List
-
+from lodstorage.lod import LOD
 from ngwidgets.profiler import Profiler
 from tqdm import tqdm
 
@@ -256,20 +256,24 @@ class DjVuCmd:
         self.dvm.store(lod=djvu_lod, entity_name="DjVu", primary_key="path")
         self.report_errors()
 
-    def get_djvu_files(self):
+    def get_djvu_lod(self):
+        lod = self.dvm.query("all_djvu")
+        return lod
+
+    def get_djvu_files(self,djvu_lod):
         # Handle single-file mode
         if self.args.url:
             djvu_files = [self.args.url]
         else:
-            lod = self.dvm.query("all_djvu")
-            djvu_files = [r.get("path").replace("./", "/") for r in lod]
+            djvu_files = [r.get("path").replace("./", "/") for r in djvu_lod]
         return djvu_files
 
     def convert_djvu(self):
         """
         Second pass: Convert DjVu files to PNG using the database
         """
-        djvu_files = self.get_djvu_files()
+        djvu_lod= self.get_djvu_lod()
+        djvu_files = self.get_djvu_files(djvu_lod)
         # select the process function parallel or serial
         process_func = (
             self.dproc.process if self.args.serial else self.dproc.process_parallel
@@ -340,18 +344,20 @@ class DjVuCmd:
         tarball_file: str,
         yaml_file: str,
     ) -> List:
-        lod = []
+        page_lod = []
         yaml_data = Tarball.read_from_tar(tarball_file, yaml_file).decode("utf-8")
         djvu_file = DjVuFile.from_yaml(yaml_data)
         for page in djvu_file.pages:
-            lod.append(asdict(page))
-        return lod
+            page_lod.append(asdict(page))
+        return page_lod
 
     def update_database(self):
         """
         Updates the DjVu database.
         """
-        djvu_files = self.get_djvu_files()
+        djvu_lod= self.get_djvu_lod()
+        djvu_by_path=LOD.getLookup(djvu_lod, "path")
+        djvu_files = self.get_djvu_files(djvu_lod)
         error_count = 0
         page_lod = []
         with tqdm(
@@ -361,11 +367,16 @@ class DjVuCmd:
         ) as pbar:
             for path in djvu_files:
                 try:
+                    djvu_record=djvu_by_path.get(path)
                     # djvu_path = self.args.base_path + path
                     prefix = ImageJob.get_prefix(path)
                     tar_file = os.path.join(self.args.output_path, prefix + ".tar")
                     if not os.path.isfile(tar_file):
                         raise Exception(f"tar file for {path} missing")
+                    tar_iso_date, tar_filesize = ImageJob.get_fileinfo(tar_file)
+                    if djvu_record:
+                        djvu_record["tar_iso_date"]=tar_iso_date
+                        djvu_record["tar_filesize"]=tar_filesize
                     tar_lod = self.get_db_records(tar_file, prefix + ".yaml")
                     page_lod.extend(tar_lod)
                 except BaseException as e:
@@ -386,6 +397,9 @@ class DjVuCmd:
             print(f"{err_percent:.1f}% errors ✅ < {max_errors:.1f}% limit")
             self.dvm.store(
                 lod=page_lod, entity_name="Page", primary_key="page_key", with_drop=True
+            )
+            self.dvm.store(
+                lod=djvu_lod,entity_name="DjVu", primary_key="path",with_drop=True
             )
 
 def main():
