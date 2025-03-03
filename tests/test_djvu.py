@@ -165,6 +165,10 @@ class TestDjVu(Basetest):
         """
         test the conversion
         """
+        if self.inPublicCI():
+            return
+        if not os.path.exists(self.db_path):
+            return
         args = argparse.Namespace(
             command="convert",
             db_path="/tmp/test_genwiki_djvu.db",
