@@ -347,8 +347,18 @@ class DjVuCmd:
         page_lod = []
         yaml_data = Tarball.read_from_tar(tarball_file, yaml_file).decode("utf-8")
         djvu_file = DjVuFile.from_yaml(yaml_data)
+        image_rel_dir=ImageJob.get_relative_image_path(djvu_file.path)
+        image_path=os.path.join(self.args.base_path,image_rel_dir)
         for page in djvu_file.pages:
-            page_lod.append(asdict(page))
+            page_record=asdict(page)
+            # bundled info is not necessary available we have to
+            # go by try and error
+            #if not djvu_file.bundled:
+            #djvu_page_path = os.path.join(image_path,page.path)
+            #iso_date, filesize = ImageJob.get_fileinfo(djvu_page_path)
+            #if iso_date and filesize:
+            #    pass
+            page_lod.append(page_record)
         return page_lod
 
     def update_database(self):

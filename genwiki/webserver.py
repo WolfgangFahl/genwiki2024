@@ -111,6 +111,14 @@ class GenWikiWebServer(InputWebserver):
             file_response = self.djvu_viewer.get_content(file)
             return file_response
 
+        @app.get("/djvu/page/{path:path}")
+        def get_djvupage(path: str) -> FileResponse:
+            """
+            Fetches and displays a specific PNG page of a DjVu file.
+            """
+            file_response = self.djvu_viewer.get_page4path(path)
+            return file_response
+
         @app.get("/djvu/{path:path}")
         def display_djvu(path: str, page: int = 1) -> HTMLResponse:
             """

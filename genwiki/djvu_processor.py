@@ -94,6 +94,14 @@ class ImageJob:
         prefix = os.path.splitext(os.path.basename(relurl))[0]
         return prefix
 
+    @staticmethod
+    def get_relative_image_path(relurl: str):
+        image_rel_dir=os.path.dirname(relurl)
+        # Ensure image_rel_dir is treated as a relative path
+        if image_rel_dir.startswith(os.sep):  # os.sep is '/' on Unix and '\\' on Windows
+            image_rel_dir = image_rel_dir.lstrip(os.sep)
+        return image_rel_dir
+
     @property
     def prefix(self) -> str:
         prefix = ImageJob.get_prefix(relurl=self.relurl)

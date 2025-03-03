@@ -5,15 +5,31 @@ Created on 2025-02-25
 """
 import mimetypes
 import os
+import re
 from pathlib import Path
-
+from dataclasses import dataclass
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse,FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from genwiki.djvu_core import DjVuFile
+from genwiki.djvu_core import DjVuPage,DjVuFile
 from genwiki.tarball import Tarball
 
+@dataclass
+class DjVuViewPage:
+    file: DjVuFile
+    page: DjVuPage
+    base_path: str
+
+    @property
+    def content_path(self) -> str:
+        """Path for content retrieval"""
+        return f"{Path(self.base_path).stem}/{self.page.png_file}"
+
+    @property
+    def image_url(self) -> str:
+        """URL path for HTML display"""
+        return f"/djvu/content/{self.content_path}"
 
 class DjVuViewer:
     """
@@ -75,9 +91,16 @@ class DjVuViewer:
 
         return content_response
 
-    def get_page(self, path: str, page_index: int) -> HTMLResponse:
+    def get_djvu_view_page(self, path: str, page_index: int)->DjVuViewPage:
         """
-        Fetches and renders an HTML page displaying the PNG image of the given DjVu file page from a tarball.
+        Helper function to fetch DjVu page data.
+
+        Args:
+            path (str): Path to the DjVu file (without page notation).
+            page_index (int): Page number to display (1-based).
+
+        Returns:
+            DjVuViewPage: dataclass instance with file,page and image_url
         """
         tarball_file = Path(self.image_path) / f"{Path(path).stem}.tar"
         yaml_file = f"{Path(path).stem}.yaml"
@@ -98,12 +121,51 @@ class DjVuViewer:
             raise HTTPException(status_code=404, detail=f"Page {page_index} not found")
 
         djvu_page = djvu_file.pages[page_index - 1]
-        image_filename = djvu_page.png_file
-        image_url = f"/djvu/content/{Path(path).stem}/{image_filename}"
+        djvu_view_page=DjVuViewPage(file=djvu_file,page=djvu_page,base_path=path)
+        return djvu_view_page
 
-        return HTMLResponse(
+    def get_page4path(self, path: str) -> FileResponse:
+        """
+        Fetches the PNG image of a DjVu file
+        where the path contains a page reference in #000 notation (e.g., #16.png).
+
+        Args:
+            path (str): The path with #NNN page notation.
+
+        Returns:
+            Response: File response with the page content.
+        """
+        page_match = re.search(r'#(\d+)', path)
+        if not page_match:
+            raise HTTPException(
+                status_code=400,
+                detail="Path must contain a page reference in #NNN format."
+            )
+
+        page_index = int(page_match.group(1))
+        base_path = path.split('#')[0]
+        djvu_view_page=self.get_djvu_view_page(base_path, page_index)
+        try:
+            content_path = djvu_view_page.content_path
+            response = self.get_content(content_path)
+            return response
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"Error retrieving page content: {str(e)}"
+            )
+
+
+    def get_page(self, path: str, page_index: int) -> HTMLResponse:
+        """
+        Fetches and renders an HTML page displaying the PNG image of the given DjVu file page from a tarball.
+        """
+        djvu_view_page=self.get_djvu_view_page(path, page_index)
+        djvu_file=djvu_view_page.file
+        image_url=djvu_view_page.image_url
+        html_response=HTMLResponse(
             content=self.get_markup(path, page_index, len(djvu_file.pages), image_url)
         )
+        return html_response
 
     def create_page_dropdown(self,path, current_page, total_pages):
         """
