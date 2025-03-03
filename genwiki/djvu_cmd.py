@@ -356,7 +356,9 @@ class DjVuCmd:
         Updates the DjVu database.
         """
         djvu_lod= self.get_djvu_lod()
-        djvu_by_path=LOD.getLookup(djvu_lod, "path")
+        djvu_by_path,duplicates=LOD.getLookup(djvu_lod, "path")
+        if len(duplicates)>0:
+            print(f"Warning: {len(duplicates)} duplicates path enties in DjVu table")
         djvu_files = self.get_djvu_files(djvu_lod)
         error_count = 0
         page_lod = []
