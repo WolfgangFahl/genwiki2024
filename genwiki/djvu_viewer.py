@@ -135,15 +135,17 @@ class DjVuViewer:
         Returns:
             Response: File response with the page content.
         """
-        page_match = re.search(r'#(\d+)', path)
+        page_match = re.search(r'(.+)-(\d+)\.([a-zA-Z]+)$', path)
         if not page_match:
             raise HTTPException(
                 status_code=400,
-                detail="Path must contain a page reference in #NNN format."
+                detail="Path must contain a page reference in document-NNN.EXT format (e.g., Minden-AB-1939-017.png)."
             )
 
-        page_index = int(page_match.group(1))
-        base_path = path.split('#')[0]
+        base_path = page_match.group(1)
+        page_index = int(page_match.group(2))
+        file_extension = page_match.group(3)
+
         djvu_view_page=self.get_djvu_view_page(base_path, page_index)
         try:
             content_path = djvu_view_page.content_path
