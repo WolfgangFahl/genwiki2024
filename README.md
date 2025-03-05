@@ -11,3 +11,9 @@ Semantification of Genealogy
 
 ## Demo/Simulation
 [Demo](http://genwiki2024.bitplan.com/)
+
+## Documentation
+- [Wiki](https://wiki.bitplan.com/index.php/Genwiki2024)
+- [DjVu catalog and Viewer](https://wiki.bitplan.com/index.php/Genwiki2024#djvu_catalog_and_remote_viewer)
+
+
