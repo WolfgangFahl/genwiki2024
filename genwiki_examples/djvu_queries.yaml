@@ -33,6 +33,17 @@
     FROM djvu
     ORDER BY page_count DESC,filesize DESC
 
+# Sizes and compression ratio for bundled files
+'bundled_sizes_and_ratio':
+  param_list:
+  sql: |
+    SELECT
+      ROUND(SUM(filesize)/1024/1024/1024.0, 1) AS total_djvu_gb,
+      ROUND(SUM(tar_filesize)/1024/1024/1024.0, 1) AS total_tar_gb,
+      ROUND(CAST(SUM(tar_filesize) AS REAL) / SUM(filesize), 1) AS average_ratio
+    FROM DjVu
+    WHERE bundled = 1
+
 # Alle DjVu-Datensätze abrufen
 'all_djvu':
   param_list:
