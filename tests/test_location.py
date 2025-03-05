@@ -142,7 +142,7 @@ class TestLocations(GenealogyBasetest):
         wds = WikidataSearch()
         limit = 10
         debug = self.debug
-        #debug = True
+        # debug = True
         found_location = None
         for i, (expected_qid, location, located_in) in enumerate(examples):
             wds.language = "de"
@@ -170,10 +170,10 @@ class TestLocations(GenealogyBasetest):
         gov_api = GOV_API()
         obj = gov_api.get_raw_gov_object(gov_id)
         debug = self.debug
-        #debug = True
+        # debug = True
         if debug:
             print(json.dumps(obj, indent=2))
-        self.assertEqual(gov_id,obj.get("id"))
+        self.assertEqual(gov_id, obj.get("id"))
 
     def testNominatim(self):
         """

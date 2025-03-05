@@ -6,6 +6,7 @@ Created on 2025-02-25
 
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import List, Optional
 
 import numpy
@@ -19,8 +20,8 @@ class DjVuPage:
     path: str
     page_index: int
     valid: bool = False
-    iso_date: Optional[str]=None
-    filesize: Optional[int]=None
+    iso_date: Optional[str] = None
+    filesize: Optional[int] = None
     width: Optional[int] = None
     height: Optional[int] = None
     dpi: Optional[int] = None
@@ -52,10 +53,10 @@ class DjVu:
     path: str
     page_count: int
     bundled: bool = False
-    iso_date: Optional[str]=None
-    filesize: Optional[int]=None
-    tar_filesize: Optional[int]=None
-    tar_iso_date: Optional[str]=None
+    iso_date: Optional[str] = None
+    filesize: Optional[int] = None
+    tar_filesize: Optional[int] = None
+    tar_iso_date: Optional[str] = None
     dir_pages: Optional[int] = None
 
 
@@ -79,6 +80,23 @@ class DjVuFile(DjVu):
             if page.page_index == page_index:
                 return page
         return None
+
+
+@dataclass
+class DjVuViewPage:
+    file: DjVuFile
+    page: DjVuPage
+    base_path: str
+
+    @property
+    def content_path(self) -> str:
+        """Path for content retrieval"""
+        return f"{Path(self.base_path).stem}/{self.page.png_file}"
+
+    @property
+    def image_url(self) -> str:
+        """URL path for HTML display"""
+        return f"/djvu/content/{self.content_path}"
 
 
 @dataclass

@@ -111,12 +111,21 @@ class GenWikiWebServer(InputWebserver):
             file_response = self.djvu_viewer.get_content(file)
             return file_response
 
-        @app.get("/djvu/page/{path:path}")
-        def get_djvupage(path: str) -> FileResponse:
+        @app.get("/djvu/{path:path}/page/{pageno:int}.{ext:str}")
+        def get_djvu_page(
+            path: str, pageno: int, ext: str, scale:float=1.0,quality:int=85
+        ) -> FileResponse:
             """
             Fetches and displays a specific PNG page of a DjVu file.
+
+            Args:
+                path (str): The path to the DjVu document.
+                pageno (int): The page number within the DjVu document.
+                ext (str): The desired file extension for the page ("png" or "jpg").
+                scale(float,optional): the scale of the jpg impage
+                quality (int, optional): The desired jpg quality - default:85
             """
-            file_response = self.djvu_viewer.get_page4path(path)
+            file_response = self.djvu_viewer.get_page4path(path, pageno, ext, scale=scale,quality=quality)
             return file_response
 
         @app.get("/djvu/{path:path}")

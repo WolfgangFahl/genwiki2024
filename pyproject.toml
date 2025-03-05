@@ -63,6 +63,9 @@ dependencies = [
     "djvulibre-python>=0.9.1",
     # https://pypi.org/project/pycairo/
     "pycairo>=1.27.0",
+    # Image processing library for PNG/JPG conversion and resizing
+	# https://pypi.org/project/Pillow/
+	"Pillow>=11.1.0",
     # https://pypi.org/project/numpy/
     "numpy>=2.2.3"
 ]

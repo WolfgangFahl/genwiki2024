@@ -3,13 +3,16 @@ Created on 2025-02-25
 
 @author: wf
 """
+
 import datetime
 import gc
 import logging
 import os
 import sys
-if sys.platform != 'win32':
+
+if sys.platform != "win32":
     import resource
+
 import shutil
 import tarfile
 import tempfile
@@ -66,20 +69,22 @@ class ImageJob:
         return (0, 0)
 
     @staticmethod
-    def get_fileinfo(filepath:str):
-        filesize=None
-        iso_date=None
+    def get_fileinfo(filepath: str):
+        filesize = None
+        iso_date = None
         if os.path.exists(filepath):
             # Set file size in bytes
             filesize = os.path.getsize(filepath)
 
             # Get file modification time and convert to UTC ISO format with second precision
             mtime = os.path.getmtime(filepath)
-            datetime_obj = datetime.datetime.fromtimestamp(mtime, tz=datetime.timezone.utc)
-            iso_date = datetime_obj.isoformat(timespec='seconds')
-        return iso_date,filesize
+            datetime_obj = datetime.datetime.fromtimestamp(
+                mtime, tz=datetime.timezone.utc
+            )
+            iso_date = datetime_obj.isoformat(timespec="seconds")
+        return iso_date, filesize
 
-    def set_fileinfo(self,filepath:str):
+    def set_fileinfo(self, filepath: str):
         """
         Set filesize and ISO date with sec prec for
         the given filepath
@@ -87,7 +92,7 @@ class ImageJob:
         Args:
             filepath (str): Path to the file
         """
-        self.iso_date,self.filesize=self.get_fileinfo(filepath)
+        self.iso_date, self.filesize = self.get_fileinfo(filepath)
 
     @staticmethod
     def get_prefix(relurl: str):
@@ -96,9 +101,11 @@ class ImageJob:
 
     @staticmethod
     def get_relative_image_path(relurl: str):
-        image_rel_dir=os.path.dirname(relurl)
+        image_rel_dir = os.path.dirname(relurl)
         # Ensure image_rel_dir is treated as a relative path
-        if image_rel_dir.startswith(os.sep):  # os.sep is '/' on Unix and '\\' on Windows
+        if image_rel_dir.startswith(
+            os.sep
+        ):  # os.sep is '/' on Unix and '\\' on Windows
             image_rel_dir = image_rel_dir.lstrip(os.sep)
         return image_rel_dir
 
@@ -165,7 +172,7 @@ class DjVuProcessor:
         debug: bool = False,
         batch_size: int = 100,
         limit_gb: int = 16,
-        max_workers: int = None
+        max_workers: int = None,
     ):
         """
         Initializes the DjVuProcessor.
@@ -230,7 +237,7 @@ class DjVuProcessor:
 
     def check_memory_usage(self):
         """Check if memory usage exceeds the given limit in GB"""
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             # On Windows, we'll just do a GC and return False (no check)
             gc.collect()
             return False, 0
@@ -238,17 +245,16 @@ class DjVuProcessor:
             # Get current memory usage in bytes
             usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
             # Convert to GB (note: on some systems this is KB, others it's bytes)
-            if sys.platform == 'darwin':  # macOS reports in bytes
+            if sys.platform == "darwin":  # macOS reports in bytes
                 usage_gb = usage / (1024 * 1024 * 1024)
             else:  # Linux reports in KB
                 usage_gb = usage / (1024 * 1024)
 
             return usage_gb >= self.limit_gb, usage_gb
 
-    def save_image_to_png(self,
-        image_job: ImageJob,
-        output_path: str,
-        free_buffer:bool=False):
+    def save_image_to_png(
+        self, image_job: ImageJob, output_path: str, free_buffer: bool = False
+    ):
         """
         Saves the rendered DjVu page as a PNG file.
 
@@ -269,9 +275,11 @@ class DjVuProcessor:
         surface.finish()
         surface = None  # Explicitly free Cairo surface
         if free_buffer:
-            image_job.image.buffer=None
+            image_job.image.buffer = None
 
-    def save_as_png(self, image_job: ImageJob, output_dir: str,free_buffer:bool) -> str:
+    def save_as_png(
+        self, image_job: ImageJob, output_dir: str, free_buffer: bool
+    ) -> str:
         """
         Save an image job as PNG in the specified directory
 
@@ -288,7 +296,7 @@ class DjVuProcessor:
         )
         image_job.log("save png start")
         # Save PNG
-        self.save_image_to_png(image_job, output_path,free_buffer)
+        self.save_image_to_png(image_job, output_path, free_buffer)
         image_job.log("save png done")
         return output_path
 
@@ -510,7 +518,7 @@ class DjVuProcessor:
         mode: int = djvu.decode.RENDER_COLOR,
         wait: bool = True,
         save_png: bool = False,
-        free_buffer: bool=True,
+        free_buffer: bool = True,
         output_path: str = None,
     ) -> Generator[ImageJob, None, None]:
         """
@@ -532,7 +540,7 @@ class DjVuProcessor:
 
             # Step 4: Optionally save to PNG
             if save_png:
-                self.save_as_png(rendered_job, self.output_path,free_buffer)
+                self.save_as_png(rendered_job, self.output_path, free_buffer)
 
             yield rendered_job
 
@@ -542,7 +550,7 @@ class DjVuProcessor:
         mode: int = djvu.decode.RENDER_COLOR,
         wait: bool = True,
         save_png: bool = False,
-        free_buffer: bool=True
+        free_buffer: bool = True,
     ) -> Generator[ImageJob, None, None]:
         """
         Process a batch of image jobs with parallel execution.
@@ -569,14 +577,16 @@ class DjVuProcessor:
                 # check memory before processing
                 exceeds_limit, usage = self.check_memory_usage()
                 if exceeds_limit:
-                    msg=f"Memory usage {usage} GB exceeds {self.limit_gb} GB limit"
+                    msg = f"Memory usage {usage} GB exceeds {self.limit_gb} GB limit"
                     raise Exception(msg)
                 rendered_job = future.result()
                 self.profiler.time(f" process page {rendered_job.page_index:4d}")
 
                 # Optionally save to PNG in parallel
                 if save_png:
-                    executor.submit(self.save_as_png, rendered_job, self.output_path,free_buffer)
+                    executor.submit(
+                        self.save_as_png, rendered_job, self.output_path, free_buffer
+                    )
 
                 yield rendered_job
 
@@ -619,7 +629,9 @@ class DjVuProcessor:
             batch_end = min(batch_start + self.batch_size, total_pages)
             batch = image_jobs[batch_start:batch_end]
 
-            self.profiler.time(f" processing batch {batch_start//self.batch_size + 1}: pages {batch_start+1}-{batch_end}")
+            self.profiler.time(
+                f" processing batch {batch_start//self.batch_size + 1}: pages {batch_start+1}-{batch_end}"
+            )
 
             # Process this batch
             for rendered_job in self.process_batch(

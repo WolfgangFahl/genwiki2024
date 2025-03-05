@@ -11,6 +11,7 @@ import time
 import traceback
 from dataclasses import asdict
 from typing import List
+
 from lodstorage.lod import LOD
 from ngwidgets.profiler import Profiler
 from tqdm import tqdm
@@ -138,7 +139,8 @@ class DjVuCmd:
             verbose=self.args.verbose,
             batch_size=self.args.batch_size,
             limit_gb=self.args.limit_gb,
-            max_workers=self.args.max_workers)
+            max_workers=self.args.max_workers,
+        )
         self.profiler = Profiler(self.args.command)
         if self.args.command == "catalog":
             self.catalog_djvu()
@@ -240,7 +242,7 @@ class DjVuCmd:
                 page_count=page_count,
                 bundled=bundled,
                 iso_date=iso_date,
-                filesize=filesize
+                filesize=filesize,
             )
             djvu_row = asdict(djvu)
             djvu_lod.append(djvu_row)
@@ -260,7 +262,7 @@ class DjVuCmd:
         lod = self.dvm.query("all_djvu")
         return lod
 
-    def get_djvu_files(self,djvu_lod):
+    def get_djvu_files(self, djvu_lod):
         # Handle single-file mode
         if self.args.url:
             djvu_files = [self.args.url]
@@ -272,16 +274,14 @@ class DjVuCmd:
         """
         Second pass: Convert DjVu files to PNG using the database
         """
-        djvu_lod= self.get_djvu_lod()
+        djvu_lod = self.get_djvu_lod()
         djvu_files = self.get_djvu_files(djvu_lod)
         # select the process function parallel or serial
         process_func = (
             self.dproc.process if self.args.serial else self.dproc.process_parallel
         )
-        with tqdm(
-            total=len(djvu_files), desc="DjVu", unit="file"
-        ) as pbar:
-            page_count=0
+        with tqdm(total=len(djvu_files), desc="DjVu", unit="file") as pbar:
+            page_count = 0
             for path in djvu_files:
                 try:
                     djvu_path = self.args.base_path + path
@@ -327,8 +327,10 @@ class DjVuCmd:
                 finally:
                     error_count = len(self.errors)
                     status_msg = "✅" if error_count == 0 else f"❌ {error_count}"
-                    _,mem_usage = self.dproc.check_memory_usage()
-                    pbar.set_postfix_str(f"{mem_usage:.2f} GB {page_count} pages {status_msg}")
+                    _, mem_usage = self.dproc.check_memory_usage()
+                    pbar.set_postfix_str(
+                        f"{mem_usage:.2f} GB {page_count} pages {status_msg}"
+                    )
                     pbar.update(1)
         self.report_errors()
 
@@ -347,16 +349,16 @@ class DjVuCmd:
         page_lod = []
         yaml_data = Tarball.read_from_tar(tarball_file, yaml_file).decode("utf-8")
         djvu_file = DjVuFile.from_yaml(yaml_data)
-        image_rel_dir=ImageJob.get_relative_image_path(djvu_file.path)
-        image_path=os.path.join(self.args.base_path,image_rel_dir)
+        image_rel_dir = ImageJob.get_relative_image_path(djvu_file.path)
+        image_path = os.path.join(self.args.base_path, image_rel_dir)
         for page in djvu_file.pages:
-            page_record=asdict(page)
+            page_record = asdict(page)
             # bundled info is not necessary available we have to
             # go by try and error
-            #if not djvu_file.bundled:
-            #djvu_page_path = os.path.join(image_path,page.path)
-            #iso_date, filesize = ImageJob.get_fileinfo(djvu_page_path)
-            #if iso_date and filesize:
+            # if not djvu_file.bundled:
+            # djvu_page_path = os.path.join(image_path,page.path)
+            # iso_date, filesize = ImageJob.get_fileinfo(djvu_page_path)
+            # if iso_date and filesize:
             #    pass
             page_lod.append(page_record)
         return page_lod
@@ -365,9 +367,9 @@ class DjVuCmd:
         """
         Updates the DjVu database.
         """
-        djvu_lod= self.get_djvu_lod()
-        djvu_by_path,duplicates=LOD.getLookup(djvu_lod, "path")
-        if len(duplicates)>0:
+        djvu_lod = self.get_djvu_lod()
+        djvu_by_path, duplicates = LOD.getLookup(djvu_lod, "path")
+        if len(duplicates) > 0:
             print(f"Warning: {len(duplicates)} duplicates path enties in DjVu table")
         djvu_files = self.get_djvu_files(djvu_lod)
         error_count = 0
@@ -379,7 +381,7 @@ class DjVuCmd:
         ) as pbar:
             for path in djvu_files:
                 try:
-                    djvu_record=djvu_by_path.get(path)
+                    djvu_record = djvu_by_path.get(path)
                     # djvu_path = self.args.base_path + path
                     prefix = ImageJob.get_prefix(path)
                     tar_file = os.path.join(self.args.output_path, prefix + ".tar")
@@ -387,8 +389,8 @@ class DjVuCmd:
                         raise Exception(f"tar file for {path} missing")
                     tar_iso_date, tar_filesize = ImageJob.get_fileinfo(tar_file)
                     if djvu_record:
-                        djvu_record["tar_iso_date"]=tar_iso_date
-                        djvu_record["tar_filesize"]=tar_filesize
+                        djvu_record["tar_iso_date"] = tar_iso_date
+                        djvu_record["tar_filesize"] = tar_filesize
                     tar_lod = self.get_db_records(tar_file, prefix + ".yaml")
                     page_lod.extend(tar_lod)
                 except BaseException as e:
@@ -404,15 +406,18 @@ class DjVuCmd:
 
         # Check if the error percentage exceeds the threshold
         if err_percent > round(max_errors, 1):
-            print(f"{err_percent:.1f}% errors ❌ > {max_errors:.1f}% limit no database update")
+            print(
+                f"{err_percent:.1f}% errors ❌ > {max_errors:.1f}% limit no database update"
+            )
         else:
             print(f"{err_percent:.1f}% errors ✅ < {max_errors:.1f}% limit")
             self.dvm.store(
                 lod=page_lod, entity_name="Page", primary_key="page_key", with_drop=True
             )
             self.dvm.store(
-                lod=djvu_lod,entity_name="DjVu", primary_key="path",with_drop=True
+                lod=djvu_lod, entity_name="DjVu", primary_key="path", with_drop=True
             )
+
 
 def main():
     """
