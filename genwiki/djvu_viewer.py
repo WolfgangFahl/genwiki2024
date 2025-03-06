@@ -171,6 +171,7 @@ class DjVuViewer:
 
         try:
             # Get the DjVu view page
+            path=path.replace(" ","_")
             djvu_view_page = self.get_djvu_view_page(path, pageno)
             content_path = djvu_view_page.content_path
 
