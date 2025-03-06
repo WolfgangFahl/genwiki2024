@@ -53,6 +53,13 @@ class DjVuViewer:
             self.error_msg = str(e)
         logging.error(self.error_msg)
 
+    def sanitize_path(self,path:str)->str:
+        """
+        fix mediawiki path quirks e.g. with blanks
+        """
+        path=path.replace(" ","_")
+        return path
+
     def get_file_content(self, file: str) -> Tuple[str, bytes]:
         """
         Retrieves a content file (PNG, JPG, YAML, etc.) from the tarball
@@ -115,6 +122,7 @@ class DjVuViewer:
         Returns:
             DjVuViewPage: dataclass instance with file,page and image_url
         """
+        path=self.sanitize_path(path)
         tarball_file = Path(self.image_path) / f"{Path(path).stem}.tar"
         yaml_file = f"{Path(path).stem}.yaml"
 
@@ -171,7 +179,6 @@ class DjVuViewer:
 
         try:
             # Get the DjVu view page
-            path=path.replace(" ","_")
             djvu_view_page = self.get_djvu_view_page(path, pageno)
             content_path = djvu_view_page.content_path
 
