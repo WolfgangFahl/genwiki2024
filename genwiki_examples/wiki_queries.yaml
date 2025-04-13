@@ -1,0 +1,46 @@
+# SQL Queries auf CompGen MediaWiki Datenbank
+#  Wolfgang Fahl 2025-04-12
+user_count:
+  sql: |
+    select count(*) from user;
+tables:
+  sql: |
+    show tables
+table_count:
+  param_list:
+    - name: table
+      type: str
+      default_value: user
+  sql: |
+    select count(*) from {{ table }};
+text_user_stats:
+  sql: |
+    select
+      count(*) as edit_count,
+      t.old_user,
+      u.user_name,
+      u.user_real_name
+    from text t
+    join (
+      select distinct old_user
+      from text
+      where old_user > 0
+    ) as filtered_users on t.old_user = filtered_users.old_user
+    join user u on u.user_id = t.old_user
+    group by t.old_user, u.user_name, u.user_real_name
+    order by edit_count desc;
+user_content:
+  param_list:
+    - name: user_id
+      type: int
+      default_value: 1
+  sql: |
+    select
+      old_id,
+      old_title,
+      old_namespace,
+      old_text,
+      old_timestamp
+    from text
+    where old_user = {{ user_id }}
+    order by old_timestamp desc;

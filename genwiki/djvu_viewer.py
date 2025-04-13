@@ -4,19 +4,21 @@ Created on 2025-02-25
 @author: wf
 """
 
+import logging
 import mimetypes
 import os
-from pathlib import Path
-from typing import Optional,Tuple
 import traceback
-import logging
+from pathlib import Path
+from typing import Optional, Tuple
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from genwiki.djvu_core import DjVuFile, DjVuViewPage
-from genwiki.tarball import Tarball
 from genwiki.image_convert import ImageConverter
+from genwiki.tarball import Tarball
+
 
 class DjVuViewer:
     """
@@ -53,11 +55,11 @@ class DjVuViewer:
             self.error_msg = str(e)
         logging.error(self.error_msg)
 
-    def sanitize_path(self,path:str)->str:
+    def sanitize_path(self, path: str) -> str:
         """
         fix mediawiki path quirks e.g. with blanks
         """
-        path=path.replace(" ","_")
+        path = path.replace(" ", "_")
         return path
 
     def get_file_content(self, file: str) -> Tuple[str, bytes]:
@@ -122,7 +124,7 @@ class DjVuViewer:
         Returns:
             DjVuViewPage: dataclass instance with file,page and image_url
         """
-        path=self.sanitize_path(path)
+        path = self.sanitize_path(path)
         tarball_file = Path(self.image_path) / f"{Path(path).stem}.tar"
         yaml_file = f"{Path(path).stem}.yaml"
 
@@ -147,12 +149,7 @@ class DjVuViewer:
         return djvu_view_page
 
     def get_page4path(
-        self,
-        path: str,
-        pageno: int,
-        ext: str,
-        scale: float = 1.0,
-        quality: int = 85
+        self, path: str, pageno: int, ext: str, scale: float = 1.0, quality: int = 85
     ) -> Response:
         """
         Fetches and displays a specific page of a DjVu file in the desired format.
@@ -174,7 +171,9 @@ class DjVuViewer:
         # Check if the file extension is supported
         exts = ["png", "jpg"]
         if ext not in exts:
-            msg = f"Unsupported file extension: {ext}. Must be one of {', '.join(exts)}."
+            msg = (
+                f"Unsupported file extension: {ext}. Must be one of {', '.join(exts)}."
+            )
             raise HTTPException(status_code=501, detail=msg)
 
         try:
@@ -189,17 +188,19 @@ class DjVuViewer:
             if ext == "jpg":
                 # Extract the DPI from the page metadata (assuming it's available)
                 # If not available, you might need to add a parameter or use a default value
-                dpi = getattr(djvu_view_page.page, 'dpi', 300)  # Default to 300 if not specified
+                dpi = getattr(
+                    djvu_view_page.page, "dpi", 300
+                )  # Default to 300 if not specified
 
                 # Use ImageConverter to convert PNG to JPG
                 converter = ImageConverter(file_content, dpi)
                 file_content = converter.convert_to_jpg(scale=scale, quality=quality)
 
                 # Update filename to reflect the JPG extension
-                filename = filename.replace('.png', '.jpg')
+                filename = filename.replace(".png", ".jpg")
 
             # Create and return the response with the appropriate content
-            file_response= self.create_content_response(filename, file_content)
+            file_response = self.create_content_response(filename, file_content)
             return file_response
         except Exception as e:
             raise HTTPException(

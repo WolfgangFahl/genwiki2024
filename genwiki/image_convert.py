@@ -5,7 +5,9 @@ Created on 2025-03-04
 """
 
 import io
+
 from PIL import Image
+
 
 class ImageConverter:
     """
@@ -23,7 +25,9 @@ class ImageConverter:
         self.png_data = png_data
         self.dpi = dpi
 
-    def convert_to_jpg(self, target_dpi: int = None, scale: float = None, quality: int = 85) -> bytes:
+    def convert_to_jpg(
+        self, target_dpi: int = None, scale: float = None, quality: int = 85
+    ) -> bytes:
         """
         Convert PNG to JPG with optional scaling and quality settings to reduce file size/loading time
 
@@ -61,7 +65,7 @@ class ImageConverter:
             output,
             format="JPEG",
             quality=quality,
-            optimize=True  # Enable JPEG optimization
+            optimize=True,  # Enable JPEG optimization
         )
 
         # Get the bytes from the BytesIO object and assign to variable
