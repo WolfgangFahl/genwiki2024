@@ -13,6 +13,19 @@ table_count:
       default_value: user
   sql: |
     select count(*) from {{ table }};
+table_records:
+  param_list:
+    - name: table
+      type: str
+      default_value: user
+    - name: limit
+      type: int
+      default_value: 10
+  sql: |
+    select
+        *
+    from {{ table }}
+    limit {{ limit }}
 text_user_stats:
   sql: |
     select
@@ -29,7 +42,21 @@ text_user_stats:
     join user u on u.user_id = t.old_user
     group by t.old_user, u.user_name, u.user_real_name
     order by edit_count desc;
-user_content:
+text:
+  param_list:
+    - name: limit
+      type: int
+      default_value: 10
+  sql: |
+    select
+      old_id,
+      old_title,
+      old_namespace,
+      old_text,
+      old_timestamp
+    from text
+    limit {{ limit }}
+user_text:
   param_list:
     - name: user_id
       type: int
