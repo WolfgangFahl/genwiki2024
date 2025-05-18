@@ -1,0 +1,69 @@
+# SPARQL Queries auf Wikidata die für CompGen MediaWiki Migration nützlich sein könnten
+#  Wolfgang Fahl 2025-04-17
+'Genealogiesoftware':
+  sparql: |
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX schema: <http://schema.org/>
+    PREFIX wd: <http://www.wikidata.org/entity/>
+    PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+    PREFIX wikibase: <http://wikiba.se/ontology#>
+    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+    SELECT ?genealogy_softwareItem ?genealogy_software
+      (GROUP_CONCAT(DISTINCT ?version; separator=", ") AS ?software_versions)
+      (GROUP_CONCAT(DISTINCT ?website; separator=", ") AS ?official_websites)
+      (GROUP_CONCAT(DISTINCT ?os_label; separator=", ") AS ?operating_systems)
+      (GROUP_CONCAT(DISTINCT ?prog_lang_label; separator=", ") AS ?programming_languages)
+      (GROUP_CONCAT(DISTINCT ?readable_format_label; separator=", ") AS ?readable_file_formats)
+      (GROUP_CONCAT(DISTINCT ?writable_format_label; separator=", ") AS ?writable_file_formats)
+      (SAMPLE(?inception_date) AS ?inception)
+    WHERE {
+      # instanceof Q75050:genealogy software
+      ?genealogy_softwareItem wdt:P31 wd:Q75050.
+
+      # label
+      ?genealogy_softwareItem rdfs:label ?genealogy_software.
+      FILTER (LANG(?genealogy_software) = "en").
+
+      # software version identifier (P348)
+      OPTIONAL { ?genealogy_softwareItem wdt:P348 ?version. }
+
+      # official website (P856)
+      OPTIONAL { ?genealogy_softwareItem wdt:P856 ?website. }
+
+      # operating system (P306)
+      OPTIONAL {
+        ?genealogy_softwareItem wdt:P306 ?os.
+        ?os rdfs:label ?os_label.
+        FILTER(LANG(?os_label) = "en")
+      }
+
+      # programmed in (P277)
+      OPTIONAL {
+        ?genealogy_softwareItem wdt:P277 ?prog_lang.
+        ?prog_lang rdfs:label ?prog_lang_label.
+        FILTER(LANG(?prog_lang_label) = "en")
+      }
+
+      # readable file format (P1072)
+      OPTIONAL {
+        ?genealogy_softwareItem wdt:P1072 ?readable_format.
+        ?readable_format rdfs:label ?readable_format_label.
+        FILTER(LANG(?readable_format_label) = "en")
+      }
+
+      # writable file format (P1073)
+      OPTIONAL {
+        ?genealogy_softwareItem wdt:P1073 ?writable_format.
+        ?writable_format rdfs:label ?writable_format_label.
+        FILTER(LANG(?writable_format_label) = "en")
+      }
+
+      # inception (P571)
+      OPTIONAL { ?genealogy_softwareItem wdt:P571 ?inception_date. }
+    }
+    GROUP BY
+      ?genealogy_softwareItem
+      ?genealogy_software
+    ORDER BY ?genealogy_software

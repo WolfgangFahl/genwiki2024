@@ -142,4 +142,4 @@ class QueryView:
         # cancel task if it takes too long
         ui.timer(self.timeout, lambda: cancel_running(), once=True)
         # run task in background
-        self.load_task = background_tasks.create(self.load_query_results)
+        self.load_task = background_tasks.create(self.load_query_results())
