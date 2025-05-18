@@ -31,6 +31,7 @@ class WikiPage:
             "page_key":f"{self.page_id}:{self.page_index}",
             "page_id": self.page_id,
             "page_index": self.page_index,
+            "timestamp": self.timestamp,
             "kind": kind,
             "name": name,
             "count": count

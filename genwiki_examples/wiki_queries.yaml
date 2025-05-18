@@ -71,3 +71,107 @@ user_text:
     from text
     where old_user = {{ user_id }}
     order by old_timestamp desc;
+all_pages:
+    param_list:
+        - name: limit
+          type: int
+          default_value: 10
+    sql: |
+        SELECT
+            p.page_id,
+            p.page_namespace,
+            p.page_title,
+            t.old_text AS page_content,
+            t.old_timestamp AS page_timestamp
+        FROM
+            page p
+        JOIN
+            revision r ON p.page_latest = r.rev_id
+        JOIN
+            text t ON r.rev_id = t.old_id
+        WHERE
+            p.page_is_redirect = 0
+        ORDER BY
+            p.page_namespace,
+            p.page_title
+        LIMIT {{ limit }};
+# This query retrieves pages by creation date with author details
+# in a given date range
+# it can be used to e.g. get:
+# the first few pages or most recent pages
+# examples:
+#   sqlquery -en genwiki -qp wiki_queries.yaml -qn limit_pages --params start_date=20000101000000,end_date=21000101000000,order=ASC,limit=5
+#   sqlquery -en genwiki -qp wiki_queries.yaml -qn limit_pages --params start_date=20000101000000,end_date=21000101000000,order=DESC,limit=10
+#   sqlquery -en genwiki -qp wiki_queries.yaml -qn limit_pages --params start_date=20100101000000,end_date=20101231235959,order=ASC,limit=10
+#   sqlquery -en genwiki -qp wiki_queries.yaml -qn limit_pages --params start_date=20200101000000,end_date=20201231235959,order=ASC,limit=20limit_pages:
+limit_pages:
+  param_list:
+    - name: limit
+      type: int
+      default_value: 10
+    - name: order
+      type: str
+      default_value: ASC
+    - name: start_date
+      type: str
+      default_value: "20000101000000"
+    - name: end_date
+      type: str
+      default_value: "21000101000000"
+  sql: |
+    SELECT
+        p.page_id AS 'Seiten-ID',
+        CONVERT(p.page_title USING utf8mb4) AS 'Seitentitel',
+        CASE p.page_namespace
+            WHEN 0 THEN 'Artikel'
+            WHEN 1 THEN 'Diskussion'
+            WHEN 2 THEN 'Benutzer'
+            WHEN 3 THEN 'Benutzer Diskussion'
+            WHEN 4 THEN 'Projekt'
+            WHEN 5 THEN 'Projekt Diskussion'
+            WHEN 6 THEN 'Datei'
+            WHEN 7 THEN 'Datei Diskussion'
+            WHEN 8 THEN 'MediaWiki'
+            WHEN 9 THEN 'MediaWiki Diskussion'
+            WHEN 10 THEN 'Vorlage'
+            WHEN 11 THEN 'Vorlage Diskussion'
+            WHEN 12 THEN 'Hilfe'
+            WHEN 13 THEN 'Hilfe Diskussion'
+            WHEN 14 THEN 'Kategorie'
+            WHEN 15 THEN 'Kategorie Diskussion'
+            ELSE CONCAT('Namespace ', p.page_namespace)
+        END AS 'Namensraum',
+        CONCAT(
+            SUBSTRING(r.rev_timestamp, 1, 4), '-',
+            SUBSTRING(r.rev_timestamp, 5, 2), '-',
+            SUBSTRING(r.rev_timestamp, 7, 2), ' ',
+            SUBSTRING(r.rev_timestamp, 9, 2), ':',
+            SUBSTRING(r.rev_timestamp, 11, 2), ':',
+            SUBSTRING(r.rev_timestamp, 13, 2)
+        ) AS 'Erstellungsdatum',
+        a.actor_name AS 'Benutzername',
+        CONVERT(u.user_real_name USING utf8mb4) AS 'Vollständiger Name'
+    FROM
+        page p
+    JOIN
+        (
+            SELECT
+                rev_page,
+                rev_timestamp,
+                rev_actor
+            FROM
+                revision
+            WHERE
+                rev_parent_id = 0
+                AND rev_timestamp >= {{ start_date }}
+                AND rev_timestamp <= {{ end_date }}
+            ORDER BY
+                rev_timestamp {{ order }}
+            LIMIT {{ limit }}
+        ) r ON p.page_id = r.rev_page
+    JOIN
+        actor a ON r.rev_actor = a.actor_id
+    LEFT JOIN
+        user u ON a.actor_user = u.user_id
+    ORDER BY
+        r.rev_timestamp {{ order }};

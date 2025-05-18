@@ -62,14 +62,14 @@ class TestTags(GenealogyBasetest):
         def page_generator():
             for record in self.mysql.query_generator(sql_query):
                 wiki_page=WikiPage(
-                    page_id=record['old_id'],
-                    title=record['old_title'],
-                    text=record['old_text'],
-                    timestamp=record['old_timestamp'])
+                    page_id=record['page_id'],
+                    title=record['page_title'],
+                    text=record['page_content'],
+                    timestamp=record['page_timestamp'])
                 yield wiki_page
 
         ta = TagAnalyzer(wiki_id=self.wiki_id,endpoint=self.endpoint)
-        sql_query=self.get_query("text",{
+        sql_query=self.get_query("all_pages",{
             "limit": 10000000
         })
         ta.parse_pages(page_generator)
