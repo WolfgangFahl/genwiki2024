@@ -23,6 +23,18 @@
     ORDER BY ?name
     LIMIT {{ limit }}
 
+'W2306Koordinaten':
+  # Query with postal code W2306 and coordinates using correct prefixes
+  sparql: |
+    SELECT ?place ?name ?geo WHERE {
+      ?place a gp:GovObject .
+      ?place gp:hasPostalCode ?pc .
+      ?pc gp:value "W2306" .
+      ?place geo:wktLiteral ?geo .
+      ?place gp:hasName ?pName .
+      ?pName gp:value ?name
+    }
+
 'ObjectsByType':
   # Retrieves objects of a specific administrative type
   param_list:
