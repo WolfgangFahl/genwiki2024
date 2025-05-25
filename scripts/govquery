@@ -1,0 +1,13 @@
+#!/bin/bash
+# WF 2025-05-25
+# run a GOV SPARQL Query
+
+# Check if query name is provided
+if [ -z "$1" ]; then
+   echo "Usage: $0 <query_name> [params] [additional_options...]"
+   echo "Example: $0 SearchByPattern 'pattern=Berlin,limit=10'"
+   exit 1
+fi
+
+cd genwiki_examples
+sparqlquery -en gov -ep gov-ep.yaml --prefixes -qp gov-queries.yaml -qn "$1" ${2:+--params "$2"} "${@:3}"

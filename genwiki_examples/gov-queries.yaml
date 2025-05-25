@@ -1,0 +1,270 @@
+# GOV SPARQL Queries Configuration
+# Based on gov.genealogy.net ontology for historic administrative data
+
+'KirchenkreiseNordkirche':
+  # Finds all church districts (Kirchenkreise) of the Northern Church
+  # Uses type 27 for church districts and traces hierarchy to root object
+  param_list:
+    - name: limit
+      type: int
+      default_value: 50
+  sparql: |
+    SELECT DISTINCT ?kk ?name ?qid
+    WHERE {
+      ?kk gp:hasType/gp:type gt:27 .
+      ?kk gp:hasName/gp:value ?name .
+      ?kk (gp:isPartOf/gp:ref)* gov:object_398036 .
+
+      OPTIONAL {
+        ?kk owl:sameAs ?qid .
+        FILTER(STRSTARTS(STR(?qid),"http://www.wikidata.org/wiki/"))
+      }
+    }
+    ORDER BY ?name
+    LIMIT {{ limit }}
+
+'ObjectsByType':
+  # Retrieves objects of a specific administrative type
+  param_list:
+    - name: type_id
+      type: str
+      default_value: "27"  # Church districts
+    - name: limit
+      type: int
+      default_value: 100
+  sparql: |
+    SELECT DISTINCT ?object ?name ?type_name
+    WHERE {
+      ?object gp:hasType/gp:type gt:{{ type_id }} .
+      ?object gp:hasName/gp:value ?name .
+
+      OPTIONAL {
+        ?object gp:hasType ?type_prop .
+        ?type_prop gp:type ?type .
+        ?type gp:typeName ?type_name .
+      }
+    }
+    ORDER BY ?name
+    LIMIT {{ limit }}
+
+'ObjectHierarchy':
+  # Shows the administrative hierarchy for a specific object
+  param_list:
+    - name: object_id
+      type: str
+      default_value: "398036"
+    - name: levels
+      type: int
+      default_value: 5
+  sparql: |
+    SELECT DISTINCT ?level ?object ?name ?type_name
+    WHERE {
+      {
+        BIND(0 AS ?level)
+        BIND(gov:object_{{ object_id }} AS ?object)
+      }
+      UNION
+      {
+        gov:object_{{ object_id }} (gp:isPartOf/gp:ref){1,{{ levels }}} ?object .
+        BIND(1 AS ?level)
+      }
+
+      ?object gp:hasName/gp:value ?name .
+
+      OPTIONAL {
+        ?object gp:hasType ?type_prop .
+        ?type_prop gp:type ?type .
+        ?type gp:typeName ?type_name .
+      }
+    }
+    ORDER BY ?level ?name
+
+'ObjectsInRegion':
+  # Finds all objects that are part of a specific region
+  param_list:
+    - name: parent_object_id
+      type: str
+      default_value: "398036"
+    - name: type_filter
+      type: str
+      default_value: ""  # Optional type filter
+    - name: limit
+      type: int
+      default_value: 200
+  sparql: |
+    SELECT DISTINCT ?object ?name ?type_name ?population ?area
+    WHERE {
+      ?object gp:isPartOf/gp:ref gov:object_{{ parent_object_id }} .
+      ?object gp:hasName/gp:value ?name .
+
+      OPTIONAL {
+        ?object gp:hasType ?type_prop .
+        ?type_prop gp:type ?type .
+        ?type gp:typeName ?type_name .
+        FILTER(?type = gt:{{ type_filter }})
+      }
+
+      OPTIONAL {
+        ?object gp:hasPopulation/gp:value ?population .
+      }
+
+      OPTIONAL {
+        ?object gp:hasArea/gp:value ?area .
+      }
+    }
+    ORDER BY ?name
+    LIMIT {{ limit }}
+
+'ObjectsWithCoordinates':
+  # find objects with coordinates
+  param_list:
+    - name: limit
+      type: int
+      default_value: 100
+  sparql: |
+    SELECT DISTINCT ?object ?name ?geo ?type_name
+    WHERE {
+      ?object a gov:GovObject .
+      ?object gov:hasName ?pName .
+      ?pName gov:value ?name .
+      ?object geo:wktLiteral ?geo .
+
+      OPTIONAL {
+        ?object gp:hasType ?type_prop .
+        ?type_prop gp:type ?type .
+        ?type gp:typeName ?type_name .
+      }
+    }
+    ORDER BY ?name
+    LIMIT {{ limit }}
+
+'ObjectsWithWikidata':
+  # Finds objects that have corresponding Wikidata entries
+  param_list:
+    - name: limit
+      type: int
+      default_value: 100
+  sparql: |
+    SELECT DISTINCT ?object ?name ?wikidata ?type_name
+    WHERE {
+      ?object gp:hasName/gp:value ?name .
+      ?object owl:sameAs ?wikidata .
+      FILTER(STRSTARTS(STR(?wikidata),"http://www.wikidata.org/"))
+
+      OPTIONAL {
+        ?object gp:hasType ?type_prop .
+        ?type_prop gp:type ?type .
+        ?type gp:typeName ?type_name .
+      }
+    }
+    ORDER BY ?name
+    LIMIT {{ limit }}
+
+'HistoricalNames':
+  # Retrieves historical names of objects with time periods
+  param_list:
+    - name: object_id
+      type: str
+      default_value: "398036"
+  sparql: |
+    SELECT DISTINCT ?name ?language ?begin ?end ?source_note
+    WHERE {
+      gov:object_{{ object_id }} gp:hasName ?name_prop .
+      ?name_prop gp:value ?name .
+
+      OPTIONAL {
+        ?name_prop gp:language ?language .
+      }
+
+      OPTIONAL {
+        ?name_prop gp:time ?timespan .
+        OPTIONAL { ?timespan gp:begin ?begin . }
+        OPTIONAL { ?timespan gp:end ?end . }
+      }
+
+      OPTIONAL {
+        ?name_prop gp:source ?source_ref .
+        ?source_ref gp:sourceNote ?source_note .
+      }
+    }
+    ORDER BY ?begin ?name
+
+'PopulationHistory':
+  # Shows population development over time for an object
+  param_list:
+    - name: object_id
+      type: str
+      default_value: "398036"
+  sparql: |
+    SELECT DISTINCT ?population ?begin ?end ?source_note
+    WHERE {
+      gov:object_{{ object_id }} gp:hasPopulation ?pop_prop .
+      ?pop_prop gp:value ?population .
+
+      OPTIONAL {
+        ?pop_prop gp:time ?timespan .
+        OPTIONAL { ?timespan gp:begin ?begin . }
+        OPTIONAL { ?timespan gp:end ?end . }
+      }
+
+      OPTIONAL {
+        ?pop_prop gp:source ?source_ref .
+        ?source_ref gp:sourceNote ?source_note .
+      }
+    }
+    ORDER BY ?begin
+
+'SearchByPattern':
+  # Searches for objects by name pattern
+  param_list:
+    - name: pattern
+      type: str
+      default_value: "Berlin"
+    - name: limit
+      type: int
+      default_value: 50
+  sparql: |
+    SELECT DISTINCT ?object ?name ?type_name ?wikidata
+    WHERE {
+      ?object gp:hasName/gp:value ?name .
+      FILTER(CONTAINS(LCASE(?name), LCASE("{{ pattern }}")))
+
+      OPTIONAL {
+        ?object gp:hasType ?type_prop .
+        ?type_prop gp:type ?type .
+        ?type gp:typeName ?type_name .
+      }
+
+      OPTIONAL {
+        ?object owl:sameAs ?wikidata .
+        FILTER(STRSTARTS(STR(?wikidata),"http://www.wikidata.org/"))
+      }
+    }
+    ORDER BY ?name
+    LIMIT {{ limit }}
+
+'SearchByWNumber':
+  # Search for objects by W-Number
+  param_list:
+    - name: w_number
+      type: str
+      default_value: "W2306"
+    - name: limit
+      type: int
+      default_value: 10
+  sparql: |
+    SELECT DISTINCT ?object ?name ?w_number ?type_name
+    WHERE {
+      ?object gp:hasWNumber ?wn .
+      ?wn gp:value "{{ w_number }}" .
+      ?object gp:hasName ?pName .
+      ?pName gp:value ?name .
+
+      OPTIONAL {
+        ?object gp:hasType ?type_prop .
+        ?type_prop gp:type ?type .
+        ?type gp:typeName ?type_name .
+      }
+    }
+    ORDER BY ?name
+    LIMIT {{ limit }}
