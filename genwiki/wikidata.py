@@ -1,5 +1,5 @@
 """
-Created on 15.09.2024
+Created on 2024-09-15
 
 @author: wf
 """
@@ -8,6 +8,9 @@ from lodstorage.sparql import SPARQL
 
 
 class Wikidata:
+    """
+    fixed Wikidata endpoint
+    """
     @classmethod
     def get_sparql(cls):
         endpoint_uri = "https://query.wikidata.org/sparql"

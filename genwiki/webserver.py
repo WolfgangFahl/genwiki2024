@@ -6,6 +6,16 @@ Created on 2024-08-15
 
 import os
 
+from genwiki.convert import ParquetAdressbokToSql
+from genwiki.djvu_catalog import DjVuCatalog
+from genwiki.djvu_viewer import DjVuViewer
+from genwiki.genwiki_paths import GenWikiPaths
+from genwiki.multilang_querymanager import MultiLanguageQueryManager
+from genwiki.query_view import QueryView
+from genwiki.version import Version
+from genwiki.wiki import Wiki
+from genwiki.wikidata import Wikidata
+from genwiki.wikidata_view import WikidataItemView
 from lodstorage.sql import SQLDB
 from ngwidgets.input_webserver import InputWebserver, InputWebSolution
 from ngwidgets.login import Login
@@ -17,15 +27,7 @@ from nicegui import Client, app, ui
 from starlette.responses import FileResponse, HTMLResponse, RedirectResponse
 from wd.wditem_search import WikidataItemSearch
 
-from genwiki.convert import ParquetAdressbokToSql
-from genwiki.djvu_catalog import DjVuCatalog
-from genwiki.djvu_viewer import DjVuViewer
-from genwiki.genwiki_paths import GenWikiPaths
-from genwiki.multilang_querymanager import MultiLanguageQueryManager
-from genwiki.query_view import QueryView
-from genwiki.version import Version
-from genwiki.wiki import Wiki
-from genwiki.wikidata_view import WikidataItemView
+from genwiki.gov_query import GovQuery
 
 
 class GenWikiWebServer(InputWebserver):
@@ -65,12 +67,13 @@ class GenWikiWebServer(InputWebserver):
             pats.to_db(self.sql_db)
             profiler.time()
 
-        yaml_path = os.path.join(self.examples_path(), "queries.yaml")
-        self.mlqm = MultiLanguageQueryManager(yaml_path=yaml_path)
-
         @ui.page("/")
         async def home(client: Client):
             return await self.page(client, GenWikiSolution.home)
+
+        @ui.page("/gov")
+        async def show_gov_query(client: Client):
+            return await self.page(client, GenWikiSolution.show_gov_query)
 
         @ui.page("/wd/{qid}")
         async def wikidata_item(client: Client, qid: str):
@@ -170,6 +173,12 @@ class GenWikiWebServer(InputWebserver):
         self.wiki_id = "gensmw"
         self.wiki = Wiki(wiki_id=self.wiki_id, debug=self.args.debug)
 
+        yaml_path = os.path.join(self.examples_path(), "queries.yaml")
+        self.mlqm = MultiLanguageQueryManager(yaml_path=yaml_path)
+
+        # Add GOV query manager
+        self.gov_query=GovQuery(debug=self.args.debug)
+
 
 class GenWikiSolution(InputWebSolution):
     """
@@ -186,8 +195,10 @@ class GenWikiSolution(InputWebSolution):
         """
         super().__init__(webserver, client)
         self.mlqm = webserver.mlqm
+        self.gov_query=webserver.gov_query
         self.wiki = webserver.wiki
         self.sql_db = self.webserver.sql_db
+
 
     def authenticated(self) -> bool:
         """
@@ -203,6 +214,9 @@ class GenWikiSolution(InputWebSolution):
         """
         super().setup_menu(detailed=detailed)
         with self.header:
+            self.link_button(
+                "GOV Query", "/gov", "account_tree"
+            )
             self.link_button(
                 "DjVu Catalog", "/djvu/catalog", "library_books"
             )  # Add menu entry
@@ -223,11 +237,28 @@ class GenWikiSolution(InputWebSolution):
         def setup_home():
             """ """
             self.query_view = QueryView(
-                self, mlqm=self.mlqm, sql_db=self.sql_db, wiki=self.wiki
+                self, mlqm=self.mlqm, sql_db=self.sql_db, wiki=self.wiki, sparql=Wikidata.get_sparql()
             )
             self.query_view.setup_ui()
 
         await self.setup_content_div(setup_home)
+
+    async def show_gov_query(self):
+        """
+        provide the GOV Named Parameterized Queries page
+        """
+        def show():
+            self.query_view = QueryView(
+                self,
+                mlqm=self.gov_query.qm,
+                sql_db=self.sql_db,
+                wiki=self.wiki,
+                sparql=self.gov_query.sparql,
+                add_prefixes=self.gov_query.add_prefixes
+            )
+            self.query_view.setup_ui()
+
+        await self.setup_content_div(show)
 
     async def wikidata_item(self, qid: str):
         """

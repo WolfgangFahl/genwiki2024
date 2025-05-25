@@ -15,7 +15,7 @@ from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.params_view import ParamsView
 from genwiki.wiki import Wiki
 from genwiki.wikidata import Wikidata
-
+from typing import Callable
 
 class QueryView:
     """
@@ -23,10 +23,17 @@ class QueryView:
     """
 
     def __init__(
-        self, solution, mlqm: MultiLanguageQueryManager, sql_db: SQLDB, wiki: Wiki
+        self, solution,
+        mlqm: MultiLanguageQueryManager,
+        sql_db: SQLDB,
+        wiki: Wiki,
+        sparql:SPARQL,
+        add_prefixes: Callable[[str], str] = None
     ):
         self.solution = solution
+        self.add_prefixes=add_prefixes
         self.mlqm = mlqm
+        self.sparql=sparql
         self.wiki = wiki
         self.sql_db = sql_db
         self.load_task = None
@@ -81,9 +88,13 @@ class QueryView:
         if query.lang == "sql":
             qlod = self.sql_db.query(query.query)
         elif query.lang == "sparql":
-            sparql = Wikidata.get_sparql()
-            qlod = sparql.queryAsListOfDicts(
-                query.query, param_dict=query.params.params_dict
+            # Apply add_prefixes function if available
+            sparql_query = query.query
+            if self.add_prefixes:
+                sparql_query = self.add_prefixes(sparql_query)
+            qlod = self.sparql.queryAsListOfDicts(
+                sparql_query,
+                param_dict=query.params.params_dict
             )
         elif query.lang == "ask":
             qlod = self.wiki.query_as_list_of_dicts(query.query)

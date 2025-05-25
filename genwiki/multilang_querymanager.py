@@ -32,6 +32,8 @@ class MultiLanguageQueryManager:
             self.query_names.extend(list(qm.queriesByName.keys()))
 
     def query4Name(self, name: str) -> Query:
+        """
+        """
         result = None
         for qm in self.qms.values():
             if name in qm.queriesByName:
