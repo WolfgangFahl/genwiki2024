@@ -9,5 +9,25 @@ if [ -z "$1" ]; then
    exit 1
 fi
 
-cd genwiki_examples
-sparqlquery -en gov -ep gov-ep.yaml --prefixes -qp gov-queries.yaml -qn "$1" ${2:+--params "$2"} "${@:3}"
+cd genwiki_examples || exit 2
+
+args=(-en gov -ep gov-ep.yaml --prefixes -qp gov-queries.yaml)
+
+added=0
+for arg in "$@"; do
+  case "$arg" in
+    -*) break ;;  # alle Optionen (auch -h, -f, --list)
+    *)
+      if (( added == 0 )); then
+        args+=(-qn "$arg")
+      elif (( added == 1 )); then
+        args+=(--params "$arg")
+      fi
+      added=$((added + 1))
+      shift
+      ;;
+  esac
+done
+
+args+=("$@")
+sparqlquery "${args[@]}"
