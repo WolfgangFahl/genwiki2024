@@ -280,3 +280,49 @@
     }
     ORDER BY ?name
     LIMIT {{ limit }}
+
+'ObjectsInCoordinateRange':
+  # Objects within coordinate bounding box (requires position parsing)
+  param_list:
+    - name: min_lat
+      type: float
+      default_value: 50.0
+    - name: max_lat
+      type: float
+      default_value: 55.0
+    - name: min_lon
+      type: float
+      default_value: 8.0
+    - name: max_lon
+      type: float
+      default_value: 15.0
+    - name: limit
+      type: int
+      default_value: 100
+  sparql: |
+    SELECT DISTINCT ?object ?name ?position ?type_name
+    WHERE {
+      ?object gp:hasName/gp:value ?name .
+      ?object gp:position ?position .
+
+      # This is a simplified approach - actual coordinate parsing would be more complex
+      FILTER(CONTAINS(STR(?position), ","))
+
+      OPTIONAL {
+        ?object gp:hasType ?type_prop .
+        ?type_prop gp:type ?type .
+        ?type gp:typeName ?type_name .
+      }
+    }
+    ORDER BY ?name
+    LIMIT {{ limit }}
+
+'PropertyHistogram':
+  # Shows frequency of all properties in the database
+  sparql: |
+    SELECT ?property (COUNT(*) AS ?count) WHERE {
+      ?subject ?property ?object .
+    }
+    GROUP BY ?property
+    ORDER BY DESC(?count)
+    LIMIT 50

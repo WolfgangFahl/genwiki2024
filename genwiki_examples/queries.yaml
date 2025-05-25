@@ -316,3 +316,31 @@ StraßenVergleich:
       COUNT(*) AS Anzahl
     FROM weimarTH1853
     WHERE street like '%{{straße}}%'
+
+
+GOVOrte:
+  # Gibt alle Orte mit GOV-Kennung, inkl. Gemeinde, Kreis, Typ und Labels
+  param_list:
+    - name: limit
+      type: int
+      default_value: 1000
+    - name: lang
+      type: str
+      default_value: de
+  sparql: |
+    SELECT ?kreis ?kreisLabel ?gemeinde ?gemeindeLabel ?typ ?typLabel ?city ?cityLabel ?govid
+    WHERE {
+      ?city wdt:P2503 ?govid ;
+            wdt:P131 ?gemeinde ;
+            wdt:P31 ?typ .
+      ?gemeinde wdt:P131 ?kreis .
+
+      OPTIONAL { ?city rdfs:label ?cityLabel . FILTER(LANG(?cityLabel) = "{{lang}}") }
+      OPTIONAL { ?gemeinde rdfs:label ?gemeindeLabel . FILTER(LANG(?gemeindeLabel) = "{{lang}}") }
+      OPTIONAL { ?kreis rdfs:label ?kreisLabel . FILTER(LANG(?kreisLabel) = "{{lang}}") }
+      OPTIONAL { ?typ rdfs:label ?typLabel . FILTER(LANG(?typLabel) = "{{lang}}") }
+    }
+    ORDER BY ?kreisLabel ?gemeindeLabel ?cityLabel
+    LIMIT {{ limit }}
+
+
