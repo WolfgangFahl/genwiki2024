@@ -1,14 +1,16 @@
-'''
+"""
 Created on 2025-05-25
 
 @author: wf
-'''
+"""
+
 import os
+
+from lodstorage.query import EndpointManager
+from lodstorage.sparql import SPARQL
 
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
-from lodstorage.query import EndpointManager
-from lodstorage.sparql import SPARQL
 
 
 class GovQuery:
@@ -20,8 +22,8 @@ class GovQuery:
     see https://discourse.genealogy.net/t/gov-mit-sparql-abfragen/824147
     """
 
-    def __init__(self,debug:bool=False):
-        self.debug=debug
+    def __init__(self, debug: bool = False):
+        self.debug = debug
         # Get the examples path
         self.examples_path = GenWikiPaths.get_examples_path()
 
@@ -42,8 +44,8 @@ class GovQuery:
         if self.endpoint:
             self.sparql = SPARQL(self.endpoint.endpoint, debug=self.debug)
 
-    def add_prefixes(self,sparql_query:str)->str:
-        prefixed_query=f"{self.endpoint.prefixes}\n{sparql_query}"
+    def add_prefixes(self, sparql_query: str) -> str:
+        prefixed_query = f"{self.endpoint.prefixes}\n{sparql_query}"
         return prefixed_query
 
     def get_query(self, query_name: str, param_dict: dict = None) -> str:

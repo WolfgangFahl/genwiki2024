@@ -3,9 +3,11 @@ Created on 2025-05-25
 
 @author: wf
 """
-from genwiki.gov_query import GovQuery
+
 from ngwidgets.basetest import Basetest
 from tabulate import tabulate
+
+from genwiki.gov_query import GovQuery
 
 
 class TestGovSparql(Basetest):
@@ -18,7 +20,7 @@ class TestGovSparql(Basetest):
         setUp the test environment
         """
         Basetest.setUp(self, debug=debug, profile=profile)
-        self.gq=GovQuery(debug=self.debug)
+        self.gq = GovQuery(debug=self.debug)
 
     def test_endpoint(self):
         """

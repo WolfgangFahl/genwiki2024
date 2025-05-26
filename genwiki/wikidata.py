@@ -11,6 +11,7 @@ class Wikidata:
     """
     fixed Wikidata endpoint
     """
+
     @classmethod
     def get_sparql(cls):
         endpoint_uri = "https://query.wikidata.org/sparql"

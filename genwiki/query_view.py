@@ -4,6 +4,8 @@ Created on 26.08.2024
 @author: wf
 """
 
+from typing import Callable
+
 from lodstorage.sparql import SPARQL
 from lodstorage.sql import SQLDB
 from ngwidgets.lod_grid import ListOfDictsGrid
@@ -15,7 +17,7 @@ from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.params_view import ParamsView
 from genwiki.wiki import Wiki
 from genwiki.wikidata import Wikidata
-from typing import Callable
+
 
 class QueryView:
     """
@@ -23,17 +25,18 @@ class QueryView:
     """
 
     def __init__(
-        self, solution,
+        self,
+        solution,
         mlqm: MultiLanguageQueryManager,
         sql_db: SQLDB,
         wiki: Wiki,
-        sparql:SPARQL,
-        add_prefixes: Callable[[str], str] = None
+        sparql: SPARQL,
+        add_prefixes: Callable[[str], str] = None,
     ):
         self.solution = solution
-        self.add_prefixes=add_prefixes
+        self.add_prefixes = add_prefixes
         self.mlqm = mlqm
-        self.sparql=sparql
+        self.sparql = sparql
         self.wiki = wiki
         self.sql_db = sql_db
         self.load_task = None
@@ -93,8 +96,7 @@ class QueryView:
             if self.add_prefixes:
                 sparql_query = self.add_prefixes(sparql_query)
             qlod = self.sparql.queryAsListOfDicts(
-                sparql_query,
-                param_dict=query.params.params_dict
+                sparql_query, param_dict=query.params.params_dict
             )
         elif query.lang == "ask":
             qlod = self.wiki.query_as_list_of_dicts(query.query)
