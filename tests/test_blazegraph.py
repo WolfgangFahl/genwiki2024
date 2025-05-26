@@ -5,8 +5,11 @@ Created on 2025-05-26
 """
 
 import json
+import os
+from pathlib import Path
 
 from ngwidgets.basetest import Basetest
+from tqdm import tqdm
 
 from genwiki.blazegraph import Blazegraph
 
@@ -21,17 +24,77 @@ class TestBlazegraph(Basetest):
         setUp the test environment
         """
         Basetest.setUp(self, debug=debug, profile=profile)
+        home_dir = Path.home()
+        self.dumps_dir = (
+            home_dir / "Projekte" / "2025" / "CompGen2025" / "GOV" / "dumps"
+        )
+
+    def clear_blazegraph(self):
+        """
+        delete all trips
+        """
+        if self.debug:
+            print("deleting all triples ...")
+        clear_query = "DELETE { ?s ?p ?o } WHERE { ?s ?p ?o }"
+        self.blazegraph.sparql.insert(clear_query)
+        count_triples = self.blazegraph.count_triples()
+        self.assertEqual(0, count_triples)
+
+    def start_blazegraph(self, verbose: bool = True):
+        self.blazegraph = Blazegraph(debug=self.debug)
+        if self.blazegraph.is_running():
+            if self.debug and verbose:
+                print("blazegraph already running")
+        else:
+            started = self.blazegraph.start()
+            self.assertTrue(started)
+        if verbose:
+            status = self.blazegraph.status()
+            if self.debug:
+                print(json.dumps(status, indent=2))
+            count_triples = self.blazegraph.count_triples()
+            if self.debug:
+                print(f"{count_triples} triples found")
 
     def test_start_blazegraph(self):
         """
         test starting blazegraph
         """
-        blazegraph = Blazegraph(debug=self.debug)
-        started = blazegraph.start()
-        self.assertTrue(started)
-        status = blazegraph.status()
+        self.start_blazegraph()
+
+    def test_load_dump_files(self):
+        """
+        test loading dump files if available
+        """
+        if not self.dumps_dir.exists():
+            self.skipTest(f"Dumps directory {self.dumps_dir} not available")
+        self.start_blazegraph(verbose=False)
+        self.skipTest("protect existing blazegraph")
+        return
+        self.clear_blazegraph()
+
+        # Get all dump files directly
+        dump_files = list(self.dumps_dir.glob("dump_*.ttl"))
         if self.debug:
-            print(json.dumps(status, indent=2))
-        count_triples=blazegraph.count_triples()
+            print(f"Found {len(dump_files)} dump files in {self.dumps_dir}")
+
+        # Load files individually
+        loaded_count = 0
+        for dump_file in tqdm(dump_files, desc="Loading dump files"):
+            file_loaded = self.blazegraph.load_file(str(dump_file))
+            if file_loaded:
+                loaded_count += 1
+            if self.debug:
+                status = "✅" if file_loaded else "❌"
+                print(f"{status} {dump_file.name}")
+
         if self.debug:
-            print(f"{count_triples} triples found")
+            print(f"Successfully loaded {loaded_count}/{len(dump_files)} files")
+
+        # Count triples after loading
+        final_count = self.blazegraph.count_triples()
+        if self.debug:
+            print(f"Total triples after loading: {final_count:,}")
+
+        self.assertGreater(loaded_count, 0)
+        self.assertGreater(final_count, 0)

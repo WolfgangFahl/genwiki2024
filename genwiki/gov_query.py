@@ -22,7 +22,7 @@ class GovQuery:
     see https://discourse.genealogy.net/t/gov-mit-sparql-abfragen/824147
     """
 
-    def __init__(self, debug: bool = False):
+    def __init__(self, endpoint_name:str='gov',debug: bool = False):
         self.debug = debug
         # Get the examples path
         self.examples_path = GenWikiPaths.get_examples_path()
@@ -38,7 +38,7 @@ class GovQuery:
         )
 
         # Setup SPARQL connection
-        self.endpoint_name = "gov"
+        self.endpoint_name = endpoint_name
         self.endpoint = self.endpoints.get(self.endpoint_name)
         self.sparql = None
         if self.endpoint:

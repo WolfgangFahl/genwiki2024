@@ -282,41 +282,51 @@
     LIMIT {{ limit }}
 
 'ObjectsInCoordinateRange':
-  # Objects within coordinate bounding box (requires position parsing)
+  # Objects within coordinate bounding box with historical name periods and type IDs
+  # Uses Basel Dreiländereck as default (compact area, historically rich)
+  # Type name mapping will be handled separately with proper triples
   param_list:
     - name: min_lat
       type: float
-      default_value: 50.0
+      default_value: 47.5
     - name: max_lat
       type: float
-      default_value: 55.0
+      default_value: 47.7
     - name: min_lon
       type: float
-      default_value: 8.0
+      default_value: 7.5
     - name: max_lon
       type: float
-      default_value: 15.0
+      default_value: 7.7
     - name: limit
       type: int
       default_value: 100
   sparql: |
-    SELECT DISTINCT ?object ?name ?position ?type_name
+    SELECT DISTINCT ?object ?name ?lat ?lon ?begin ?end ?language ?type_id
     WHERE {
-      ?object gp:hasName/gp:value ?name .
+      ?position <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat .
+      ?position <http://www.w3.org/2003/01/geo/wgs84_pos#lon> ?lon .
       ?object gp:position ?position .
 
-      # This is a simplified approach - actual coordinate parsing would be more complex
-      FILTER(CONTAINS(STR(?position), ","))
+      # Get names with historical time periods
+      ?object gp:hasName ?name_prop .
+      ?name_prop gp:value ?name .
+      OPTIONAL { ?name_prop gp:timeBegin ?begin . }
+      OPTIONAL { ?name_prop gp:timeEnd ?end . }
+      OPTIONAL { ?name_prop gp:language ?language . }
 
+      # Get administrative type IDs
       OPTIONAL {
         ?object gp:hasType ?type_prop .
-        ?type_prop gp:type ?type .
-        ?type gp:typeName ?type_name .
+        ?type_prop gp:type ?type_id .
       }
-    }
-    ORDER BY ?name
-    LIMIT {{ limit }}
 
+      # Coordinate bounding box filter
+      FILTER(?lat >= {{ min_lat }} && ?lat <= {{ max_lat }})
+      FILTER(?lon >= {{ min_lon }} && ?lon <= {{ max_lon }})
+    }
+    ORDER BY ?object ?begin ?name
+    LIMIT {{ limit }}
 'PropertyHistogram':
   # Shows frequency of all properties in the database
   sparql: |

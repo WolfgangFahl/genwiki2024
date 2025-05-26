@@ -10,10 +10,10 @@ import time
 from pathlib import Path
 
 import requests
+from lodstorage.sparql import SPARQL
 from ngwidgets.persistent_log import Log
 from ngwidgets.shell import Shell
 from tqdm import tqdm
-from lodstorage.sparql import SPARQL
 
 
 class Blazegraph:
@@ -74,21 +74,23 @@ class Blazegraph:
         try:
             response = requests.request(method, url, timeout=timeout, **kwargs)
             request_result = {
-                'success': response.status_code in [200, 204],
-                'status_code': response.status_code,
-                'content': response.text,
-                'response': response
+                "success": response.status_code in [200, 204],
+                "status_code": response.status_code,
+                "content": response.text,
+                "response": response,
             }
         except Exception as e:
             request_result = {
-                'success': False,
-                'status_code': None,
-                'content': None,
-                'error': str(e)
+                "success": False,
+                "status_code": None,
+                "content": None,
+                "error": str(e),
             }
         return request_result
 
-    def _run_shell_command(self, command: str, success_msg: str = None, error_msg: str = None) -> bool:
+    def _run_shell_command(
+        self, command: str, success_msg: str = None, error_msg: str = None
+    ) -> bool:
         """
         Helper function for running shell commands with consistent error handling.
 
@@ -114,7 +116,9 @@ class Blazegraph:
                 self.log.log("❌", "blazegraph", error_detail)
                 command_success = False
         except Exception as e:
-            self.log.log("❌", "blazegraph", f"Exception running command '{command}': {e}")
+            self.log.log(
+                "❌", "blazegraph", f"Exception running command '{command}': {e}"
+            )
             command_success = False
         return command_success
 
@@ -131,20 +135,38 @@ class Blazegraph:
         start_success = False
         try:
             if self.is_running():
-                self.log.log("✅", "blazegraph", f"Container {self.container_name} is already running")
+                self.log.log(
+                    "✅",
+                    "blazegraph",
+                    f"Container {self.container_name} is already running",
+                )
                 start_success = self.wait_until_ready(show_progress=show_progress)
             elif self.exists():
-                self.log.log("✅", "blazegraph", f"Container {self.container_name} exists, starting...")
+                self.log.log(
+                    "✅",
+                    "blazegraph",
+                    f"Container {self.container_name} exists, starting...",
+                )
                 start_cmd = f"docker start {self.container_name}"
-                start_result = self._run_shell_command(start_cmd, error_msg=f"Failed to start container {self.container_name}")
+                start_result = self._run_shell_command(
+                    start_cmd,
+                    error_msg=f"Failed to start container {self.container_name}",
+                )
                 if start_result:
                     start_success = self.wait_until_ready(show_progress=show_progress)
                 else:
                     start_success = False
             else:
-                self.log.log("✅", "blazegraph", f"Creating new Blazegraph container {self.container_name}...")
+                self.log.log(
+                    "✅",
+                    "blazegraph",
+                    f"Creating new Blazegraph container {self.container_name}...",
+                )
                 create_cmd = f"docker run -d --name {self.container_name} -p {self.port}:9999 {self.image}"
-                create_result = self._run_shell_command(create_cmd, error_msg=f"Failed to create container {self.container_name}")
+                create_result = self._run_shell_command(
+                    create_cmd,
+                    error_msg=f"Failed to create container {self.container_name}",
+                )
                 if create_result:
                     start_success = self.wait_until_ready(show_progress=show_progress)
                 else:
@@ -174,11 +196,11 @@ class Blazegraph:
             Dictionary with status information, empty dict if error
         """
         status_dict = {}
-        result = self._make_request('GET', self.status_url, timeout=2)
+        result = self._make_request("GET", self.status_url, timeout=2)
 
-        if result['success']:
+        if result["success"]:
             status_dict["status"] = "ready"
-            html_content = result['content']
+            html_content = result["content"]
             name_value_pattern = r'(?:<span id="(?P<name1>[^"]+)">(?P<value1>[^<]+)</span[^>]*>|&#47;(?P<name2>[^=]+)=(?P<value2>[^\s&#]+))'
             matches = re.finditer(name_value_pattern, html_content, re.DOTALL)
 
@@ -197,7 +219,7 @@ class Blazegraph:
                             status_dict[sanitized_name] = sanitized_value
                         break
         else:
-            if result.get('error'):
+            if result.get("error"):
                 status_dict["status"] = f"error: {result['error']}"
             else:
                 status_dict["status"] = f"status_code: {result['status_code']}"
@@ -215,7 +237,9 @@ class Blazegraph:
         Returns:
             True if ready within timeout
         """
-        self.log.log("✅", "blazegraph", f"Waiting for Blazegraph to start ... {self.status_url}")
+        self.log.log(
+            "✅", "blazegraph", f"Waiting for Blazegraph to start ... {self.status_url}"
+        )
 
         pbar = None
         if show_progress:
@@ -238,7 +262,11 @@ class Blazegraph:
         if not ready_status:
             if show_progress and pbar:
                 pbar.close()
-            self.log.log("⚠️", "blazegraph", f"Timeout waiting for Blazegraph to start after {timeout}s")
+            self.log.log(
+                "⚠️",
+                "blazegraph",
+                f"Timeout waiting for Blazegraph to start after {timeout}s",
+            )
 
         return ready_status
 
@@ -249,7 +277,9 @@ class Blazegraph:
         Returns:
             True if container is running
         """
-        running_cmd = f'docker ps --filter "name={self.container_name}" --format "{{{{.Names}}}}"'
+        running_cmd = (
+            f'docker ps --filter "name={self.container_name}" --format "{{{{.Names}}}}"'
+        )
         result = self.shell.run(running_cmd, debug=self.debug)
         is_container_running = self.container_name in result.stdout
         return is_container_running
@@ -279,7 +309,7 @@ class Blazegraph:
         stop_success = self._run_shell_command(
             stop_cmd,
             success_msg=f"Stopped container {self.container_name}",
-            error_msg=f"Failed to stop container {self.container_name}"
+            error_msg=f"Failed to stop container {self.container_name}",
         )
         return stop_success
 
@@ -295,21 +325,23 @@ class Blazegraph:
         """
         load_success = False
         try:
-            with open(filepath, 'rb') as f:
+            with open(filepath, "rb") as f:
                 result = self._make_request(
-                    'POST',
+                    "POST",
                     self.sparql_url,
-                    headers={'Content-Type': 'text/turtle'},
+                    headers={"Content-Type": "text/turtle"},
                     data=f.read(),
-                    timeout=300
+                    timeout=300,
                 )
 
-            if result['success']:
+            if result["success"]:
                 self.log.log("✅", "blazegraph", f"Loaded {filepath}")
                 load_success = True
             else:
-                error_msg = result.get('error', f"HTTP {result['status_code']}")
-                self.log.log("❌", "blazegraph", f"Failed to load {filepath}: {error_msg}")
+                error_msg = result.get("error", f"HTTP {result['status_code']}")
+                self.log.log(
+                    "❌", "blazegraph", f"Failed to load {filepath}: {error_msg}"
+                )
                 load_success = False
 
         except Exception as e:
@@ -346,24 +378,26 @@ class Blazegraph:
             </properties>"""
 
             result = self._make_request(
-                'POST',
+                "POST",
                 self.dataloader_url,
-                headers={'Content-Type': 'application/xml'},
+                headers={"Content-Type": "application/xml"},
                 data=properties,
-                timeout=3600
+                timeout=3600,
             )
 
-            if result['success']:
+            if result["success"]:
                 self.log.log("✅", "blazegraph", f"Bulk loaded {len(file_list)} files")
                 bulk_load_success = True
             else:
-                error_msg = result.get('error', f"HTTP {result['status_code']}")
+                error_msg = result.get("error", f"HTTP {result['status_code']}")
                 self.log.log("❌", "blazegraph", f"Bulk load failed: {error_msg}")
                 bulk_load_success = False
 
         return bulk_load_success
 
-    def load_dump_files(self, file_pattern: str = "dump_*.ttl", use_bulk: bool = True) -> int:
+    def load_dump_files(
+        self, file_pattern: str = "dump_*.ttl", use_bulk: bool = True
+    ) -> int:
         """
         Load all dump files matching pattern.
 
@@ -378,7 +412,9 @@ class Blazegraph:
         loaded_count = 0
 
         if not files:
-            self.log.log("⚠️", "blazegraph", f"No files found matching pattern: {file_pattern}")
+            self.log.log(
+                "⚠️", "blazegraph", f"No files found matching pattern: {file_pattern}"
+            )
             loaded_count = 0
         else:
             self.log.log("✅", "blazegraph", f"Found {len(files)} files to load")
@@ -414,12 +450,12 @@ class Blazegraph:
         """
 
         result = self._make_request(
-            'POST',
+            "POST",
             self.sparql_url,
-            data={'query': test_query},
-            headers={'Accept': 'application/sparql-results+json'},
-            timeout=10
+            data={"query": test_query},
+            headers={"Accept": "application/sparql-results+json"},
+            timeout=10,
         )
 
-        geosparql_available = result['success']
+        geosparql_available = result["success"]
         return geosparql_available

@@ -8,6 +8,7 @@ Download RDF dump via paginated CONSTRUCT queries.
 
 import argparse
 import time
+from pathlib import Path
 
 import requests
 from tqdm import tqdm
@@ -21,6 +22,7 @@ class RdfDumpDownloader:
     def __init__(
         self,
         endpoint_url: str,
+        output_path: str,
         limit: int = 10000,
         max_triples: int = 200000,
         show_progress: bool = True,
@@ -30,11 +32,13 @@ class RdfDumpDownloader:
 
         Args:
             endpoint_url: SPARQL endpoint URL
+            output_path: the directory for the dump file
             limit: Number of triples per request
             max_triples: Maximum number of triples to download
             show_progress: Whether to show progress bar
         """
         self.endpoint_url = endpoint_url
+        self.output_path = output_path
         self.limit = limit
         self.max_triples = max_triples
         self.show_progress = show_progress
@@ -88,6 +92,11 @@ class RdfDumpDownloader:
         Returns:
             Number of chunks downloaded
         """
+        # make sure the output_path is created
+        output_dir = Path(self.output_path)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        total_triples_downloaded = 0
+
         total_chunks = self.max_triples // self.limit
         chunk_count = 0
 
@@ -103,11 +112,14 @@ class RdfDumpDownloader:
                 print(f"Error at offset {offset}: {e}")
                 break
 
-            if not content:
+            if content:
+                triple_count = content.count(" .") - content.count("@prefix")
+                total_triples_downloaded += triple_count
+            else:
                 print(f"Offset {offset}: Empty response → stopping.")
                 break
 
-            filename = f"dump_{offset:06d}.ttl"
+            filename = output_dir / f"dump_{chunk_idx:06d}.ttl"
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(content)
 
@@ -149,11 +161,13 @@ def main():
     parser.add_argument(
         "--no-progress", action="store_true", help="Disable progress bar"
     )
+    parser.add_argument("--output-path", default=".", help="Path for dump files")
 
     args = parser.parse_args()
 
     downloader = RdfDumpDownloader(
         endpoint_url=args.url,
+        output_path=args.output_path,
         limit=args.limit,
         max_triples=args.max_triples,
         show_progress=not args.no_progress,
