@@ -1,7 +1,7 @@
 #!/bin/bash
 # WF 2025-05-25
 # run a GOV SPARQL Query
-endpoint_name="govb"
+endpoint_name="gov"
 # Check if query name is provided
 if [ -z "$1" ]; then
    echo "Usage: $0 <query_name> [params] [additional_options...]"

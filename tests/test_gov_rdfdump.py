@@ -33,14 +33,14 @@ class TestRdfDumpDownloader(Basetest):
         Test downloading RDF dump from gov.genealogy.net
         """
         # First, get the total number of triples to download
-
         sparql = SPARQL(self.endpoint_url)
         count_query = "SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }"
         total_triples = int(sparql.getValue(count_query, "count"))
 
         if self.debug:
             print(f"Total triples in endpoint: {total_triples:,}")
-
+        self.skipTest("rdf dump takes >1h")
+        return
         limit = 100000
         # Set max_triples to download all (with some buffer)
         max_triples = total_triples + limit  # Add buffer for safety

@@ -5,7 +5,6 @@ Created on 2025-05-26
 """
 
 import json
-import os
 from pathlib import Path
 
 from ngwidgets.basetest import Basetest
