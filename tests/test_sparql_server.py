@@ -10,10 +10,10 @@ from pathlib import Path
 from ngwidgets.basetest import Basetest
 from tqdm import tqdm
 
-from genwiki.blazegraph import Blazegraph
+from genwiki.sparql_server import Blazegraph, QLever, SparqlServer
 
 
-class TestBlazegraph(Basetest):
+class TestSparqlServer(Basetest):
     """
     test starting blazegraph
     """
@@ -24,42 +24,46 @@ class TestBlazegraph(Basetest):
         """
         Basetest.setUp(self, debug=debug, profile=profile)
         home_dir = Path.home()
-        self.dumps_dir = (
-            home_dir / "Projekte" / "2025" / "CompGen2025" / "GOV" / "dumps"
-        )
+        self.gov_dir = (home_dir / "Projekte" / "2025" / "CompGen2025" / "GOV" )
+        self.qlever_data_dir= (self.gov_dir / "qlever")
+        self.dumps_dir = (self.gov_dir / "dumps")
+        self.servers={
+            #"blazegraph": Blazegraph(debug=self.debug),
+            "qlever": QLever(debug=self.debug,data_dir=str(self.qlever_data_dir))
+        }
 
-    def clear_blazegraph(self):
+    def clear_server(self,server:SparqlServer):
         """
         delete all trips
         """
         if self.debug:
             print("deleting all triples ...")
         clear_query = "DELETE { ?s ?p ?o } WHERE { ?s ?p ?o }"
-        self.blazegraph.sparql.insert(clear_query)
-        count_triples = self.blazegraph.count_triples()
+        server.sparql.insert(clear_query)
+        count_triples = server.count_triples()
         self.assertEqual(0, count_triples)
 
-    def start_blazegraph(self, verbose: bool = True):
-        self.blazegraph = Blazegraph(debug=self.debug)
-        if self.blazegraph.is_running():
+    def start_server(self, server:SparqlServer, verbose: bool = True):
+        if server.is_running():
             if self.debug and verbose:
-                print("blazegraph already running")
+                print(f"{server.name} already running")
         else:
-            started = self.blazegraph.start()
+            started = server.start()
             self.assertTrue(started)
         if verbose:
-            status = self.blazegraph.status()
+            status = server.status()
             if self.debug:
                 print(json.dumps(status, indent=2))
-            count_triples = self.blazegraph.count_triples()
+            count_triples = server.count_triples()
             if self.debug:
-                print(f"{count_triples} triples found")
+                print(f"{count_triples} triples found for {server.name}")
 
-    def test_start_blazegraph(self):
+    def test_start(self):
         """
-        test starting blazegraph
+        test starting servers
         """
-        self.start_blazegraph()
+        for server in self.servers.values():
+            self.start_server(server)
 
     def test_load_dump_files(self):
         """

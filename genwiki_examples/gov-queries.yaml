@@ -134,17 +134,18 @@
       type: int
       default_value: 100
   sparql: |
-    SELECT DISTINCT ?object ?name ?geo ?type_name
+    SELECT DISTINCT ?object ?name ?lat ?lon ?type_id
     WHERE {
-      ?object a gov:GovObject .
-      ?object gov:hasName ?pName .
-      ?pName gov:value ?name .
-      ?object geo:wktLiteral ?geo .
+      ?position <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat .
+      ?position <http://www.w3.org/2003/01/geo/wgs84_pos#lon> ?lon .
+      ?object gp:position ?position .
+
+      ?object gp:hasName ?name_prop .
+      ?name_prop gp:value ?name .
 
       OPTIONAL {
         ?object gp:hasType ?type_prop .
-        ?type_prop gp:type ?type .
-        ?type gp:typeName ?type_name .
+        ?type_prop gp:type ?type_id .
       }
     }
     ORDER BY ?name
