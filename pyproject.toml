@@ -33,7 +33,7 @@ dependencies = [
 	# fastapi
 	# uvicorn
 	"nicegui>=2.20.0",
-	"ngwidgets>=0.27.0",
+	"ngwidgets>=0.27.1",
 	# progress bar
 	# https://pypi.org/project/tqdm/
 	"tqdm>=4.66.5",

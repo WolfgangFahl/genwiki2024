@@ -16,19 +16,23 @@ from tests.gbasetest import GenealogyBasetest
 
 
 class TestTags(GenealogyBasetest):
-    """ """
+    """
+    test tags
+    """
 
     def setUp(self, debug=False, profile=True):
         GenealogyBasetest.setUp(self, debug=debug, profile=profile)
-        endpoint_path = os.path.expanduser("~/.pylodstorage/endpoints.yaml")
-        self.endpoints = EndpointManager.getEndpoints(endpoint_path)
-        self.wiki_id = "genwiki"
-        self.endpoint = self.endpoints.get(self.wiki_id)
         self.mysql = None
-        if self.endpoint:
-            self.mysql = MySqlQuery(endpoint=self.endpoint)
-        yaml_path = os.path.join(GenWikiPaths.get_examples_path(), "wiki_queries.yaml")
-        self.mlqm = MultiLanguageQueryManager(yaml_path=yaml_path)
+        self.mlqm = None
+        if not self.inPublicCI():
+            endpoint_path = os.path.expanduser("~/.pylodstorage/endpoints.yaml")
+            self.endpoints = EndpointManager.getEndpoints(endpoint_path)
+            self.wiki_id = "genwiki"
+            self.endpoint = self.endpoints.get(self.wiki_id)
+            if self.endpoint:
+                self.mysql = MySqlQuery(endpoint=self.endpoint)
+            yaml_path = os.path.join(GenWikiPaths.get_examples_path(), "wiki_queries.yaml")
+            self.mlqm = MultiLanguageQueryManager(yaml_path=yaml_path)
 
     def get_query(self, query_name, param_dict=None):
         query = self.mlqm.query4Name(query_name)
@@ -45,8 +49,7 @@ class TestTags(GenealogyBasetest):
         test the wiki queries
         """
         if not self.mysql:
-            print("no mysql connection ")
-            return
+            self.skipTest("no mysql connection ")
 
         for qi, query_name in enumerate(self.mlqm.query_names):
             sql_query = self.get_query(query_name)
@@ -73,6 +76,8 @@ class TestTags(GenealogyBasetest):
                 )
                 yield wiki_page
 
+        if not self.mlqm:
+            self.skipTest("not tagAnalyzer env available")
         ta = TagAnalyzer(wiki_id=self.wiki_id, endpoint=self.endpoint)
         sql_query = self.get_query("all_pages", {"limit": 10000000})
         ta.parse_pages(page_generator)
