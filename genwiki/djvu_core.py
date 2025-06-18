@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import numpy
-from ngwidgets.yamlable import lod_storable
+from basemkit.yamlable import lod_storable
 
 
 @lod_storable

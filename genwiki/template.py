@@ -1,5 +1,5 @@
 """
-Created on 19.08.2024
+Created on 2024-08-19
 
 @author: wf
 """
@@ -9,7 +9,7 @@ from dataclasses import field
 from typing import Any, Callable, Dict, Optional
 
 import mwparserfromhell
-from ngwidgets.yamlable import lod_storable
+from basemkit.yamlable import lod_storable
 
 
 @lod_storable

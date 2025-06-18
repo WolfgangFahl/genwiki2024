@@ -18,7 +18,7 @@ class Version(object):
     name = "genwiki2024"
     version = genwiki.__version__
     date = "2024-08-15"
-    updated = "2025-05-25"
+    updated = "2025-06-18"
     description = "genealogy Semantification"
 
     authors = "Wolfgang Fahl"
