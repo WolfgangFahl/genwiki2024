@@ -172,6 +172,41 @@
     }
     ORDER BY ?name
     LIMIT {{ limit }}
+'GovTypeList':
+  # Lists all distinct used administrative types with English labels
+  param_list: []
+  sparql: |
+    PREFIX gov: <http://gov.genealogy.net/>
+    PREFIX gp: <http://gov.genealogy.net/ontology.owl#>
+    PREFIX gt: <http://gov.genealogy.net/types.owl#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+    SELECT DISTINCT ?type ?label_en
+    WHERE {
+      ?object gp:hasType/gp:type ?type .
+      ?type rdfs:label ?label_en .
+      FILTER(LANG(?label_en) = "en")
+    }
+    ORDER BY ?label_en
+'CountriesWithWikidataLink':
+  # Lists all countries (type 50) with optional Wikidata links
+  param_list: []
+  sparql: |
+    PREFIX gov: <http://gov.genealogy.net/>
+    PREFIX gp: <http://gov.genealogy.net/ontology.owl#>
+    PREFIX gt: <http://gov.genealogy.net/types.owl#>
+    PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+    SELECT DISTINCT ?country ?name ?wikidata
+    WHERE {
+      ?country gp:hasType/gp:type gt:50 .
+      ?country gp:hasName/gp:value ?name .
+      OPTIONAL {
+        ?country owl:sameAs ?wikidata .
+        FILTER(STRSTARTS(STR(?wikidata), "http://www.wikidata.org/"))
+      }
+    }
+    ORDER BY ?name
 
 'HistoricalNames':
   # Retrieves historical names of objects with time periods
