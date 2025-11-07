@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "genwiki2024"
-description = "nicesprinkler"
+description = "Prototyp Semantifizierung Genealogieforschung"
 keywords = ["nicegui", "genealogy", "mediawiki", "semantic"]
 authors = [
   {name = "Wolfgang Fahl", email = "wf@bitplan.com"}
@@ -18,12 +18,12 @@ dependencies = [
 	# https://pypi.org/project/pybasemkit/
 	# https://github.com/WolfgangFahl/pybasemkit
 	# Python base module kit: YAML/JSON I/O, structured logging, CLI tooling, shell execution, and remote pydevd debug support.
-	"pybasemkit>=0.0.3",
+	"pybasemkit>=0.1.2",
 	# Wikipush toolkit
 	# https://wiki.bitplan.com/index.php/Py-3rdparty-mediawiki
-	"py-3rdparty-mediawiki>=0.15.4",
+	"py-3rdparty-mediawiki>=0.17.0",
 	# https://pypi.org/project/py-ez-wikidata/
-	"py-ez-wikidata>=0.3.1",
+	"py-ez-wikidata>=0.3.2",
 
 	# Template parsing
 	# https://pypi.org/project/mwparserfromhell/
@@ -32,8 +32,8 @@ dependencies = [
 	# nicegui
 	# fastapi
 	# uvicorn
-	"nicegui>=2.20.0",
-	"ngwidgets>=0.27.1",
+	#"nicegui>=2.20.0",
+	"ngwidgets>=0.29.4",
 	# progress bar
 	# https://pypi.org/project/tqdm/
 	"tqdm>=4.66.5",
@@ -54,7 +54,7 @@ dependencies = [
 
 	# platform independent knowledge graph ready list of dicts (table) handling
 	# https://pypi.org/project/pyLodStorage/
-	"pyLodStorage>=0.16.4",
+	"pyLodStorage>=0.17.5",
 
 	# Wikidata Grid and WdItemSearch
 	# https://pypi.org/project/wdgrid/
