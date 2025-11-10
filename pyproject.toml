@@ -27,19 +27,23 @@ dependencies = [
 
 	# Template parsing
 	# https://pypi.org/project/mwparserfromhell/
-	"mwparserfromhell>=0.6.6",
+	"mwparserfromhell>=0.7.2",
 	# reactive user interface
 	# nicegui
 	# fastapi
 	# uvicorn
 	#"nicegui>=2.20.0",
-	"ngwidgets>=0.29.4",
+	"ngwidgets>=0.30.0",
 	# progress bar
 	# https://pypi.org/project/tqdm/
 	"tqdm>=4.66.5",
 	# Parquet file access
 	# https://arrow.apache.org/docs/python/index.html
 	"pyarrow>=17.0.0",
+
+	# OWL API
+	# https://pypi.org/project/owlapy/1.6.1/
+	"owlapy>=1.6.1",
 
 	# HTTP requests library
 	# https://pypi.org/project/requests/
@@ -71,7 +75,7 @@ dependencies = [
 	# https://pypi.org/project/Pillow/
 	"Pillow>=11.1.0",
 	# https://pypi.org/project/numpy/
-	"numpy>=2.2.3"
+	"numpy>=2.3.4"
 ]
 
 requires-python = ">=3.10"
