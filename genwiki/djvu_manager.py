@@ -8,7 +8,6 @@ import os
 
 from lodstorage.sql import SQLDB
 from ngwidgets.profiler import Profiler
-from setuptools.package_index import REL
 
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.multilang_querymanager import MultiLanguageQueryManager

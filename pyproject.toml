@@ -41,10 +41,6 @@ dependencies = [
 	# https://arrow.apache.org/docs/python/index.html
 	"pyarrow>=17.0.0",
 
-	# OWL API
-	# https://pypi.org/project/owlapy/1.6.1/
-	# "owlapy>=1.6.1", conflicts with nicegui
-	"owlapy>=1.5.0,<1.6",
 
 	# HTTP requests library
 	# https://pypi.org/project/requests/
@@ -107,6 +103,7 @@ Source = "https://github.com/WolfgangFahl/genwiki2024"
 [project.optional-dependencies]
 test = [
   "green",
+  "owlready2"
 ]
 
 [tool.hatch.build.targets.wheel]
