@@ -43,7 +43,8 @@ dependencies = [
 
 	# OWL API
 	# https://pypi.org/project/owlapy/1.6.1/
-	"owlapy>=1.6.1",
+	# "owlapy>=1.6.1", conflicts with nicegui
+	owlapy>=1.5.0,<1.6
 
 	# HTTP requests library
 	# https://pypi.org/project/requests/
