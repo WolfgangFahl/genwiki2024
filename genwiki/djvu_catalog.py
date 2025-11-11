@@ -1,5 +1,5 @@
 """
-Created on 26.08.2024
+Created on 2024-08-26
 
 @author: wf
 """
@@ -27,6 +27,7 @@ class DjVuCatalog(QueryView):
         db_path = os.path.join(storage_path, "genwiki_djvu.db")
         yaml_path = os.path.join(self.webserver.examples_path(), "djvu_queries.yaml")
         self.mlqm = MultiLanguageQueryManager(yaml_path=yaml_path)
+        self.query_name = "all_djvu"
         try:
             self.dvm = DjVuManager(db_path=db_path)
             super().__init__(
@@ -35,7 +36,7 @@ class DjVuCatalog(QueryView):
                 sql_db=self.dvm.sql_db,
                 wiki=self.webserver.wiki,
             )
-            self.query_name = "all_djvu"
+
         except Exception as ex:
             self.solution.handle_exception(ex)
 

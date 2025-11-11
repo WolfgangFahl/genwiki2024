@@ -133,7 +133,7 @@ class DjVuViewer:
 
         try:
             yaml_data = Tarball.read_from_tar(tarball_file, yaml_file).decode("utf-8")
-            djvu_file = DjVuFile.from_yaml(yaml_data)
+            djvu_file = DjVuFile.from_yaml(yaml_data) # @UndefinedVariable
         except Exception as ex:
             self.handle_exception(ex)
             raise HTTPException(
