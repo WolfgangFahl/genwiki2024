@@ -27,12 +27,23 @@ class DjVuViewer:
 
     _static_mounted = False  # Ensures mount is only done once
 
-    def __init__(self, app: FastAPI, base_path: str = None):
+    def __init__(self, app: FastAPI,
+        base_path: Optional[str] = None,
+        url_prefix: str = ""):
+        """
+        Initialize the DjVu viewer.
+
+        Args:
+            app: FastAPI application instance
+            base_path: Base path for DjVu files. If None, uses GENWIKI_PATH environment variable
+            url_prefix: URL prefix for proxied deployments (e.g., "/djvu-viewer")
+        """
         if base_path is None:
             base_path = os.getenv(
                 "GENWIKI_PATH", "/Users/wf/hd/wf-fur.bitplan.com/genwiki"
             )
         self.image_path = os.path.join(base_path, "djvu_images")
+        self.url_prefix = url_prefix.rstrip("/")
 
         if not DjVuViewer._static_mounted:
             app.mount(
@@ -238,7 +249,7 @@ class DjVuViewer:
 
         options_html = "\n".join(options)
 
-        select_html = f"""<select onchange="window.location.href='/djvu/{path}?page='+this.value">
+        select_html = f"""<select onchange="window.location.href='{self.url_prefix}/djvu/{path}?page='+this.value">
         {options_html}
     </select>"""
 
@@ -283,15 +294,15 @@ class DjVuViewer:
         </head>
         <body>
             <div class="nav">
-                <a href="/djvu/{path}?page={first_page}" title="First Page (1/{total_pages})">⏮</a>
-                <a href="/djvu/{path}?page={fast_backward}" title="Fast Backward (Jump -10 Pages)">⏪</a>
-                <a href="/djvu/{path}?page={prev_page}" title="Previous Page">⏴</a>
+                <a href="{self.url_prefix}/djvu/{path}?page={first_page}" title="First Page (1/{total_pages})">⏮</a>
+                <a href="{self.url_prefix}/djvu/{path}?page={fast_backward}" title="Fast Backward (Jump -10 Pages)">⏪</a>
+                <a href="{self.url_prefix}/djvu/{path}?page={prev_page}" title="Previous Page">⏴</a>
                 <span>{select_markup} / {total_pages}</span>
-                <a href="/djvu/{path}?page={next_page}" title="Next Page">⏵</a>
-                <a href="/djvu/{path}?page={fast_forward}" title="Fast Forward (Jump +10 Pages)">⏩</a>
-                <a href="/djvu/{path}?page={last_page}" title="Last Page ({total_pages}/{total_pages})">⏭</a>
+                <a href="{self.url_prefix}/djvu/{path}?page={next_page}" title="Next Page">⏵</a>
+                <a href="{self.url_prefix}/djvu/{path}?page={fast_forward}" title="Fast Forward (Jump +10 Pages)">⏩</a>
+                <a href="{self.url_prefix}/djvu/{path}?page={last_page}" title="Last Page ({total_pages}/{total_pages})">⏭</a>
             </div>
-            <img src="{image_url}" alt="DjVu Page {page_index}">
+            <img src="{self.url_prefix}{image_url}" alt="DjVu Page {page_index}">
         </body>
         </html>
         """
