@@ -55,8 +55,6 @@ class GenWikiWebServer(InputWebserver):
         InputWebserver.__init__(self, config=GenWikiWebServer.get_config())
         users = Users(self.config.base_path)
         self.login = Login(self, users)
-        self.url_prefix = getattr(self.config, 'url_prefix', "")
-        self.djvu_viewer = DjVuViewer(app=app,url_prefix=self.url_prefix)
 
         address_db_path = os.path.join(self.config.storage_path, "address.db")
         if os.path.isfile(address_db_path) and os.path.getsize(address_db_path) > 0:
@@ -170,7 +168,12 @@ class GenWikiWebServer(InputWebserver):
             return html_response
 
     def configure_run(self):
+        """
+        configure me
+        """
         super().configure_run()
+        self.url_prefix=self.args.url_prefix
+        self.djvu_viewer = DjVuViewer(app=app,url_prefix=self.url_prefix)
         self.wiki_id = "gensmw"
         self.wiki = Wiki(wiki_id=self.wiki_id, debug=self.args.debug)
 
