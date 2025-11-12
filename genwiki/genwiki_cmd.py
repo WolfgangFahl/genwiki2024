@@ -40,10 +40,10 @@ class GenWikiCmd(WebserverCmd):
         Returns:
             bool: True if handled
         """
-        handled = super().handle_args(args)
         self.config.url_prefix=None
         if hasattr(args, 'url_prefix') and args.url_prefix:
             self.config.url_prefix = args.url_prefix
+        handled = super().handle_args(args)
         return handled
 
     def __init__(self):
