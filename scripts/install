@@ -8,4 +8,4 @@ if [[ -n "$GITHUB_ACTIONS" && -x "$(command -v apt-get)" ]]; then
     sudo apt-get install -y libcairo2-dev pkg-config djvulibre-bin libdjvulibre-dev
 fi
 # simple install via pyproject.toml
-pip install .
+pip install .[test]
