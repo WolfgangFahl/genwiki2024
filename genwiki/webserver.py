@@ -55,7 +55,8 @@ class GenWikiWebServer(InputWebserver):
         InputWebserver.__init__(self, config=GenWikiWebServer.get_config())
         users = Users(self.config.base_path)
         self.login = Login(self, users)
-        self.djvu_viewer = DjVuViewer(app=app)
+        self.url_prefix = getattr(self.config, 'url_prefix', "")
+        self.djvu_viewer = DjVuViewer(app=app,url_prefix=self.url_prefix)
 
         address_db_path = os.path.join(self.config.storage_path, "address.db")
         if os.path.isfile(address_db_path) and os.path.getsize(address_db_path) > 0:
@@ -306,7 +307,7 @@ class GenWikiSolution(InputWebSolution):
         """Show the DjVu Catalog page"""
 
         def show():
-            self.djvu_catalog_view = DjVuCatalog(self)
+            self.djvu_catalog_view = DjVuCatalog(self,url_prefix=self.url_prefix)
             self.djvu_catalog_view.setup_ui()
 
         await self.setup_content_div(show)

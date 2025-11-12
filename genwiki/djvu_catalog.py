@@ -20,8 +20,16 @@ class DjVuCatalog(QueryView):
     UI for browsing and querying the DjVu document catalog.
     """
 
-    def __init__(self, solution):
+    def __init__(self, solution, url_prefix: str = ""):
+        """
+        Initialize the DjVu catalog view.
+
+        Args:
+            solution: The solution instance
+            url_prefix: URL prefix for proxied deployments (e.g., "/djvu-viewer")
+        """
         self.solution = solution
+        self.url_prefix = url_prefix
         self.webserver = self.solution.webserver
         storage_path = solution.webserver.config.storage_path
         db_path = os.path.join(storage_path, "genwiki_djvu.db")
@@ -63,7 +71,7 @@ class DjVuCatalog(QueryView):
                 wiki_url = (
                     f"https://wiki.genealogy.net/index.php?title=Datei%3A{filename}"
                 )
-                local_url = f"/djvu/{filename}"
+                local_url = f"{self.url_prefix}/djvu/{filename}"
                 view_record["wiki"] = Link.create(url=wiki_url, text=filename)
                 view_record["view"] = Link.create(url=local_url, text=filename)
             else:
