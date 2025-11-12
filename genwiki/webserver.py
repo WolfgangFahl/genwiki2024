@@ -307,7 +307,7 @@ class GenWikiSolution(InputWebSolution):
         """Show the DjVu Catalog page"""
 
         def show():
-            self.djvu_catalog_view = DjVuCatalog(self,url_prefix=self.url_prefix)
+            self.djvu_catalog_view = DjVuCatalog(self,url_prefix=self.webserver.url_prefix)
             self.djvu_catalog_view.setup_ui()
 
         await self.setup_content_div(show)
