@@ -12,7 +12,7 @@
     SELECT
       count(*) as files,
       sum(page_count) as pages
-    FROM djvu
+    FROM DjVu
 
 # Bilder nach DPI zählen
 'dpi':
@@ -30,7 +30,7 @@
       path,
       page_count,
       filesize
-    FROM djvu
+    FROM DjVu
     ORDER BY page_count DESC,filesize DESC
 
 # Sizes and compression ratio for bundled files
@@ -50,7 +50,7 @@
   sql: |
     SELECT
       *
-    FROM djvu
+    FROM DjVu
     ORDER BY page_count
 
 # Alle Bild-Datensätze mit konfigurierbarem Limit abrufen
