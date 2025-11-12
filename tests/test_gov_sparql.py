@@ -8,7 +8,7 @@ from ngwidgets.basetest import Basetest
 from tabulate import tabulate
 
 from genwiki.gov_query import GovQuery
-from genwiki.blazegraph import Blazegraph
+
 
 class TestGovSparql(Basetest):
     """
@@ -20,8 +20,7 @@ class TestGovSparql(Basetest):
         setUp the test environment
         """
         Basetest.setUp(self, debug=debug, profile=profile)
-        self.blazegraph=Blazegraph()
-        endpoint_name='govb' if self.blazegraph.is_running() else 'gov'
+        endpoint_name='gov'
         self.gq = GovQuery(endpoint_name=endpoint_name,debug=self.debug)
 
     def test_endpoint(self):

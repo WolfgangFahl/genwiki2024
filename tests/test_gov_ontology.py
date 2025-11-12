@@ -5,7 +5,7 @@ Created on 2025-05-26
 """
 
 from ngwidgets.basetest import Basetest
-from owlready2 import *
+from owlready2 import get_ontology, default_world
 
 
 class TestGovOntology(Basetest):
@@ -18,7 +18,7 @@ class TestGovOntology(Basetest):
         setUp the test environment
         """
         Basetest.setUp(self, debug=debug, profile=profile)
-        self.onto_url = "http://gov.genealogy.net/ontology.owl"
+        self.onto_url = "https://gov.genealogy.net/ontology.owl"
 
     def testGovOntology(self):
         """
