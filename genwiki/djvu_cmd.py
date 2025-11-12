@@ -348,7 +348,7 @@ class DjVuCmd:
     ) -> List:
         page_lod = []
         yaml_data = Tarball.read_from_tar(tarball_file, yaml_file).decode("utf-8")
-        djvu_file = DjVuFile.from_yaml(yaml_data)
+        djvu_file = DjVuFile.from_yaml(yaml_data) # @UndefinedVariable
         image_rel_dir = ImageJob.get_relative_image_path(djvu_file.path)
         image_path = os.path.join(self.args.base_path, image_rel_dir)
         for page in djvu_file.pages:

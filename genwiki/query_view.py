@@ -30,7 +30,7 @@ class QueryView:
         mlqm: MultiLanguageQueryManager,
         sql_db: SQLDB,
         wiki: Wiki,
-        sparql: SPARQL,
+        sparql: SPARQL=None,
         add_prefixes: Callable[[str], str] = None,
     ):
         self.solution = solution
@@ -58,7 +58,7 @@ class QueryView:
                 icon="refresh",
                 on_click=self.on_update_query,
             ).tooltip("Parameter-Ansicht aktualisieren")
-            self.quer_button = ui.button(
+            self.query_button = ui.button(
                 icon="play_circle",
                 on_click=self.run_query,
             ).tooltip("ausführen")

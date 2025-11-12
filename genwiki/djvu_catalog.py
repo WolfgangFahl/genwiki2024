@@ -23,7 +23,6 @@ class DjVuCatalog(QueryView):
     def __init__(self, solution):
         self.solution = solution
         self.webserver = self.solution.webserver
-        self.params_view = None
         storage_path = solution.webserver.config.storage_path
         db_path = os.path.join(storage_path, "genwiki_djvu.db")
         yaml_path = os.path.join(self.webserver.examples_path(), "djvu_queries.yaml")
