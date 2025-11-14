@@ -26,21 +26,34 @@ table_records:
         *
     from {{ table }}
     limit {{ limit }}
+# benutzer nach edits
 text_user_stats:
+  param_list:
+    - name: min_edits
+      type: int
+      default_value: 2
+    - name: fromdate
+      type: string
+      default_value: "20221101000000"
+    - name: todate
+      type: string
+      default_value: "20261231235959"
   sql: |
     select
       count(*) as edit_count,
-      t.old_user,
+      MAX(rev_timestamp) as last_edit_timestamp,
+      u.user_id,
       u.user_name,
-      u.user_real_name
-    from text t
-    join (
-      select distinct old_user
-      from text
-      where old_user > 0
-    ) as filtered_users on t.old_user = filtered_users.old_user
-    join user u on u.user_id = t.old_user
-    group by t.old_user, u.user_name, u.user_real_name
+      u.user_real_name,
+      u.user_email
+    from revision r
+    join actor a on a.actor_id = r.rev_actor
+    join user u on u.user_id = a.actor_user
+    where a.actor_user > 0
+      and r.rev_timestamp >= {{ fromdate }}
+      and r.rev_timestamp <= {{ todate }}
+    group by u.user_id, u.user_name, u.user_real_name, u.user_email
+    having count(*) >= {{ min_edits }}
     order by edit_count desc;
 text:
   param_list:
