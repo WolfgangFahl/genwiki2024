@@ -188,3 +188,26 @@ limit_pages:
         user u ON a.actor_user = u.user_id
     ORDER BY
         r.rev_timestamp {{ order }};
+#
+# Usage examples
+## Single name
+# sqlquery -en genwiki -qp wiki_queries.yaml -qn check_user_by_realname --params names="Ahlers"
+# Multiple names with OR pattern
+# sqlquery -en genwiki -qp wiki_queries.yaml -qn check_user_by_realname --params names="Ahlers|Altvater|Arenhold"
+# Exact match pattern
+# sqlquery -en genwiki -qp wiki_queries.yaml -qn check_user_by_realname --params names="^Heiko Ahlers$"
+check_user_by_realname:
+  param_list:
+    - name: names
+      type: str
+      default_value: "Ahlers"
+  sql: |
+    SELECT
+      u.user_id,
+      u.user_name,
+      CONVERT(u.user_real_name USING utf8mb4) AS user_real_name,
+      u.user_email,
+      u.user_registration
+    FROM user u
+    WHERE u.user_real_name REGEXP {{ names }}
+    ORDER BY u.user_real_name;
