@@ -5,7 +5,7 @@ Created on 2025-05-26
 """
 
 from ngwidgets.basetest import Basetest
-from owlready2 import get_ontology, default_world
+from owlready2 import default_world, get_ontology
 
 
 class TestGovOntology(Basetest):

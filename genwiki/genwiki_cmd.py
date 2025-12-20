@@ -27,7 +27,7 @@ class GenWikiCmd(WebserverCmd):
         parser.add_argument(
             "--url_prefix",
             default="",
-            help="URL prefix for proxied deployments (e.g., '/djvu-viewer')"
+            help="URL prefix for proxied deployments (e.g., '/djvu-viewer')",
         )
 
     def __init__(self):

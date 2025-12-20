@@ -20,8 +20,8 @@ class TestGovSparql(Basetest):
         setUp the test environment
         """
         Basetest.setUp(self, debug=debug, profile=profile)
-        endpoint_name='gov'
-        self.gq = GovQuery(endpoint_name=endpoint_name,debug=self.debug)
+        endpoint_name = "gov"
+        self.gq = GovQuery(endpoint_name=endpoint_name, debug=self.debug)
 
     def test_endpoint(self):
         """

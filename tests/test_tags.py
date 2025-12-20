@@ -31,7 +31,9 @@ class TestTags(GenealogyBasetest):
             self.endpoint = self.endpoints.get(self.wiki_id)
             if self.endpoint:
                 self.mysql = MySqlQuery(endpoint=self.endpoint)
-            yaml_path = os.path.join(GenWikiPaths.get_examples_path(), "wiki_queries.yaml")
+            yaml_path = os.path.join(
+                GenWikiPaths.get_examples_path(), "wiki_queries.yaml"
+            )
             self.mlqm = MultiLanguageQueryManager(yaml_path=yaml_path)
 
     def get_query(self, query_name, param_dict=None):

@@ -30,7 +30,7 @@ class QueryView:
         mlqm: MultiLanguageQueryManager,
         sql_db: SQLDB,
         wiki: Wiki,
-        sparql: SPARQL=None,
+        sparql: SPARQL = None,
         add_prefixes: Callable[[str], str] = None,
     ):
         self.solution = solution

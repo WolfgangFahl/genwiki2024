@@ -172,8 +172,8 @@ class GenWikiWebServer(InputWebserver):
         configure me
         """
         super().configure_run()
-        self.url_prefix=self.args.url_prefix
-        self.djvu_viewer = DjVuViewer(app=app,url_prefix=self.url_prefix)
+        self.url_prefix = self.args.url_prefix
+        self.djvu_viewer = DjVuViewer(app=app, url_prefix=self.url_prefix)
         self.wiki_id = "gensmw"
         self.wiki = Wiki(wiki_id=self.wiki_id, debug=self.args.debug)
 
@@ -310,7 +310,9 @@ class GenWikiSolution(InputWebSolution):
         """Show the DjVu Catalog page"""
 
         def show():
-            self.djvu_catalog_view = DjVuCatalog(self,url_prefix=self.webserver.url_prefix)
+            self.djvu_catalog_view = DjVuCatalog(
+                self, url_prefix=self.webserver.url_prefix
+            )
             self.djvu_catalog_view.setup_ui()
 
         await self.setup_content_div(show)
