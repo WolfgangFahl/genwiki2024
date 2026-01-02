@@ -18,8 +18,6 @@ from starlette.responses import FileResponse, HTMLResponse, RedirectResponse
 from wd.wditem_search import WikidataItemSearch
 
 from genwiki.convert import ParquetAdressbokToSql
-from genwiki.djvu_catalog import DjVuCatalog
-from genwiki.djvu_viewer import DjVuViewer
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.gov_query import GovQuery
 from genwiki.multilang_querymanager import MultiLanguageQueryManager
@@ -91,81 +89,12 @@ class GenWikiWebServer(InputWebserver):
 
         @ui.page("/logout")
         async def logout(client: Client) -> RedirectResponse:
+            if not client:
+                pass
             if self.login.authenticated():
                 await self.login.logout()
             return RedirectResponse("/")
 
-        @ui.page("/djvu/catalog")
-        async def djvu_catalog(client: Client):
-            return await self.page(client, GenWikiSolution.djvu_catalog)  # Add route
-
-        @app.get("/djvu/content/{file:path}")
-        def get_content(file: str) -> FileResponse:
-            """
-            Serves content from a wrapped DjVu file.
-
-            Args:
-                file (str): The full path  <DjVu name>/<file name>.
-
-            Returns:
-                FileResponse: The requested content file (PNG, JPG, YAML, etc.).
-            """
-            file_response = self.djvu_viewer.get_content(file)
-            return file_response
-
-        @app.get("/djvu/{path:path}/page/{scale:float}/{pageno:int}.{ext:str}")
-        def get_djvu_page_with_scale(
-            path: str,
-            pageno: int,
-            scale: float = 1.0,
-            ext: str = "png",
-            quality: int = 85,
-        ) -> FileResponse:
-            """
-            Fetches and displays a specific PNG page of a DjVu file.
-
-            Args:
-                path (str): The path to the DjVu document.
-                pageno (int): The page number within the DjVu document.
-                scale(float,optional): the scale of the jpg impage
-                ext (str): The desired file extension for the page ("png" or "jpg").
-                quality (int, optional): The desired jpg quality - default:85
-            """
-            file_response = self.djvu_viewer.get_page4path(
-                path, pageno, ext=ext, scale=scale, quality=quality
-            )
-            return file_response
-
-        @app.get("/djvu/{path:path}/page/{pageno:int}.{ext:str}")
-        def get_djvu_page(
-            path: str,
-            pageno: int,
-            scale: float = 1.0,
-            ext: str = "png",
-            quality: int = 85,
-        ) -> FileResponse:
-            """
-            Fetches and displays a specific PNG page of a DjVu file.
-
-            Args:
-                path (str): The path to the DjVu document.
-                pageno (int): The page number within the DjVu document.
-                scale(float,optional): the scale of the jpg impage
-                ext (str): The desired file extension for the page ("png" or "jpg").
-                quality (int, optional): The desired jpg quality - default:85
-            """
-            file_response = self.djvu_viewer.get_page4path(
-                path, pageno, ext=ext, scale=scale, quality=quality
-            )
-            return file_response
-
-        @app.get("/djvu/{path:path}")
-        def display_djvu(path: str, page: int = 1) -> HTMLResponse:
-            """
-            Fetches and displays a specific PNG page of a DjVu file.
-            """
-            html_response = self.djvu_viewer.get_page(path, page)
-            return html_response
 
     def configure_run(self):
         """
@@ -173,7 +102,6 @@ class GenWikiWebServer(InputWebserver):
         """
         super().configure_run()
         self.url_prefix = self.args.url_prefix
-        self.djvu_viewer = DjVuViewer(app=app, url_prefix=self.url_prefix)
         self.wiki_id = "gensmw"
         self.wiki = Wiki(wiki_id=self.wiki_id, debug=self.args.debug)
 
@@ -218,9 +146,6 @@ class GenWikiSolution(InputWebSolution):
         super().setup_menu(detailed=detailed)
         with self.header:
             self.link_button("GOV Query", "/gov", "account_tree")
-            self.link_button(
-                "DjVu Catalog", "/djvu/catalog", "library_books"
-            )  # Add menu entry
             if self.authenticated():
                 self.link_button("logout", "/logout", "logout", new_tab=False)
             else:
@@ -303,16 +228,5 @@ class GenWikiSolution(InputWebSolution):
             self.wd_item_search = WikidataItemSearch(
                 self, record_filter=record_filter, lang="de"
             )
-
-        await self.setup_content_div(show)
-
-    async def djvu_catalog(self):
-        """Show the DjVu Catalog page"""
-
-        def show():
-            self.djvu_catalog_view = DjVuCatalog(
-                self, url_prefix=self.webserver.url_prefix
-            )
-            self.djvu_catalog_view.setup_ui()
 
         await self.setup_content_div(show)
