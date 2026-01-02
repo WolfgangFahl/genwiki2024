@@ -66,9 +66,6 @@ dependencies = [
 	# command line progress bar
 	# https://pypi.org/project/tqdm/
 	"tqdm>=4.66.5",
-	# https://github.com/FriedrichFroebel/python-djvulibre
-	# https://pypi.org/project/djvulibre-python/
-	"djvulibre-python>=0.9.1",
 	# https://pypi.org/project/pycairo/
 	"pycairo>=1.27.0",
 	# Image processing library for PNG/JPG conversion and resizing
@@ -118,7 +115,6 @@ only-include = ["genwiki","genwiki_examples"]
 
 [project.scripts]
 genwiki  = "genwiki.genwiki_cmd:main"
-djvuconv = "genwiki.djvu_cmd:main"
 fsrdf    = "genwiki.filesystem_indexer:main"
 
 

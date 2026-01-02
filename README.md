@@ -14,6 +14,6 @@ Semantification of Genealogy
 
 ## Documentation
 - [Wiki](https://wiki.bitplan.com/index.php/Genwiki2024)
-- [DjVu catalog and Viewer](https://wiki.bitplan.com/index.php/Genwiki2024#djvu_catalog_and_remote_viewer)
+- [DjVu catalog and Viewer](https://wiki.bitplan.com/index.php/djvu-viewer)
 
 
