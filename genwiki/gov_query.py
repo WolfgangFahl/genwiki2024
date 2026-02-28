@@ -5,12 +5,13 @@ Created on 2025-05-25
 """
 
 import os
+from typing import Optional
 
-from lodstorage.query import EndpointManager
+from lodstorage.multilang_querymanager import MultiLanguageQueryManager
+from lodstorage.query import EndpointManager, PrefixConfigs
 from lodstorage.sparql import SPARQL
 
 from genwiki.genwiki_paths import GenWikiPaths
-from genwiki.multilang_querymanager import MultiLanguageQueryManager
 
 
 class GovQuery:
@@ -22,7 +23,12 @@ class GovQuery:
     see https://discourse.genealogy.net/t/gov-mit-sparql-abfragen/824147
     """
 
-    def __init__(self, endpoint_name: str = "gov", debug: bool = False):
+    def __init__(
+        self,
+        endpoint_name: str = "gov",
+        prefixes_path: Optional[str] = None,
+        debug: bool = False,
+    ):
         self.debug = debug
         # Get the examples path
         self.examples_path = GenWikiPaths.get_examples_path()
@@ -30,25 +36,32 @@ class GovQuery:
         # Initialize the query manager with GOV queries
         self.queries_yaml_path = os.path.join(self.examples_path, "gov-queries.yaml")
         self.endpoint_yaml_path = os.path.join(self.examples_path, "gov-ep.yaml")
-        self.endpoints = EndpointManager.getEndpoints(self.endpoint_yaml_path)
 
-        # Create MultiLanguageQueryManager with SPARQL support
+        # Create MultiLanguageQueryManager without endpoint (SPARQL support not yet in MLQM)
         self.qm = MultiLanguageQueryManager(
-            yaml_path=self.queries_yaml_path, languages=["sparql"], debug=self.debug
+            yaml_path=self.queries_yaml_path,
+            languages=["sparql"],
+            debug=self.debug,
         )
 
         # Setup SPARQL connection
         self.endpoint_name = endpoint_name
+        self.endpoints = EndpointManager.getEndpoints(self.endpoint_yaml_path)
         self.endpoint = self.endpoints.get(self.endpoint_name)
         self.sparql = None
         if self.endpoint:
             self.sparql = SPARQL(self.endpoint.endpoint, debug=self.debug)
 
-    def add_prefixes(self, sparql_query: str) -> str:
-        prefixed_query = f"{self.endpoint.prefixes}\n{sparql_query}"
-        return prefixed_query
+        # Setup prefix configurations
+        if prefixes_path:
+            self.prefix_configs = PrefixConfigs.preload(prefixes_path)
+        else:
+            # Use default prefixes.yaml from pyLoDStorage
+            self.prefix_configs = PrefixConfigs.get_instance()
 
-    def get_query(self, query_name: str, param_dict: dict = None) -> str:
+    def get_query(
+        self, query_name: str, param_dict: Optional[dict] = None
+    ) -> Optional[str]:
         """
         Get a SPARQL query with parameters applied
 
@@ -57,15 +70,32 @@ class GovQuery:
             param_dict (dict): Parameters to apply to the query
 
         Returns:
-            str: The parameterized SPARQL query
+            str: The parameterized SPARQL query or None if query not found
         """
         query = self.qm.query4Name(query_name)
-        if param_dict:
-            sparql_query = query.params.apply_parameters_with_check(param_dict)
-        else:
-            sparql_query = query.apply_default_params()
+        if query is None:
+            return None
 
-        sparql_query = self.add_prefixes(sparql_query)
+        # Add endpoint prefixes
+        if self.endpoint is not None:
+            query.add_endpoint_prefixes(self.endpoint, self.prefix_configs)
+
+        # Apply parameters - use apply_parameters_with_check which handles both
+        # custom params and default values from param_list
+        if param_dict:
+            sparql_query = query.params.apply_parameters_with_check(
+                param_dict, param_list=query.param_list
+            )
+        else:
+            sparql_query = query.params.apply_parameters_with_check(
+                {}, param_list=query.param_list
+            )
+
+        # Prepend prefixes if they were added
+        if query.prefixes:
+            prefix_str = "".join(query.prefixes)
+            sparql_query = f"{prefix_str}\n{sparql_query}"
+
         if self.debug:
             print(f"Query {query_name}:")
             print(sparql_query)
