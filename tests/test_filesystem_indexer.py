@@ -3,11 +3,15 @@ Created on 2025-12-20
 
 @author: wf
 """
+
 import os
 import tempfile
+
 from ngwidgets.basetest import Basetest
 from rdflib import RDF
-from genwiki.filesystem_indexer import FileSystemRDF, FS
+
+from genwiki.filesystem_indexer import FS, FileSystemRDF
+
 
 class TestFileSystemIndexer(Basetest):
     """
@@ -34,7 +38,6 @@ class TestFileSystemIndexer(Basetest):
         with open(p_nested, "w") as f:
             f.write("nested content")
         self.dummy_files.append(p_nested)
-
 
     def tearDown(self):
         self.tmp_dir.cleanup()
@@ -69,9 +72,14 @@ class TestFileSystemIndexer(Basetest):
             if self.debug:
                 print(f"Found URI: {s} -> Path: {path_str}")
 
-            self.assertTrue(path_str in self.dummy_files, f"Scanned path {path_str} should be in created dummy files")
+            self.assertTrue(
+                path_str in self.dummy_files,
+                f"Scanned path {path_str} should be in created dummy files",
+            )
 
-        self.assertEqual(4, files_found, "Should find exactly 4 files in the directory structure")
+        self.assertEqual(
+            4, files_found, "Should find exactly 4 files in the directory structure"
+        )
 
     def test_save_and_load(self):
         """
@@ -92,10 +100,15 @@ class TestFileSystemIndexer(Basetest):
         triples_count_loaded = len(indexer_r.g)
 
         if self.debug:
-            print(f"Original Triples: {triples_count_original}, Loaded: {triples_count_loaded}")
+            print(
+                f"Original Triples: {triples_count_original}, Loaded: {triples_count_loaded}"
+            )
 
-        self.assertEqual(triples_count_original, triples_count_loaded,
-                         "Loaded graph should have same number of triples as saved graph")
+        self.assertEqual(
+            triples_count_original,
+            triples_count_loaded,
+            "Loaded graph should have same number of triples as saved graph",
+        )
 
         # 3. Verify content persists
         # Grab a random file path from the dummy list
@@ -110,7 +123,9 @@ class TestFileSystemIndexer(Basetest):
 
                 # Verify size exists
                 size = indexer_r.g.value(s, FS.size)
-                self.assertIsNotNone(size, "Loaded file should still have a size property")
+                self.assertIsNotNone(
+                    size, "Loaded file should still have a size property"
+                )
                 break
 
         self.assertTrue(found, f"Could not find path {target_file} in loaded graph")

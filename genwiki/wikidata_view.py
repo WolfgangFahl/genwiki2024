@@ -6,9 +6,9 @@ Created on 14.09.2024
 
 import re
 
+from lodstorage.multilang_querymanager import MultiLanguageQueryManager
 from nicegui import ui
 
-from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.wikidata import Wikidata
 
 

@@ -9,10 +9,11 @@ import os
 import sys
 import urllib.parse
 from datetime import datetime, timezone
-from tqdm import tqdm
+
 import uvicorn
 from rdflib import RDF, XSD, Graph, Literal, Namespace, URIRef
 from rdflib_endpoint import SparqlEndpoint
+from tqdm import tqdm
 
 # Configuration & Namespaces
 FS = Namespace("http://bitplan.com/filesystem#")
@@ -35,7 +36,7 @@ class FileSystemRDF:
         self.g.bind("fs", FS)
         self.g.bind("dcterms", DCTERMS)
 
-    def scan_directory(self, path: str,show_progress=False):
+    def scan_directory(self, path: str, show_progress=False):
         """
         Walks directory, creates triples, adds to graph.
         Equivalent to the 'find' command in the bash script.
@@ -49,7 +50,12 @@ class FileSystemRDF:
             if show_progress:
                 for _, _, files in os.walk(abs_path):
                     total_files += len(files)
-            pbar = tqdm(total=total_files, disable=not show_progress, unit="file", desc="Indexing")
+            pbar = tqdm(
+                total=total_files,
+                disable=not show_progress,
+                unit="file",
+                desc="Indexing",
+            )
             for root, _, files in os.walk(abs_path):
                 for name in files:
                     full_path = os.path.join(root, name)

@@ -6,6 +6,7 @@ Created on 26.08.2024
 
 from typing import Callable
 
+from lodstorage.multilang_querymanager import MultiLanguageQueryManager
 from lodstorage.sparql import SPARQL
 from lodstorage.sql import SQLDB
 from ngwidgets.lod_grid import ListOfDictsGrid
@@ -13,7 +14,6 @@ from ngwidgets.widgets import Link
 from nicegui import background_tasks, run, ui
 from nicegui.events import ValueChangeEventArguments
 
-from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.params_view import ParamsView
 from genwiki.wiki import Wiki
 from genwiki.wikidata import Wikidata

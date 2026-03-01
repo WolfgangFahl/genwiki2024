@@ -4,9 +4,10 @@ Created on 2025-05-25
 @author: wf
 """
 
-from genwiki.gov_query import GovQuery
 from ngwidgets.basetest import Basetest
 from tabulate import tabulate
+
+from genwiki.gov_query import GovQuery
 
 
 class TestGovSparql(Basetest):
@@ -43,7 +44,7 @@ class TestGovSparql(Basetest):
             with self.subTest(query_name=query_name):
                 try:
                     sparql_query = self.gq.get_query(query_name)
-                    self.assertIsNotNone(sparql_query,query_name)
+                    self.assertIsNotNone(sparql_query, query_name)
                     results = self.gq.sparql.queryAsListOfDicts(sparql_query)
 
                     if self.debug:

@@ -6,11 +6,11 @@ Created on 2025-04-13
 
 import os
 
+from lodstorage.multilang_querymanager import MultiLanguageQueryManager
 from lodstorage.mysql import MySqlQuery
 from lodstorage.query import EndpointManager
 
 from genwiki.genwiki_paths import GenWikiPaths
-from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.tagana import TagAnalyzer, WikiPage
 from tests.gbasetest import GenealogyBasetest
 
