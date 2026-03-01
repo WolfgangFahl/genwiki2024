@@ -1,6 +1,6 @@
 # GOV SPARQL Queries Configuration
 # Based on gov.genealogy.net ontology for historic administrative data
-
+# see https://wiki.genealogy.net/GOV/SPARQL
 'KirchenkreiseNordkirche':
   # Finds all church districts (Kirchenkreise) of the Northern Church
   # Uses type 27 for church districts and traces hierarchy to root object
@@ -8,12 +8,15 @@
     - name: limit
       type: int
       default_value: 50
+    - name: type
+      type: int
+      default_value: 27
   sparql: |
     SELECT DISTINCT ?kk ?name ?qid
     WHERE {
-      ?kk gp:hasType/gp:type gt:27 .
+      ?kk gp:hasType/gp:type gt:{{type}} .
       ?kk gp:hasName/gp:value ?name .
-      ?kk (gp:isPartOf/gp:ref)+ gov:object_398036 .
+      ?kk (gp:isPartOf/gp:ref)* gov:object_398036 .
 
       OPTIONAL {
         ?kk owl:sameAs ?qid .
