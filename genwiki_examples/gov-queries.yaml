@@ -1,6 +1,6 @@
 # GOV SPARQL Queries Configuration
 # Based on gov.genealogy.net ontology for historic administrative data
-
+# see https://wiki.genealogy.net/GOV/SPARQL
 'KirchenkreiseNordkirche':
   # Finds all church districts (Kirchenkreise) of the Northern Church
   # Uses type 27 for church districts and traces hierarchy to root object
@@ -8,10 +8,13 @@
     - name: limit
       type: int
       default_value: 50
+    - name: type
+      type: int
+      default_value: 27
   sparql: |
     SELECT DISTINCT ?kk ?name ?qid
     WHERE {
-      ?kk gp:hasType/gp:type gt:27 .
+      ?kk gp:hasType/gp:type gt:{{type}} .
       ?kk gp:hasName/gp:value ?name .
       ?kk (gp:isPartOf/gp:ref)* gov:object_398036 .
 
@@ -47,13 +50,12 @@
   sparql: |
     SELECT DISTINCT ?object ?name ?type_name
     WHERE {
-      ?object gp:hasType/gp:type gt:{{ type_id }} .
+      ?object gp:hasType ?type_prop .
+      ?type_prop gp:type gt:{{ type_id }} .
       ?object gp:hasName/gp:value ?name .
 
       OPTIONAL {
-        ?object gp:hasType ?type_prop .
-        ?type_prop gp:type ?type .
-        ?type gp:typeName ?type_name .
+        ?type_prop gp:typeName ?type_name .
       }
     }
     ORDER BY ?name
@@ -61,6 +63,8 @@
 
 'ObjectHierarchy':
   # Shows the administrative hierarchy for a specific object
+  # Note: levels parameter not used due to Blazegraph limitation with {min,max} syntax
+  # Uses + operator which means "one or more" levels
   param_list:
     - name: object_id
       type: str
@@ -77,7 +81,7 @@
       }
       UNION
       {
-        gov:object_{{ object_id }} (gp:isPartOf/gp:ref){1,{{ levels }}} ?object .
+        gov:object_{{ object_id }} (gp:isPartOf/gp:ref)+ ?object .
         BIND(1 AS ?level)
       }
 
@@ -136,9 +140,10 @@
   sparql: |
     SELECT DISTINCT ?object ?name ?lat ?lon ?type_id
     WHERE {
+      ?object a gp:GovObject .
+      ?object gp:position ?position .
       ?position <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat .
       ?position <http://www.w3.org/2003/01/geo/wgs84_pos#lon> ?lon .
-      ?object gp:position ?position .
 
       ?object gp:hasName ?name_prop .
       ?name_prop gp:value ?name .
@@ -340,9 +345,15 @@
   sparql: |
     SELECT DISTINCT ?object ?name ?lat ?lon ?begin ?end ?language ?type_id
     WHERE {
+      # Start with GOV objects to avoid full coordinate scan
+      ?object a gp:GovObject .
+      ?object gp:position ?position .
       ?position <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat .
       ?position <http://www.w3.org/2003/01/geo/wgs84_pos#lon> ?lon .
-      ?object gp:position ?position .
+
+      # Coordinate bounding box filter - apply early
+      FILTER(?lat >= {{ min_lat }} && ?lat <= {{ max_lat }})
+      FILTER(?lon >= {{ min_lon }} && ?lon <= {{ max_lon }})
 
       # Get names with historical time periods
       ?object gp:hasName ?name_prop .
@@ -356,10 +367,6 @@
         ?object gp:hasType ?type_prop .
         ?type_prop gp:type ?type_id .
       }
-
-      # Coordinate bounding box filter
-      FILTER(?lat >= {{ min_lat }} && ?lat <= {{ max_lat }})
-      FILTER(?lon >= {{ min_lon }} && ?lon <= {{ max_lon }})
     }
     ORDER BY ?object ?begin ?name
     LIMIT {{ limit }}

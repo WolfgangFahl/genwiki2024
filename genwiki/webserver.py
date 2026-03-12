@@ -6,6 +6,7 @@ Created on 2024-08-15
 
 import os
 
+from lodstorage.multilang_querymanager import MultiLanguageQueryManager
 from lodstorage.sql import SQLDB
 from ngwidgets.input_webserver import InputWebserver, InputWebSolution
 from ngwidgets.login import Login
@@ -20,7 +21,6 @@ from wd.wditem_search import WikidataItemSearch
 from genwiki.convert import ParquetAdressbokToSql
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.gov_query import GovQuery
-from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.query_view import QueryView
 from genwiki.version import Version
 from genwiki.wiki import Wiki
@@ -94,7 +94,6 @@ class GenWikiWebServer(InputWebserver):
             if self.login.authenticated():
                 await self.login.logout()
             return RedirectResponse("/")
-
 
     def configure_run(self):
         """

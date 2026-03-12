@@ -12,10 +12,10 @@ from typing import Any, Dict, List
 import geocoder
 from ez_wikidata.wdsearch import WikidataSearch
 from geopy.distance import geodesic
+from lodstorage.multilang_querymanager import MultiLanguageQueryManager
 
 from genwiki.genwiki_paths import GenWikiPaths
 from genwiki.gov_api import GOV_API
-from genwiki.multilang_querymanager import MultiLanguageQueryManager
 from genwiki.nominatim import NominatimWrapper
 from genwiki.wikidata import Wikidata
 
@@ -82,7 +82,7 @@ class Locator:
             if level == "4":
                 iso_code = record["iso_code"]
                 label = record["itemLabel"]
-                path = f"""{iso_code.replace("-","/")}/{label}"""
+                path = f"""{iso_code.replace("-", "/")}/{label}"""
         return path
 
     def lookup_path_for_item(self, item: str, lang: str = "de") -> str:

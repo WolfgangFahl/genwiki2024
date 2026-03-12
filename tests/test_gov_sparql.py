@@ -20,7 +20,7 @@ class TestGovSparql(Basetest):
         setUp the test environment
         """
         Basetest.setUp(self, debug=debug, profile=profile)
-        endpoint_name = "gov"
+        endpoint_name = "gov" if Basetest.inPublicCI() else "govb"
         self.gq = GovQuery(endpoint_name=endpoint_name, debug=self.debug)
 
     def test_endpoint(self):
@@ -44,6 +44,7 @@ class TestGovSparql(Basetest):
             with self.subTest(query_name=query_name):
                 try:
                     sparql_query = self.gq.get_query(query_name)
+                    self.assertIsNotNone(sparql_query, query_name)
                     results = self.gq.sparql.queryAsListOfDicts(sparql_query)
 
                     if self.debug:
