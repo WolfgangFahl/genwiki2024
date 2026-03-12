@@ -211,3 +211,37 @@ check_user_by_realname:
     FROM user u
     WHERE u.user_real_name REGEXP {{ names }}
     ORDER BY u.user_real_name;
+# Search pages by regexp pattern in title or content
+# Usage examples:
+#   sqlquery -en genwiki -qp wiki_queries.yaml -qn find_pages_by_regexp --params pattern="<tab"
+#   sqlquery -en genwiki -qp wiki_queries.yaml -qn find_pages_by_regexp --params pattern="Ahlers|Müller"
+find_pages_by_regexp:
+  param_list:
+    - name: pattern
+      type: str
+      default_value: "<tab"
+    - name: limit
+      type: int
+      default_value: 10
+  sql: |
+    SELECT
+      p.page_id,
+      CONVERT(p.page_title USING utf8mb4) AS page_title,
+      p.page_namespace,
+      t.old_timestamp AS page_timestamp
+    FROM
+      page p
+    JOIN
+      revision r ON p.page_latest = r.rev_id
+    JOIN
+      text t ON r.rev_id = t.old_id
+    WHERE
+      p.page_is_redirect = 0
+      AND (
+        CONVERT(p.page_title USING utf8mb4) REGEXP '{{ pattern }}'
+        OR CONVERT(t.old_text USING utf8mb4) REGEXP '{{ pattern }}'
+      )
+    ORDER BY
+      p.page_namespace,
+      p.page_title
+    LIMIT {{ limit }};
