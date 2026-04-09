@@ -235,14 +235,13 @@ class Playground:
             .container {{ max-width: 1200px; margin: 20px auto; padding: 10px; }}
             .grid-container {{
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                grid-template-columns: repeat(9, 1fr);
                 gap: 10px;
-                justify-items: center;
             }}
             .grid-item {{
                 text-align: center;
             }}
-            .grid-item img {{ width: 100px; }}
+            .grid-item img {{ width: 105px; height: 105px; object-fit: cover; }}
             a {{ color: #2d4899; text-decoration: none; }}
             a:hover {{ text-decoration: underline; }}
         </style>
@@ -289,7 +288,7 @@ class Playground:
             name = god["name"]
             img = god["img"]
             # Use the separate function to get the thumbnail URL
-            thumb_img = self.get_thumbnail_url(img, 150)
+            thumb_img = self.get_thumbnail_url(img, 105)
             table_content += f'<div class="grid-item"><a href="/{name}">{name}</a><br><img src="{thumb_img}" alt="{name}"></div>\n'
             count += 1
             # Break after 9 images
@@ -370,7 +369,9 @@ wiki-playground.genealogy.net {
 """
         for idx, god in enumerate(self.godsList()):
             mw_port = self.base_port + (idx * self.step)
-            conf_content += f"""    reverse_proxy /{god['name']} localhost:{mw_port}
+            name = god["name"]
+            conf_content += f"""    @{name} path /{name} /{name}/*
+    reverse_proxy @{name} localhost:{mw_port}
 """
         conf_content += """}
 """
