@@ -451,7 +451,7 @@ profiwiki -rp -fu -cn {name} -bp {mw_port} -sp {sql_port} --all -f
         for god in self.godsList():
             name = god["name"]
             script_content += f"""docker exec "{name}-mw" sed -i 's#^\\$wgScriptPath = .*#\\$wgScriptPath = "";#' /var/www/html/LocalSettings.php
-docker exec "{name}-mw" sed -i 's#^\\$wgResourceBasePath = .*#\\$wgResourceBasePath = "";#' /var/www/html/LocalSettings.php
+docker exec "{name}-mw" sed -i 's#^\\$wgResourceBasePath = .*#\\$wgResourceBasePath = "/{name}";#' /var/www/html/LocalSettings.php
 docker exec "{name}-mw" sed -i 's#^\\$wgArticlePath = .*#\\$wgArticlePath = "/{name}/index.php?title=\\$1";#' /var/www/html/LocalSettings.php
 docker exec "{name}-mw" sed -i 's#^\\$wgServer = .*#\\$wgServer = "https://{self.host}";#' /var/www/html/LocalSettings.php
 echo "✅ Patched {name}"
