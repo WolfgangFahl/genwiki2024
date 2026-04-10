@@ -454,6 +454,7 @@ profiwiki -rp -fu -cn {name} -bp {mw_port} -sp {sql_port} --all -f
 docker exec "{name}-mw" sed -i 's#^\\$wgResourceBasePath = .*#\\$wgResourceBasePath = "/{name}";#' /var/www/html/LocalSettings.php
 docker exec "{name}-mw" sed -i 's#^\\$wgArticlePath = .*#\\$wgArticlePath = "/{name}/index.php?title=\\$1";#' /var/www/html/LocalSettings.php
 docker exec "{name}-mw" sed -i 's#^\\$wgServer = .*#\\$wgServer = "https://{self.host}";#' /var/www/html/LocalSettings.php
+docker exec "{name}-mw" grep -q 'wgLoadScript' /var/www/html/LocalSettings.php && docker exec "{name}-mw" sed -i 's#^\\$wgLoadScript = .*#\\$wgLoadScript = "/{name}/load.php";#' /var/www/html/LocalSettings.php || docker exec "{name}-mw" bash -c 'echo "\\$wgLoadScript = \\\"/{name}/load.php\\\";" >> /var/www/html/LocalSettings.php'
 echo "✅ Patched {name}"
 """
 
