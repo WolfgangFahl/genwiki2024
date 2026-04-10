@@ -397,8 +397,12 @@ class Playground:
         for idx, god in enumerate(self.godsList()):
             mw_port = self.base_port + (idx * self.step)
             name = god["name"]
-            conf_content += f"""    @{name} path /{name} /{name}/*
-    reverse_proxy @{name} localhost:{mw_port}
+            conf_content += f"""    handle /{name}/* {{
+        reverse_proxy localhost:{mw_port}
+    }}
+    handle /{name} {{
+        reverse_proxy localhost:{mw_port}
+    }}
 """
         # Catch-all: serve the overview page - must be last
         conf_content += """    handle / {
