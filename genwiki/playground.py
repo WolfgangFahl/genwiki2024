@@ -387,8 +387,9 @@ class Playground:
     }}
     encode gzip
 
-    # Serve the overview page from /var/www/html
-    handle / {{
+    # Serve local images directory
+    # fixes https://github.com/WolfgangFahl/genwiki2024/issues/35
+    handle /images/* {{
         root * /var/www/html
         file_server
     }}
@@ -399,9 +400,8 @@ class Playground:
             conf_content += f"""    @{name} path /{name} /{name}/*
     reverse_proxy @{name} localhost:{mw_port}
 """
-        # Serve local images directory as fallback for older generated index.html
-        # fixes https://github.com/WolfgangFahl/genwiki2024/issues/35
-        conf_content += """    handle /images/* {
+        # Catch-all: serve the overview page - must be last
+        conf_content += """    handle / {
         root * /var/www/html
         file_server
     }
