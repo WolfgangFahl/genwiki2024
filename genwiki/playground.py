@@ -397,10 +397,7 @@ class Playground:
         for idx, god in enumerate(self.godsList()):
             mw_port = self.base_port + (idx * self.step)
             name = god["name"]
-            conf_content += f"""    handle /{name}/* {{
-        reverse_proxy localhost:{mw_port}
-    }}
-    handle /{name} {{
+            conf_content += f"""    handle_path /{name}/* {{
         reverse_proxy localhost:{mw_port}
     }}
 """
@@ -459,7 +456,8 @@ patch_setting() {{
 
 patch_wiki() {{
     local god=$1
-    patch_setting "$god" "wgScriptPath" "/$god"
+    patch_setting "$god" "wgScriptPath" ""
+    patch_setting "$god" "wgResourceBasePath" ""
     patch_setting "$god" "wgArticlePath" "/$god/index.php?title=\\\\$1"
     patch_setting "$god" "wgServer" "https://{self.host}"
     echo "✅ Patched $god"
