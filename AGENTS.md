@@ -1,5 +1,17 @@
 # AGENTS.md - Development Guidelines for genwiki2024
 
+
+# RULE: Follow instructions strictly
+Do not poke around use costly tools analyze or get to own ideas.
+# PLAN AND ASK BEFORE DO
+
+CRITICAL: NEVER EVER DO ANY ACTION READING, MODIFYING OR RUNNING without explaing
+the plan Each set of intended actions needs to be explained in the format:
+I understood that <YOUR ANALYSIS> so that i plan to <GOALS YOU PURSUE>
+by <ACTIONS TO BE CONFIRMED> estimating <# of ITEMS> <ITEMS> to be worked on.
+confirm with go! YOU WILL NEVER PROCEED WITH OUT POSITIVE CONFIRMATION by go!
+
+
 ## Project Overview
 This is a Python project for semantification of genealogy data. It uses:
 - **Build system**: hatchling (via pyproject.toml)

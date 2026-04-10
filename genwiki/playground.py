@@ -8,9 +8,6 @@ import argparse
 import sys
 from typing import Any, Dict, List
 
-import requests
-from tqdm import tqdm
-
 # Color definitions
 BLUE = "\033[0;34m"
 RED = "\033[0;31m"
@@ -37,182 +34,229 @@ class Playground:
         print(f"{color}{msg}{ENDC}")
 
     def godsList(self) -> List[Dict[str, Any]]:
-        """ """
+        """
+        Returns the list of Greek gods with their name, local image filename,
+        and Wikimedia Commons source URL.
+        """
         return [
             {
                 "name": "Aglaea",
+                "local_img": "Aglaea.JPG",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/20140416%20corfu218.JPG",
             },
             {
                 "name": "Amicitia",
+                "local_img": "Amicitia.JPG",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Amicitia%20DenHaag%20Friedenspalast.JPG",
             },
             {
                 "name": "Anteros",
+                "local_img": "Anteros.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Eros-piccadilly-circus.jpg",
             },
             {
                 "name": "Ares",
+                "local_img": "Ares.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/%CE%9F%20%CE%86%CF%81%CE%B7%CF%82%20%28Borghese-%CE%9B%CE%BF%CF%8D%CE%B2%CF%81%CE%BF%CF%85%29.jpg",
             },
             {
                 "name": "Aristaeus",
+                "local_img": "Aristaeus.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Aristaeus%20Bosio%20Louvre%20LL51.jpg",
             },
             {
                 "name": "Artemis",
+                "local_img": "Artemis.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Artemis%20of%20Ephesus.jpg",
             },
             {
                 "name": "Bia",
+                "local_img": "Bia.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Henry%20Fuseli%20-%20Hephaestus%2C%20Bia%20and%20Crato%20Securing%20Prometheus%20on%20Mount%20Caucasus%20-%20Google%20Art%20Project.jpg",
             },
             {
                 "name": "Britomartis",
+                "local_img": "Britomartis.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Email%20Limoges%20Spiegelr%C3%BCckseite%20Minos%20und%20Britomaris%20makffm%20WMH8.jpg",
             },
             {
                 "name": "Carpo",
+                "local_img": "Carpo.JPG",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Carpo-hora%2C%20I%20secolo%20dc%2C%20%28Uffizi%29%2003.JPG",
             },
             {
                 "name": "Charon",
+                "local_img": "Charon.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Sabouroff%20Painter%20ARV%20846%20196%20Hermes%20leading%20a%20deceased%20to%20Charon%20%2802%29.jpg",
             },
             {
                 "name": "Deimos",
+                "local_img": "Deimos.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Deimos-e-phoboslllll.jpg",
             },
             {
                 "name": "Demeter",
+                "local_img": "Demeter.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/%28Venice%29%20Demeter%20in%20the%20Museo%20archeologico%20nazionale.jpg",
             },
             {
                 "name": "Despoina",
+                "local_img": "Despoina.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Lycosoura-group%20%28cropped%29.jpg",
             },
             {
                 "name": "Eileithyia",
+                "local_img": "Eileithyia.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Amphora%20birth%20Athena%20Louvre%20F32.jpg",
             },
             {
                 "name": "Eirene",
+                "local_img": "Eirene.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Eirene%20von%20Knaus.jpg",
             },
             {
                 "name": "Enyo",
+                "local_img": "Enyo.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Image%20of%20Enyo%20the%20Goddess-%202014-04-16%2007-17.jpg",
             },
             {
                 "name": "Eos",
+                "local_img": "Eos.png",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Eos%20utgjutande%20morgondaggen%2C%20Nordisk%20familjebok.png",
             },
             {
                 "name": "Eris",
+                "local_img": "Eris.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Eris%20Antikensammlung%20Berlin%20F1775.jpg",
             },
             {
                 "name": "Eunomia",
+                "local_img": "Eunomia.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Horen%20Meyers.jpg",
             },
             {
                 "name": "Euphrosyne",
+                "local_img": "Euphrosyne.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Euphrosyne%20statue%20-%20Achilleion.jpg",
             },
             {
                 "name": "Hades",
+                "local_img": "Hades.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Detail%20of%20Pluto-Serapis%2C%20Statue%20group%20of%20Persephone%20%28as%20Isis%29%20and%20Pluto%20%28as%20Serapis%29%2C%20from%20the%20Sanctuary%20of%20the%20Egyptian%20Gods%20at%20Gortyna%2C%20mid-2nd%20century%20AD%2C%20Heraklion%20Archaeological%20Museum%20%2830305313721%29.jpg",
             },
             {
                 "name": "Hebe",
+                "local_img": "Hebe.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Canova-Hebe%2030%20degree%20view.jpg",
             },
             {
                 "name": "Helios",
+                "local_img": "Helios.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Architrave%20with%20sculpted%20metope%20showing%20sun%20god%20Helios%20in%20a%20quadriga%3B%20from%20temple%20of%20Athena%20at%20Troy%2C%20ca%20300-280%20BCE%3B%20Altes%20Museum%2C%20Berlin%20%2825308440197%29%20%28cropped%29%201.jpg",
             },
             {
                 "name": "Hemera",
+                "local_img": "Hemera.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Aphrodisias%20Museum%20Hemera%20or%20Day%204627.jpg",
             },
             {
                 "name": "Hephaestus",
+                "local_img": "Hephaestus.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Hephaistos%20Thetis%20at%20Kylix%20by%20the%20Foundry%20Painter%20Antikensammlung%20Berlin%20F2294.jpg",
             },
             {
                 "name": "Hera",
+                "local_img": "Hera.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Hera%20Campana%20Louvre%20Ma2283.jpg",
             },
             {
                 "name": "Hermaphroditus",
+                "local_img": "Hermaphroditus.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Ermafrodito%20-%20sec.%20III%20a.C.%20-%20da%20Pergamo.%20Istanbul.%20Museo%20archeol..jpg",
             },
             {
                 "name": "Hestia",
+                "local_img": "Hestia.JPG",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Hestia%20-%20Wellesley%20College%20-%20DSC09634.JPG",
             },
             {
                 "name": "Himeros",
+                "local_img": "Himeros.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Kantharos64.10.jpg",
             },
             {
                 "name": "Hypnos",
+                "local_img": "Hypnos.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Waterhouse-sleep%20and%20his%20half-brother%20death-1874.jpg",
             },
             {
                 "name": "Iris",
+                "local_img": "Iris.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Iris%20Louvre%20L43%20n2.jpg",
             },
             {
                 "name": "Kratos",
+                "local_img": "Kratos.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Kratos%20by%20John%20Flaxman.jpg",
             },
             {
                 "name": "Momus",
+                "local_img": "Momus.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Nantes%20-%20Graslin%20int%2001.jpg",
             },
             {
                 "name": "Nike",
+                "local_img": "Nike.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Nik%C3%A9%20%C3%89ph%C3%A8se.jpg",
             },
             {
                 "name": "Panacea",
+                "local_img": "Panacea.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Panacea.jpg",
             },
             {
                 "name": "Phobos",
+                "local_img": "Phobos.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Gigantomachy%20Staatliche%20Antikensammlungen%201553.jpg",
             },
             {
                 "name": "Phosphorus",
+                "local_img": "Phosphorus.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Evelyn%20de%20Morgan%20-%20Phosphorus%20and%20Hesperus%2C%20%281881%29.jpg",
             },
             {
                 "name": "Plutus",
+                "local_img": "Plutus.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Eirene%20Ploutos%20Glyptothek%20Munich%20219%20n4.jpg",
             },
             {
                 "name": "Poseidon",
+                "local_img": "Poseidon.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Poseidon%20sculpture%20Copenhagen%202005.jpg",
             },
             {
                 "name": "Telesphorus",
+                "local_img": "Telesphorus.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Statue%20of%20Telesphorus%2C%20Greece%2C%20500-200%20BCE%20Wellcome%20L0058862.jpg",
             },
             {
                 "name": "Thalia",
+                "local_img": "Thalia.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Thalia%20at%20Corfu%201.jpg",
             },
             {
                 "name": "Thallo",
+                "local_img": "Thallo.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Spring%20by%20Franz%20Xaver%20Winterhalter.jpg",
             },
             {
                 "name": "Thanatos",
+                "local_img": "Thanatos.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Euphronios%20krater%20side%20A%20MET%20L.2006.10.jpg",
             },
             {
                 "name": "Zeus",
+                "local_img": "Zeus.jpg",
                 "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Jupiter%20J1a.jpg",
             },
         ]
@@ -221,95 +265,72 @@ class Playground:
         """
         Generates the HTML header section with the logo on the left and the title aligned to the right on the same line.
         """
-        return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>CompGen - Semantic MediaWiki Spielwiesen</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 0; margin: 0; }}
-            .header {{
-                background-color: #2d4899;
-                padding: 10px 20px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }}
-            .header img {{ width: 100px; }}
-            .header h1 {{ color: white; font-size: 24px; margin: 0; }}
-            .container {{ max-width: 1200px; margin: 20px auto; padding: 10px; }}
-            .grid-container {{
-                display: grid;
-                grid-template-columns: repeat(9, 1fr);
-                gap: 10px;
-            }}
-            .grid-item {{
-                text-align: center;
-            }}
-            .grid-item img {{ width: 105px; height: 105px; object-fit: cover; }}
-            a {{ color: #2d4899; text-decoration: none; }}
-            a:hover {{ text-decoration: underline; }}
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <img src="{image_url}" alt="CompGen Logo">
-            <h1>Semantic MediaWiki Spielwiesen</h1>
-        </div>
-        <div class="container">
-        """
-
-    def get_thumbnail_url(self, img_url: str, size: int = 300) -> str:
-        """
-        Generates the thumbnail URL from the original image URL by following the redirect from Special:FilePath.
-
-        Args:
-            img_url (str): The original image URL or the redirected URL.
-            size (int, optional): The desired size of the thumbnail. Defaults to 300px.
-
-        Returns:
-            str: The modified URL pointing to the thumbnail.
-        """
-        # Follow the redirect
-        response = requests.get(img_url)
-        final_url = response.url  # Get the final URL after redirection
-
-        # Generate the thumbnail URL
-        thumb_url = (
-            final_url.replace("/commons/", f"/commons/thumb/")
-            + f"/{size}px-"
-            + final_url.split("/")[-1]
-        )
-        return thumb_url
+        return f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>CompGen - Semantic MediaWiki Spielwiesen</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 0; margin: 0; }}
+        .header {{
+            background-color: #2d4899;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }}
+        .header img {{ width: 100px; }}
+        .header h1 {{ color: white; font-size: 24px; margin: 0; }}
+        .container {{  margin: 20px auto; padding: 10px; }}
+        .grid-container {{
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 10px;
+        }}
+        .grid-item {{ text-align: center; }}
+        /* 
+\t   We need to show 44 images in a 5 rows by 9 column grid
+\t   */ 
+\t.grid-item img {{ width: 105px; height: 105px; object-fit: cover; }}
+        a {{ color: #2d4899; text-decoration: none; }}
+        a:hover {{ text-decoration: underline; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{image_url}" alt="CompGen Logo">
+        <h1>Semantic MediaWiki Spielwiesen</h1>
+    </div>
+    <div class="container">
+"""
 
     def generate_table(self) -> str:
         """
-        Generates the HTML grid with the list of Greek gods and their images, using thumbnails, and limits to 9 images per row.
+        Generates the HTML grid with the list of Greek gods and their local images,
+        9 images per row.
         """
         gods = self.godsList()
-        table_content = '<div class="grid-container">\n'
+        table_content = '        <div class="grid-container">\n'
         count = 0
-        for god in tqdm(gods, desc="Generating thumbnails"):
+        for god in gods:
             name = god["name"]
-            img = god["img"]
-            # Use the separate function to get the thumbnail URL
-            thumb_img = self.get_thumbnail_url(img, 105)
-            table_content += f'<div class="grid-item"><a href="/{name}">{name}</a><br><img src="{thumb_img}" alt="{name}"></div>\n'
+            local_img = god["local_img"]
+            table_content += f'            <div class="grid-item">\n                <a href="/{name}">{name}</a><br>\n                <img src="images/{local_img}" alt="{name}">\n            </div>\n'
             count += 1
-            # Break after 9 images
             if count % 9 == 0:
-                table_content += '</div><div class="grid-container">\n'
-        table_content += "</div>\n"
+                table_content += (
+                    '        </div>\n        <div class="grid-container">\n'
+                )
+        table_content += "        </div>\n"
         return table_content
 
     def generate_footer(self) -> str:
         """
         Generates the HTML footer section.
         """
-        return """
-    </body>
-    </html>
-    """
+        return """    </div>
+</body>
+</html>
+"""
 
     def generate_index(
         self,
