@@ -400,7 +400,8 @@ class Playground:
         for idx, god in enumerate(self.godsList()):
             mw_port = self.base_port + (idx * self.step)
             name = god["name"]
-            conf_content += f"""    handle_path /{name}/* {{
+            conf_content += f"""    redir /{name} /{name}/ 308
+    handle_path /{name}/* {{
         reverse_proxy localhost:{mw_port}
     }}
 """
