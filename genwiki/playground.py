@@ -1,12 +1,25 @@
 """
-Created on 24.10.2024
+Created on 2024-10-24
 
 @author: wf
 """
 
 import argparse
 import sys
-from typing import Any, Dict, List
+from dataclasses import dataclass
+from typing import List
+
+
+@dataclass
+class God:
+    """
+    A Greek god entry with name and image references.
+    """
+
+    name: str
+    local_img: str
+    img: str
+
 
 # Color definitions
 BLUE = "\033[0;34m"
@@ -35,232 +48,232 @@ class Playground:
         """Displays colored messages."""
         print(f"{color}{msg}{ENDC}")
 
-    def godsList(self) -> List[Dict[str, Any]]:
+    def godsList(self) -> List[God]:
         """
         Returns the list of Greek gods with their name, local image filename,
         and Wikimedia Commons source URL.
         """
         return [
-            {
-                "name": "Aglaea",
-                "local_img": "Aglaea.JPG",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/20140416%20corfu218.JPG",
-            },
-            {
-                "name": "Amicitia",
-                "local_img": "Amicitia.JPG",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Amicitia%20DenHaag%20Friedenspalast.JPG",
-            },
-            {
-                "name": "Anteros",
-                "local_img": "Anteros.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Eros-piccadilly-circus.jpg",
-            },
-            {
-                "name": "Ares",
-                "local_img": "Ares.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/%CE%9F%20%CE%86%CF%81%CE%B7%CF%82%20%28Borghese-%CE%9B%CE%BF%CF%8D%CE%B2%CF%81%CE%BF%CF%85%29.jpg",
-            },
-            {
-                "name": "Aristaeus",
-                "local_img": "Aristaeus.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Aristaeus%20Bosio%20Louvre%20LL51.jpg",
-            },
-            {
-                "name": "Artemis",
-                "local_img": "Artemis.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Artemis%20of%20Ephesus.jpg",
-            },
-            {
-                "name": "Bia",
-                "local_img": "Bia.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Henry%20Fuseli%20-%20Hephaestus%2C%20Bia%20and%20Crato%20Securing%20Prometheus%20on%20Mount%20Caucasus%20-%20Google%20Art%20Project.jpg",
-            },
-            {
-                "name": "Britomartis",
-                "local_img": "Britomartis.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Email%20Limoges%20Spiegelr%C3%BCckseite%20Minos%20und%20Britomaris%20makffm%20WMH8.jpg",
-            },
-            {
-                "name": "Carpo",
-                "local_img": "Carpo.JPG",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Carpo-hora%2C%20I%20secolo%20dc%2C%20%28Uffizi%29%2003.JPG",
-            },
-            {
-                "name": "Charon",
-                "local_img": "Charon.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Sabouroff%20Painter%20ARV%20846%20196%20Hermes%20leading%20a%20deceased%20to%20Charon%20%2802%29.jpg",
-            },
-            {
-                "name": "Deimos",
-                "local_img": "Deimos.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Deimos-e-phoboslllll.jpg",
-            },
-            {
-                "name": "Demeter",
-                "local_img": "Demeter.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/%28Venice%29%20Demeter%20in%20the%20Museo%20archeologico%20nazionale.jpg",
-            },
-            {
-                "name": "Despoina",
-                "local_img": "Despoina.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Lycosoura-group%20%28cropped%29.jpg",
-            },
-            {
-                "name": "Eileithyia",
-                "local_img": "Eileithyia.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Amphora%20birth%20Athena%20Louvre%20F32.jpg",
-            },
-            {
-                "name": "Eirene",
-                "local_img": "Eirene.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Eirene%20von%20Knaus.jpg",
-            },
-            {
-                "name": "Enyo",
-                "local_img": "Enyo.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Image%20of%20Enyo%20the%20Goddess-%202014-04-16%2007-17.jpg",
-            },
-            {
-                "name": "Eos",
-                "local_img": "Eos.png",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Eos%20utgjutande%20morgondaggen%2C%20Nordisk%20familjebok.png",
-            },
-            {
-                "name": "Eris",
-                "local_img": "Eris.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Eris%20Antikensammlung%20Berlin%20F1775.jpg",
-            },
-            {
-                "name": "Eunomia",
-                "local_img": "Eunomia.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Horen%20Meyers.jpg",
-            },
-            {
-                "name": "Euphrosyne",
-                "local_img": "Euphrosyne.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Euphrosyne%20statue%20-%20Achilleion.jpg",
-            },
-            {
-                "name": "Hades",
-                "local_img": "Hades.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Detail%20of%20Pluto-Serapis%2C%20Statue%20group%20of%20Persephone%20%28as%20Isis%29%20and%20Pluto%20%28as%20Serapis%29%2C%20from%20the%20Sanctuary%20of%20the%20Egyptian%20Gods%20at%20Gortyna%2C%20mid-2nd%20century%20AD%2C%20Heraklion%20Archaeological%20Museum%20%2830305313721%29.jpg",
-            },
-            {
-                "name": "Hebe",
-                "local_img": "Hebe.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Canova-Hebe%2030%20degree%20view.jpg",
-            },
-            {
-                "name": "Helios",
-                "local_img": "Helios.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Architrave%20with%20sculpted%20metope%20showing%20sun%20god%20Helios%20in%20a%20quadriga%3B%20from%20temple%20of%20Athena%20at%20Troy%2C%20ca%20300-280%20BCE%3B%20Altes%20Museum%2C%20Berlin%20%2825308440197%29%20%28cropped%29%201.jpg",
-            },
-            {
-                "name": "Hemera",
-                "local_img": "Hemera.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Aphrodisias%20Museum%20Hemera%20or%20Day%204627.jpg",
-            },
-            {
-                "name": "Hephaestus",
-                "local_img": "Hephaestus.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Hephaistos%20Thetis%20at%20Kylix%20by%20the%20Foundry%20Painter%20Antikensammlung%20Berlin%20F2294.jpg",
-            },
-            {
-                "name": "Hera",
-                "local_img": "Hera.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Hera%20Campana%20Louvre%20Ma2283.jpg",
-            },
-            {
-                "name": "Hermaphroditus",
-                "local_img": "Hermaphroditus.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Ermafrodito%20-%20sec.%20III%20a.C.%20-%20da%20Pergamo.%20Istanbul.%20Museo%20archeol..jpg",
-            },
-            {
-                "name": "Hestia",
-                "local_img": "Hestia.JPG",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Hestia%20-%20Wellesley%20College%20-%20DSC09634.JPG",
-            },
-            {
-                "name": "Himeros",
-                "local_img": "Himeros.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Kantharos64.10.jpg",
-            },
-            {
-                "name": "Hypnos",
-                "local_img": "Hypnos.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Waterhouse-sleep%20and%20his%20half-brother%20death-1874.jpg",
-            },
-            {
-                "name": "Iris",
-                "local_img": "Iris.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Iris%20Louvre%20L43%20n2.jpg",
-            },
-            {
-                "name": "Kratos",
-                "local_img": "Kratos.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Kratos%20by%20John%20Flaxman.jpg",
-            },
-            {
-                "name": "Momus",
-                "local_img": "Momus.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Nantes%20-%20Graslin%20int%2001.jpg",
-            },
-            {
-                "name": "Nike",
-                "local_img": "Nike.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Nik%C3%A9%20%C3%89ph%C3%A8se.jpg",
-            },
-            {
-                "name": "Panacea",
-                "local_img": "Panacea.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Panacea.jpg",
-            },
-            {
-                "name": "Phobos",
-                "local_img": "Phobos.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Gigantomachy%20Staatliche%20Antikensammlungen%201553.jpg",
-            },
-            {
-                "name": "Phosphorus",
-                "local_img": "Phosphorus.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Evelyn%20de%20Morgan%20-%20Phosphorus%20and%20Hesperus%2C%20%281881%29.jpg",
-            },
-            {
-                "name": "Plutus",
-                "local_img": "Plutus.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Eirene%20Ploutos%20Glyptothek%20Munich%20219%20n4.jpg",
-            },
-            {
-                "name": "Poseidon",
-                "local_img": "Poseidon.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Poseidon%20sculpture%20Copenhagen%202005.jpg",
-            },
-            {
-                "name": "Telesphorus",
-                "local_img": "Telesphorus.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Statue%20of%20Telesphorus%2C%20Greece%2C%20500-200%20BCE%20Wellcome%20L0058862.jpg",
-            },
-            {
-                "name": "Thalia",
-                "local_img": "Thalia.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Thalia%20at%20Corfu%201.jpg",
-            },
-            {
-                "name": "Thallo",
-                "local_img": "Thallo.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Spring%20by%20Franz%20Xaver%20Winterhalter.jpg",
-            },
-            {
-                "name": "Thanatos",
-                "local_img": "Thanatos.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Euphronios%20krater%20side%20A%20MET%20L.2006.10.jpg",
-            },
-            {
-                "name": "Zeus",
-                "local_img": "Zeus.jpg",
-                "img": "http://commons.wikimedia.org/wiki/Special:FilePath/Jupiter%20J1a.jpg",
-            },
+            God(
+                "Aglaea",
+                "Aglaea.JPG",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/20140416%20corfu218.JPG",
+            ),
+            God(
+                "Amicitia",
+                "Amicitia.JPG",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Amicitia%20DenHaag%20Friedenspalast.JPG",
+            ),
+            God(
+                "Anteros",
+                "Anteros.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Eros-piccadilly-circus.jpg",
+            ),
+            God(
+                "Ares",
+                "Ares.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/%CE%9F%20%CE%86%CF%81%CE%B7%CF%82%20%28Borghese-%CE%9B%CE%BF%CF%8D%CE%B2%CF%81%CE%BF%CF%85%29.jpg",
+            ),
+            God(
+                "Aristaeus",
+                "Aristaeus.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Aristaeus%20Bosio%20Louvre%20LL51.jpg",
+            ),
+            God(
+                "Artemis",
+                "Artemis.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Artemis%20of%20Ephesus.jpg",
+            ),
+            God(
+                "Bia",
+                "Bia.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Henry%20Fuseli%20-%20Hephaestus%2C%20Bia%20and%20Crato%20Securing%20Prometheus%20on%20Mount%20Caucasus%20-%20Google%20Art%20Project.jpg",
+            ),
+            God(
+                "Britomartis",
+                "Britomartis.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Email%20Limoges%20Spiegelr%C3%BCckseite%20Minos%20und%20Britomaris%20makffm%20WMH8.jpg",
+            ),
+            God(
+                "Carpo",
+                "Carpo.JPG",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Carpo-hora%2C%20I%20secolo%20dc%2C%20%28Uffizi%29%2003.JPG",
+            ),
+            God(
+                "Charon",
+                "Charon.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Sabouroff%20Painter%20ARV%20846%20196%20Hermes%20leading%20a%20deceased%20to%20Charon%20%2802%29.jpg",
+            ),
+            God(
+                "Deimos",
+                "Deimos.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Deimos-e-phoboslllll.jpg",
+            ),
+            God(
+                "Demeter",
+                "Demeter.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/%28Venice%29%20Demeter%20in%20the%20Museo%20archeologico%20nazionale.jpg",
+            ),
+            God(
+                "Despoina",
+                "Despoina.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Lycosoura-group%20%28cropped%29.jpg",
+            ),
+            God(
+                "Eileithyia",
+                "Eileithyia.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Amphora%20birth%20Athena%20Louvre%20F32.jpg",
+            ),
+            God(
+                "Eirene",
+                "Eirene.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Eirene%20von%20Knaus.jpg",
+            ),
+            God(
+                "Enyo",
+                "Enyo.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Image%20of%20Enyo%20the%20Goddess-%202014-04-16%2007-17.jpg",
+            ),
+            God(
+                "Eos",
+                "Eos.png",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Eos%20utgjutande%20morgondaggen%2C%20Nordisk%20familjebok.png",
+            ),
+            God(
+                "Eris",
+                "Eris.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Eris%20Antikensammlung%20Berlin%20F1775.jpg",
+            ),
+            God(
+                "Eunomia",
+                "Eunomia.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Horen%20Meyers.jpg",
+            ),
+            God(
+                "Euphrosyne",
+                "Euphrosyne.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Euphrosyne%20statue%20-%20Achilleion.jpg",
+            ),
+            God(
+                "Hades",
+                "Hades.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Detail%20of%20Pluto-Serapis%2C%20Statue%20group%20of%20Persephone%20%28as%20Isis%29%20and%20Pluto%20%28as%20Serapis%29%2C%20from%20the%20Sanctuary%20of%20the%20Egyptian%20Gods%20at%20Gortyna%2C%20mid-2nd%20century%20AD%2C%20Heraklion%20Archaeological%20Museum%20%2830305313721%29.jpg",
+            ),
+            God(
+                "Hebe",
+                "Hebe.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Canova-Hebe%2030%20degree%20view.jpg",
+            ),
+            God(
+                "Helios",
+                "Helios.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Architrave%20with%20sculpted%20metope%20showing%20sun%20god%20Helios%20in%20a%20quadriga%3B%20from%20temple%20of%20Athena%20at%20Troy%2C%20ca%20300-280%20BCE%3B%20Altes%20Museum%2C%20Berlin%20%2825308440197%29%20%28cropped%29%201.jpg",
+            ),
+            God(
+                "Hemera",
+                "Hemera.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Aphrodisias%20Museum%20Hemera%20or%20Day%204627.jpg",
+            ),
+            God(
+                "Hephaestus",
+                "Hephaestus.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Hephaistos%20Thetis%20at%20Kylix%20by%20the%20Foundry%20Painter%20Antikensammlung%20Berlin%20F2294.jpg",
+            ),
+            God(
+                "Hera",
+                "Hera.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Hera%20Campana%20Louvre%20Ma2283.jpg",
+            ),
+            God(
+                "Hermaphroditus",
+                "Hermaphroditus.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Ermafrodito%20-%20sec.%20III%20a.C.%20-%20da%20Pergamo.%20Istanbul.%20Museo%20archeol..jpg",
+            ),
+            God(
+                "Hestia",
+                "Hestia.JPG",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Hestia%20-%20Wellesley%20College%20-%20DSC09634.JPG",
+            ),
+            God(
+                "Himeros",
+                "Himeros.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Kantharos64.10.jpg",
+            ),
+            God(
+                "Hypnos",
+                "Hypnos.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Waterhouse-sleep%20and%20his%20half-brother%20death-1874.jpg",
+            ),
+            God(
+                "Iris",
+                "Iris.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Iris%20Louvre%20L43%20n2.jpg",
+            ),
+            God(
+                "Kratos",
+                "Kratos.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Kratos%20by%20John%20Flaxman.jpg",
+            ),
+            God(
+                "Momus",
+                "Momus.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Nantes%20-%20Graslin%20int%2001.jpg",
+            ),
+            God(
+                "Nike",
+                "Nike.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Nik%C3%A9%20%C3%89ph%C3%A8se.jpg",
+            ),
+            God(
+                "Panacea",
+                "Panacea.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Panacea.jpg",
+            ),
+            God(
+                "Phobos",
+                "Phobos.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Gigantomachy%20Staatliche%20Antikensammlungen%201553.jpg",
+            ),
+            God(
+                "Phosphorus",
+                "Phosphorus.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Evelyn%20de%20Morgan%20-%20Phosphorus%20and%20Hesperus%2C%20%281881%29.jpg",
+            ),
+            God(
+                "Plutus",
+                "Plutus.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Eirene%20Ploutos%20Glyptothek%20Munich%20219%20n4.jpg",
+            ),
+            God(
+                "Poseidon",
+                "Poseidon.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Poseidon%20sculpture%20Copenhagen%202005.jpg",
+            ),
+            God(
+                "Telesphorus",
+                "Telesphorus.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Statue%20of%20Telesphorus%2C%20Greece%2C%20500-200%20BCE%20Wellcome%20L0058862.jpg",
+            ),
+            God(
+                "Thalia",
+                "Thalia.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Thalia%20at%20Corfu%201.jpg",
+            ),
+            God(
+                "Thallo",
+                "Thallo.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Spring%20by%20Franz%20Xaver%20Winterhalter.jpg",
+            ),
+            God(
+                "Thanatos",
+                "Thanatos.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Euphronios%20krater%20side%20A%20MET%20L.2006.10.jpg",
+            ),
+            God(
+                "Zeus",
+                "Zeus.jpg",
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Jupiter%20J1a.jpg",
+            ),
         ]
 
     def generate_header(self, image_url: str) -> str:
@@ -314,8 +327,8 @@ class Playground:
         table_content = '        <div class="grid-container">\n'
         count = 0
         for god in gods:
-            name = god["name"]
-            local_img = god["local_img"]
+            name = god.name
+            local_img = god.local_img
             table_content += f'            <div class="grid-item">\n                <a href="/{name}">{name}</a><br>\n                <img src="images/{local_img}" alt="{name}">\n            </div>\n'
             count += 1
             if count % 9 == 0:
@@ -368,8 +381,8 @@ class Playground:
     """
         for idx, god in enumerate(self.godsList()):
             mw_port = self.base_port + (idx * self.step)
-            conf_content += f"""    ProxyPass /{god["name"]} http://localhost:{mw_port}
-    ProxyPassReverse /{god["name"]} http://localhost:{mw_port}
+            conf_content += f"""    ProxyPass /{god.name} http://localhost:{mw_port}
+    ProxyPassReverse /{god.name} http://localhost:{mw_port}
     """
         conf_content += """
     # Serve the overview page
@@ -420,7 +433,7 @@ set -e  # Exit on error
         for idx, god in enumerate(self.godsList()):
             mw_port = self.base_port + (idx * self.step)
             sql_port = mw_port + 1
-            name = god["name"]
+            name = god.name
             script_content += f"""
 echo "Setting up {name} wiki..."
 profiwiki -rp -fu -cn {name} -bp {mw_port} -sp {sql_port} --all -f
@@ -444,7 +457,7 @@ profiwiki -rp -fu -cn {name} -bp {mw_port} -sp {sql_port} --all -f
 LS=/var/www/html/LocalSettings.php
 """
         for god in self.godsList():
-            name = god["name"]
+            name = god.name
             script_content += f"""
 # {name}
 docker exec "{name}-mw" sed -i 's#^\\$wgScriptPath = .*#\\$wgScriptPath = "/{name}";#' $LS
@@ -505,7 +518,7 @@ def main():
     if args.list:
         gods = pg.godsList()
         for god in gods:
-            print(god["name"])
+            print(god.name)
         handled = True
     if not handled:
         parser.print_help()  # Replaces usage
